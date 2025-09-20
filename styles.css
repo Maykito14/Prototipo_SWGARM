@@ -206,3 +206,91 @@ body {
   margin-top: 40px;
   font-weight: 500;
 }
+
+
+/* Header */
+.main-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background-color: #f1c40f;
+  color: #000;
+}
+.header-logo {
+  width: 60px;
+  border-radius: 50%;
+}
+
+/* Filtros */
+.filters {
+  display: flex;
+  gap: 10px;
+  padding: 15px 20px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  align-items: center;
+}
+.filters h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.filters select, .filters button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+/* Listado de animales */
+.animal-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 0 20px 40px;
+}
+
+/* Tarjeta animal */
+.animal-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 15px;
+  text-align: center;
+}
+.animal-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.animal-card h3 {
+  margin: 10px 0;
+  font-size: 20px;
+}
+.animal-desc {
+  font-size: 14px;
+  color: #555;
+  margin: 10px 0;
+}
+.btn-adopt {
+  width: 100%;
+  padding: 10px;
+  background-color: #27ae60;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-adopt:hover {
+  background-color: #219150;
+}
+
+/* Secciones del formulario */
+.login-form h3 {
+  font-size: 16px;
+  margin: 15px 0 5px;
+  color: #000;
+  text-align: left;
+}

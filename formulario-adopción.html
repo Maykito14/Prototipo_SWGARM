@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulario de Adopción - Corazón de Trapo</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="login-body">
+
+  <div class="login-container">
+    <!-- Header -->
+    <div class="login-header">
+      <img src="images/logo.png" alt="Logo Corazón de Trapo" class="login-logo">
+      <h1 class="title">Formulario de Adopción</h1>
+      <p class="login-subtitle">Completa la información para postularte</p>
+    </div>
+
+    <!-- Formulario de adopción -->
+    <form class="login-form">
+
+      <!-- Datos del adoptante -->
+      <h3>Datos personales</h3>
+      <div class="form-group">
+        <label for="nombre">Nombre completo</label>
+        <input type="text" id="nombre" placeholder="Ingrese su nombre completo" required>
+      </div>
+      <div class="form-group">
+        <label for="telefono">Teléfono</label>
+        <input type="tel" id="telefono" placeholder="Ingrese su número de teléfono" required>
+      </div>
+      <div class="form-group">
+        <label for="direccion">Dirección</label>
+        <input type="text" id="direccion" placeholder="Ingrese su dirección" required>
+      </div>
+
+      <!-- Condiciones del hogar -->
+      <h3>Condiciones del hogar</h3>
+      <div class="form-group">
+        <label for="tipo-vivienda">Tipo de vivienda</label>
+        <select id="tipo-vivienda" required>
+          <option value="">Seleccione...</option>
+          <option>Casa con patio</option>
+          <option>Departamento</option>
+          <option>Casa sin patio</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="espacio">¿Tiene espacio para la mascota?</label>
+        <select id="espacio" required>
+          <option value="">Seleccione...</option>
+          <option>Sí</option>
+          <option>No</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="otras-mascotas">¿Tiene otras mascotas?</label>
+        <select id="otras-mascotas" required>
+          <option value="">Seleccione...</option>
+          <option>Sí</option>
+          <option>No</option>
+        </select>
+      </div>
+
+      <!-- Disponibilidad -->
+      <h3>Disponibilidad y cuidados</h3>
+      <div class="form-group">
+        <label for="tiempo">¿Cuántas horas al día pasa en casa?</label>
+        <select id="tiempo" required>
+          <option value="">Seleccione...</option>
+          <option>Menos de 4 horas</option>
+          <option>4 a 8 horas</option>
+          <option>Más de 8 horas</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="experiencia">¿Tiene experiencia previa con mascotas?</label>
+        <select id="experiencia" required>
+          <option value="">Seleccione...</option>
+          <option>Sí</option>
+          <option>No</option>
+        </select>
+      </div>
+
+      <!-- Botón de envío -->
+      <button type="submit" class="btn btn-adopt">Enviar postulación</button>
+    </form>
+  </div>
+
+</body>
+</html>
