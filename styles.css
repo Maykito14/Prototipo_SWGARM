@@ -276,15 +276,15 @@ body {
 .btn-adopt {
   width: 100%;
   padding: 10px;
-  background-color: #27ae60;
-  color: #fff;
+  background-color: #f1c40f;
+  color: #000000;
   font-weight: bold;
   border: none;
   border-radius: 6px;
   cursor: pointer;
 }
 .btn-adopt:hover {
-  background-color: #219150;
+  background-color: #f1c40f;
 }
 
 /* Secciones del formulario */
@@ -293,4 +293,89 @@ body {
   margin: 15px 0 5px;
   color: #000;
   text-align: left;
+}
+
+
+
+/* Panel Admin */
+.admin-panel {
+  padding: 20px;
+}
+
+.admin-panel h2 {
+  margin-bottom: 15px;
+  font-size: 22px;
+  color: #000;
+}
+
+/* Tabla solicitudes */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.admin-table th, .admin-table td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.admin-table th {
+  background: #f1c40f;
+  color: #000;
+  font-weight: bold;
+}
+
+.admin-table tr:hover {
+  background: #fafafa;
+}
+
+/* Botones acciones */
+.btn-table {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  margin: 0 2px;
+}
+.btn-table.ver {
+  background-color: #3498db;
+  color: #fff;
+}
+.btn-table.aprobar {
+  background-color: #27ae60;
+  color: #fff;
+}
+.btn-table.rechazar {
+  background-color: #e74c3c;
+  color: #fff;
+}
+.btn-table:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Estado */
+.status {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+.status.pendiente {
+  background: #f39c12;
+  color: #fff;
+}
+.status.aprobada {
+  background: #27ae60;
+  color: #fff;
+}
+.status.rechazada {
+  background: #e74c3c;
+  color: #fff;
 }

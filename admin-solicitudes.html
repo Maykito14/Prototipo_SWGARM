@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitudes de Adopción - Admin</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="main-header">
+    <img src="images/logo.png" alt="Logo Corazón de Trapo" class="header-logo">
+    <h1>Panel de Administración - Solicitudes</h1>
+  </header>
+
+  <main class="admin-panel">
+    <h2>Solicitudes de Adopción</h2>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Adoptante</th>
+          <th>Animal</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>001</td>
+          <td>Juan Pérez</td>
+          <td>Luna (Perro)</td>
+          <td>20/08/2025</td>
+          <td><span class="status pendiente">Pendiente</span></td>
+          <td>
+            <button class="btn-table ver">Ver</button>
+            <button class="btn-table aprobar">Aprobar</button>
+            <button class="btn-table rechazar">Rechazar</button>
+          </td>
+        </tr>
+        <tr>
+          <td>002</td>
+          <td>Ana Gómez</td>
+          <td>Milo (Gato)</td>
+          <td>22/08/2025</td>
+          <td><span class="status aprobada">Aprobada</span></td>
+          <td>
+            <button class="btn-table ver">Ver</button>
+            <button class="btn-table aprobar" disabled>Aprobar</button>
+            <button class="btn-table rechazar">Rechazar</button>
+          </td>
+        </tr>
+        <tr>
+          <td>003</td>
+          <td>Carlos López</td>
+          <td>Rocky (Perro)</td>
+          <td>25/08/2025</td>
+          <td><span class="status rechazada">Rechazada</span></td>
+          <td>
+            <button class="btn-table ver">Ver</button>
+            <button class="btn-table aprobar">Aprobar</button>
+            <button class="btn-table rechazar" disabled>Rechazar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+</body>
+</html>
