@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Corazón de Trapo - Iniciar Sesión</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="./css/styles.css">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 </head>
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Formulario -->
-    <form class="login-form">
+    <form class="login-form" id="loginForm">
       <div class="form-group">
         <label for="email">Correo electrónico</label>
         <input type="email" id="email" placeholder="Ingrese su correo" required>
@@ -28,6 +28,7 @@
         <label for="password">Contraseña</label>
         <input type="password" id="password" placeholder="Ingrese su contraseña" required>
       </div>
+      <div id="error-message" style="color: red; font-size: 14px; margin-bottom: 10px; display: none;"></div>
       <button type="submit" class="btn btn-login">Ingresar</button>
     </form>
 
@@ -38,5 +39,8 @@
     </div>
   </div>
 
+  <script src="./js/api.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/login.js"></script>
 </body>
 </html>
