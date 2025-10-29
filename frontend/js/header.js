@@ -6,7 +6,12 @@ function buildHeader(titleText) {
         <img src="images/logo.png" alt="Logo Corazón de Trapo" class="logo">
         <h1 class="title">${titleText || 'Corazón de Trapo'}</h1>
       </div>
-      <nav class="nav">
+      <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Abrir menú">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <nav class="nav" id="mainNav">
         <a href="index.html">Inicio</a>
         <a href="animales.html">Animales</a>
         <a href="formulario-adopción.html" data-role="public">Postular adopción</a>
@@ -47,6 +52,37 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     document.body.insertAdjacentHTML('afterbegin', headerHtml);
   }
+
+  // Inicializar menú móvil
+  initMobileMenu();
 });
 
+function initMobileMenu() {
+  const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+  const mainNav = document.getElementById('mainNav');
+  
+  if (mobileMenuToggle && mainNav) {
+    mobileMenuToggle.addEventListener('click', () => {
+      mainNav.classList.toggle('nav-open');
+      mobileMenuToggle.classList.toggle('active');
+    });
+
+    // Cerrar menú al hacer clic en un enlace
+    const navLinks = mainNav.querySelectorAll('a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        mainNav.classList.remove('nav-open');
+        mobileMenuToggle.classList.remove('active');
+      });
+    });
+
+    // Cerrar menú al hacer clic fuera
+    document.addEventListener('click', (e) => {
+      if (!mainNav.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+        mainNav.classList.remove('nav-open');
+        mobileMenuToggle.classList.remove('active');
+      }
+    });
+  }
+}
 
