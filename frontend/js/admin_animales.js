@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         edad: parseInt(formData.get('edad')),
         estado: formData.get('estado'),
         fechaIngreso: formData.get('fechaIngreso'),
-        descripcion: formData.get('descripcion').trim()
+        descripcion: formData.get('descripcion').trim(),
+        foto: formData.get('foto')?.trim() || null
       };
 
       // Verificar duplicados por nombre

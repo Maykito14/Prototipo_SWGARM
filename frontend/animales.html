@@ -6,134 +6,68 @@
   <title>Animales en Adopción - Corazón de Trapo</title>
   <link rel="stylesheet" href="./css/styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .badge-estado {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .badge-estado.estado-disponible {
+      background-color: #2ecc71;
+      color: #fff;
+    }
+    .badge-estado.estado-en-proceso {
+      background-color: #f39c12;
+      color: #fff;
+    }
+    .badge-estado.estado-adoptado {
+      background-color: #3498db;
+      color: #fff;
+    }
+    .badge-estado.estado-en-tratamiento {
+      background-color: #e74c3c;
+      color: #fff;
+    }
+  </style>
 </head>
 <body>
-
-  <header class="main-header">
-    <div class="header-container">
-      <!-- Logo -->
-      <div class="logo-container">
-        <img src="images/logo.png" alt="Logo Corazón de Trapo" class="logo">
-        <h1 class="title">Animales en Adopción</h1>
-      </div>
-      <div>
-        <!-- Menú -->
-        <nav class="nav">
-          <a href="index.html">Inicio</a>
-          <a href="animales.html">Animales</a>
-          <a href="adopciones.html">Adopciones</a>
-          <a href="campañas.html">Campañas</a>
-          <a href="admin-solicitudes.html">Reportes</a>
-        </nav>
-      </div>
-    </div>
-  </header>
-
-
   <!-- Filtros -->
   <section class="filters">
-    <h3>Filtrar por:</h3>
-    <select>
-      <option>Todos</option>
-      <option>Perros</option>
-      <option>Gatos</option>
-    </select>
-    <select>
-      <option>Edad</option>
-      <option>Cachorro</option>
-      <option>Adulto</option>
-      <option>Senior</option>
-    </select>
-    <select>
-      <option>Tamaño</option>
-      <option>Pequeño</option>
-      <option>Mediano</option>
-      <option>Grande</option>
-    </select>
-    <button class="btn btn-login">Aplicar filtros</button>
+    <h3>Buscar y filtrar</h3>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+      <input type="text" id="buscador" placeholder="Buscar por nombre..." style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+      <select id="filtroEspecie" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Todas las especies</option>
+        <option value="Perro">Perros</option>
+        <option value="Gato">Gatos</option>
+        <option value="Otro">Otros</option>
+      </select>
+      <select id="filtroEdad" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Todas las edades</option>
+        <option value="cachorro">Cachorro (0-1 año)</option>
+        <option value="adulto">Adulto (1-7 años)</option>
+        <option value="senior">Senior (7+ años)</option>
+      </select>
+      <select id="filtroEstado" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Todos los estados</option>
+        <option value="Disponible" selected>Disponible</option>
+        <option value="En proceso">En proceso</option>
+        <option value="Adoptado">Adoptado</option>
+        <option value="En tratamiento">En tratamiento</option>
+      </select>
+      <button id="btnLimpiar" class="btn btn-secondary">Limpiar</button>
+    </div>
+    <div id="contadorResultados" style="margin-top: 12px; color: #666; font-size: 14px;"></div>
   </section>
 
   <!-- Listado de animales -->
-  <section class="animal-list">
-    
-    <!-- Tarjeta ejemplo -->
-    <div class="animal-card">
-      <img src="images/bingo.jpg" alt="Bingo" class="animal-img">
-      <h3>Bingo</h3>
-      <p><strong>Especie:</strong> Perro</p>
-      <p><strong>Edad:</strong> 2 años</p>
-      <p><strong>Tamaño:</strong> Grande</p>
-      <p><strong>Salud:</strong> 💉 Vacunado | ✂️ Castrado | Miembro posterior Operado</p>
-      <p class="animal-desc">Bingo es muy cariñoso y se lleva bien con niños y otros perros. Necesita un hogar donde le den atención y mucho amor.</p>
-      <a href="formulario-adopción.html"><button class="btn btn-adopt" >Postularme para adoptar</button></a>
+  <section class="animal-list" id="animalList">
+    <div style="text-align: center; padding: 40px; color: #666;">
+      Cargando animales disponibles...
     </div>
-
-    <div class="animal-card">
-      <img src="images/michu.jpg" alt="Michu" class="animal-img">
-      <h3>Michu</h3>
-      <p><strong>Especie:</strong> Gato</p>
-      <p><strong>Edad:</strong> 1 año</p>
-      <p><strong>Tamaño:</strong> Pequeño</p>
-      <p><strong>Salud:</strong> 💉 Vacunada</p>
-      <p class="animal-desc">Michu es tranquila, ideal para departamentos, y disfruta de la compañía humana.</p>
-      <a href="formulario-adopción.html"><button class="btn btn-adopt" >Postularme para adoptar</button></a>
-    </div>
-
-    <div class="animal-card">
-      <img src="images/shule.jpg" alt="Shule" class="animal-img">
-      <h3>Shule</h3>
-      <p><strong>Especie:</strong> Perro</p>
-      <p><strong>Edad:</strong> 3 años</p>
-      <p><strong>Tamaño:</strong> Pequeño</p>
-      <p><strong>Salud:</strong> 💉 Vacunada | 👶 Sociable con niños</p>
-      <p class="animal-desc">Shule es amorosa, leal, le gusta jugar con otros perros. Le atraen los juguetes y las pelotas!</p>
-      <a href="formulario-adopción.html"><button class="btn btn-adopt" >Postularme para adoptar</button></a>
-    </div>
-
-     <div class="animal-card">
-      <img src="images/merlina.jpg" alt="Merlina" class="animal-img">
-      <h3>Merlina</h3>
-      <p><strong>Especie:</strong> Perro</p>
-      <p><strong>Edad:</strong> 7 meses</p>
-      <p><strong>Tamaño:</strong> Mediano</p>
-      <p><strong>Salud:</strong> 💉 Vacunada y desparacitada | 👶 Sociable con niños</p>
-      <p class="animal-desc">Merlina es una cachorra inteligente, sociable con otros perros, le gusta mucho jugar y hacer travesuras.</p>
-      <a href="formulario-adopción.html"><button class="btn btn-adopt" >Postularme para adoptar</button></a>
-    </div>
-
-     <div class="animal-card">
-      <img src="images/filomena.jpg" alt="Filomena" class="animal-img">
-      <h3>Filomena</h3>
-      <p><strong>Especie:</strong> Perro</p>
-      <p><strong>Edad:</strong> 2 años</p>
-      <p><strong>Tamaño:</strong> Grande</p>
-      <p><strong>Salud:</strong> 💉 Vacunada | ✂️ Castrada </p>
-      <p class="animal-desc">Filomena es una border collie muy tranquila, le gusta estar adentro, guardiana del hogar y de sus hermanos perrunos.</p>
-      <a href="formulario-adopción.html"><button class="btn btn-adopt" >Postularme para adoptar</button></a>
-    </div>
-
-     <div class="animal-card">
-      <img src="images/muriel.jpg" alt="Muriel" class="animal-img">
-      <h3>Muriel</h3>
-      <p><strong>Especie:</strong> Perro</p>
-      <p><strong>Edad:</strong> 5 años</p>
-      <p><strong>Tamaño:</strong> Pequeño</p>
-      <p><strong>Salud:</strong> 💉 Vacunada | ✂️ Castrada </p>
-      <p class="animal-desc">Muriel es una perra salchicha super amorosa, de tamaño pequeño. Le gusta dormir y recibir cariño constantemente.</p>
-      <a href="formulario-adopción.html"><button class="btn btn-adopt" >Postularme para adoptar</button></a>
-    </div>
-
-     <div class="animal-card">
-      <img src="images/pedro.jpg" alt="Pedro" class="animal-img">
-      <h3>Pedro</h3>
-      <p><strong>Especie:</strong> Perro</p>
-      <p><strong>Edad:</strong> 4 años</p>
-      <p><strong>Tamaño:</strong> Mediano</p>
-      <p><strong>Salud:</strong> 💉 Vacunado | ✂️ Castrado </p>
-      <p class="animal-desc">Pedro es un perro leal, vivió mucho tiempo en la calle y por eso ahora le gusta estar adentro. Es protector de su espacio y le gusta la tranquilidad.</p>
-      <a href="formulario-adopción.html"><button class="btn btn-adopt" >Postularme para adoptar</button></a>
-    </div>
-
   </section>
 
   <!-- Footer -->
@@ -143,6 +77,7 @@
 
 
   <script src="./js/api.js"></script>
+  <script src="./js/header.js"></script>
   <script src="./js/auth.js"></script>
   <script src="./js/animales.js"></script>
 </body>

@@ -19,4 +19,13 @@ router.post('/adoptantes', authMiddleware, adminMiddleware, adopcionController.c
 router.put('/solicitudes/:id', authMiddleware, adminMiddleware, adopcionController.actualizarSolicitud);
 router.delete('/solicitudes/:id', authMiddleware, adminMiddleware, adopcionController.eliminarSolicitud);
 
+// Adopciones formalizadas
+router.get('/adopciones', authMiddleware, adminMiddleware, adopcionController.listarAdopciones);
+router.get('/adopciones/:id', authMiddleware, adminMiddleware, adopcionController.obtenerAdopcion);
+router.post('/formalizar', authMiddleware, adminMiddleware, adopcionController.formalizarAdopcion);
+
+// Perfil de adoptante autenticado
+router.get('/mi-perfil', authMiddleware, adopcionController.obtenerMiPerfil);
+router.put('/mi-perfil', authMiddleware, adopcionController.actualizarMiPerfil);
+
 module.exports = router;

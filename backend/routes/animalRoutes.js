@@ -5,6 +5,7 @@ const { authMiddleware, adminMiddleware } = require('../middlewares/autMiddlewar
 
 // Rutas públicas (solo lectura)
 router.get('/', animalController.listarAnimales);
+router.get('/disponibles', animalController.listarAnimalesDisponibles);
 router.get('/:id', animalController.obtenerAnimal);
 
 // Rutas protegidas para administradores

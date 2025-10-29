@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="btn-table ver" onclick="verSolicitud(${solicitud.idSolicitud})">👁️</button>
           <button class="btn-table evaluar" onclick="evaluarSolicitud(${solicitud.idSolicitud})">📝</button>
           <button class="btn-table eliminar" onclick="eliminarSolicitud(${solicitud.idSolicitud})">🗑️</button>
+          ${solicitud.estado === 'Aprobada' ? `<button class="btn-table aprobar" onclick="formalizarSolicitud(${solicitud.idSolicitud})">✅</button>` : ''}
         </td>
       </tr>
     `).join('');
@@ -274,4 +275,21 @@ function getStatusClass(estado) {
     'No Seleccionada': 'tratamiento'
   };
   return estados[estado] || '';
+}
+
+async function formalizarSolicitud(idSolicitud) {
+  if (!confirm('Vas a formalizar la adopción para esta solicitud aprobada. ¿Confirmas?')) {
+    return;
+  }
+
+  const contrato = prompt('Ingrese referencia o número de contrato (opcional):', '');
+
+  try {
+    const resp = await api.formalizarAdopcion(idSolicitud, contrato || null);
+    alert(resp.message);
+    // Recargar solicitudes para reflejar el nuevo estado del animal si aplica
+    document.querySelector('script').dispatchEvent(new Event('DOMContentLoaded'));
+  } catch (error) {
+    alert(error.message || 'Error al formalizar adopción');
+  }
 }

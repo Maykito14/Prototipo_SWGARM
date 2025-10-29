@@ -123,4 +123,42 @@ const Solicitud = {
   },
 };
 
-module.exports = { Adoptante, Solicitud };
+const Adopcion = {
+  async getAll() {
+    const [rows] = await pool.query(`
+      SELECT ad.*, s.idAnimal, s.idAdoptante, a.nombre AS nombreAdoptante, a.apellido AS apellidoAdoptante,
+             an.nombre AS nombreAnimal, an.especie, u.email AS emailUsuario
+      FROM adopcion ad
+      JOIN solicitud s ON ad.idSolicitud = s.idSolicitud
+      JOIN adoptante a ON s.idAdoptante = a.idAdoptante
+      JOIN animal an ON s.idAnimal = an.idAnimal
+      JOIN usuario u ON ad.idUsuario = u.idUsuario
+      ORDER BY ad.fecha DESC, ad.idAdopcion DESC
+    `);
+    return rows;
+  },
+
+  async getById(id) {
+    const [rows] = await pool.query(`
+      SELECT ad.*, s.idAnimal, s.idAdoptante, a.nombre AS nombreAdoptante, a.apellido AS apellidoAdoptante,
+             an.nombre AS nombreAnimal, an.especie, u.email AS emailUsuario
+      FROM adopcion ad
+      JOIN solicitud s ON ad.idSolicitud = s.idSolicitud
+      JOIN adoptante a ON s.idAdoptante = a.idAdoptante
+      JOIN animal an ON s.idAnimal = an.idAnimal
+      JOIN usuario u ON ad.idUsuario = u.idUsuario
+      WHERE ad.idAdopcion = ?
+    `, [id]);
+    return rows[0];
+  },
+
+  async create({ idSolicitud, idUsuario, fecha, contrato }) {
+    const [result] = await pool.query(
+      'INSERT INTO adopcion (idSolicitud, idUsuario, fecha, contrato) VALUES (?, ?, ?, ?)',
+      [idSolicitud, idUsuario, fecha, contrato || null]
+    );
+    return { idAdopcion: result.insertId, idSolicitud, idUsuario, fecha, contrato: contrato || null };
+  }
+};
+
+module.exports = { Adoptante, Solicitud, Adopcion };

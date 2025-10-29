@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Campañas - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="./css/admin_solicitudes.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="main">
+    <div class="admin-panel">
+      <h2>Gestión de Campañas de Concientización</h2>
+
+      <div id="success-message" class="alert alert-success" style="display: none;"></div>
+      <div id="error-message" class="alert alert-error" style="display: none;"></div>
+
+      <!-- Formulario de registro de campaña -->
+      <div class="form-section">
+        <h3>Registrar Nueva Campaña</h3>
+        <form id="campanaForm" class="animal-form">
+          <div class="form-group">
+            <label for="titulo">Título de la Campaña *</label>
+            <input type="text" id="titulo" name="titulo" required maxlength="45">
+            <span class="error-message" id="titulo-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Descripción detallada de la campaña..." maxlength="500"></textarea>
+            <small style="color: #666;" id="descripcion-count">0 / 500 caracteres</small>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="responsable">Responsable</label>
+              <input type="text" id="responsable" name="responsable" placeholder="Nombre del responsable" maxlength="45">
+            </div>
+            <div class="form-group">
+              <label for="fecha">Fecha del Evento</label>
+              <input type="date" id="fecha" name="fecha">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Registrar Campaña</button>
+            <button type="reset" class="btn btn-secondary" id="btnResetForm">Limpiar Formulario</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Lista de campañas -->
+      <div class="section-card" style="background:#fff; border-radius:8px; padding:24px; margin:16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <h3>Lista de Campañas</h3>
+        <div class="table-container">
+          <table class="admin-table" id="tablaCampanas">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Responsable</th>
+                <th>Fecha Evento</th>
+                <th>Fecha Creación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="7" style="text-align:center; padding:20px;">Cargando campañas...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal para ver/editar campaña -->
+  <div id="modalCampana" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitulo">Ver Campaña</h3>
+        <span class="close" onclick="cerrarModalCampana()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="modalCampanaForm">
+          <div class="form-group">
+            <label for="modalTitulo">Título *</label>
+            <input type="text" id="modalTituloInput" name="titulo" required maxlength="45">
+            <span class="error-message" id="modal-titulo-error"></span>
+          </div>
+          <div class="form-group">
+            <label for="modalDescripcion">Descripción</label>
+            <textarea id="modalDescripcion" name="descripcion" rows="4" maxlength="500"></textarea>
+            <small style="color: #666;" id="modal-descripcion-count">0 / 500 caracteres</small>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modalResponsable">Responsable</label>
+              <input type="text" id="modalResponsable" name="responsable" maxlength="45">
+            </div>
+            <div class="form-group">
+              <label for="modalFecha">Fecha del Evento</label>
+              <input type="date" id="modalFecha" name="fecha">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalCampana()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/header.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/admin_campanas.js"></script>
+</body>
+</html>
+

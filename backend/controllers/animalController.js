@@ -10,6 +10,16 @@ exports.listarAnimales = async (req, res) => {
   }
 };
 
+exports.listarAnimalesDisponibles = async (req, res) => {
+  try {
+    const animales = await Animal.getDisponibles();
+    res.json(animales);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener animales disponibles' });
+  }
+};
+
 exports.obtenerAnimal = async (req, res) => {
   try {
     const animal = await Animal.getById(req.params.id);
@@ -22,7 +32,7 @@ exports.obtenerAnimal = async (req, res) => {
 
 exports.crearAnimal = async (req, res) => {
   try {
-    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion } = req.body;
+    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto } = req.body;
 
     // Validaciones básicas
     if (!nombre || !especie || !edad || !estado || !fechaIngreso) {
@@ -65,7 +75,7 @@ exports.crearAnimal = async (req, res) => {
 
 exports.actualizarAnimal = async (req, res) => {
   try {
-    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion } = req.body;
+    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto } = req.body;
 
     // Validaciones básicas
     if (!nombre || !especie || !edad || !estado || !fechaIngreso) {

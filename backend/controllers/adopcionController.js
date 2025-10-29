@@ -1,4 +1,41 @@
-const { Adoptante, Solicitud } = require('../models/adopcion');
+const { Adoptante, Solicitud, Adopcion } = require('../models/adopcion');
+const EstadoAnimal = require('../models/estadoAnimal');
+const User = require('../models/User');
+const Notificacion = require('../models/notificacion');
+const PreferenciasNotificacion = require('../models/preferenciasNotificacion');
+
+// Helper para enviar notificación al adoptante
+async function enviarNotificacionAdoptante(emailAdoptante, tipo, mensaje, idSolicitud = null, idSeguimiento = null) {
+  try {
+    // Buscar usuario por email
+    const usuario = await User.findByEmail(emailAdoptante);
+    if (!usuario) return; // Si no hay usuario registrado, no enviar notificación
+
+    // Verificar preferencias
+    const preferencias = await PreferenciasNotificacion.getByUsuario(usuario.idUsuario);
+    
+    if (preferencias) {
+      // Verificar si el tipo de notificación está habilitado
+      if (tipo === 'Solicitud Aprobada' && !preferencias.notificarSolicitudAprobada) return;
+      if (tipo === 'Solicitud Rechazada' && !preferencias.notificarSolicitudRechazada) return;
+      if (tipo === 'Recordatorio Seguimiento' && !preferencias.notificarRecordatorioSeguimiento) return;
+      
+      // Solo enviar si está habilitado en sistema
+      if (!preferencias.notificarEnSistema) return;
+    }
+
+    // Crear notificación
+    await Notificacion.create({
+      idUsuario: usuario.idUsuario,
+      tipo,
+      mensaje,
+      idSolicitud,
+      idSeguimiento
+    });
+  } catch (error) {
+    console.error('Error al enviar notificación:', error);
+  }
+}
 
 // Controladores para Adoptantes
 exports.listarAdoptantes = async (req, res) => {
@@ -219,6 +256,29 @@ exports.actualizarSolicitud = async (req, res) => {
     }
 
     const actualizado = await Solicitud.update(req.params.id, datosActualizacion);
+    
+    // Enviar notificación al adoptante si se aprueba o rechaza
+    if (estado === 'Aprobada' || estado === 'Rechazada') {
+      const adoptante = await Adoptante.getById(solicitudActual.idAdoptante);
+      const pool = require('../config/db');
+      const [animalRows] = await pool.query('SELECT nombre FROM animal WHERE idAnimal = ?', [solicitudActual.idAnimal]);
+      const nombreAnimal = animalRows[0]?.nombre || 'el animal';
+      
+      if (adoptante && adoptante.email) {
+        let mensaje, tipo;
+        if (estado === 'Aprobada') {
+          tipo = 'Solicitud Aprobada';
+          mensaje = `¡Felicitaciones! Tu solicitud de adopción para ${nombreAnimal} ha sido aprobada. Pronto nos pondremos en contacto contigo.`;
+        } else {
+          tipo = 'Solicitud Rechazada';
+          const motivo = motivoRechazo ? ` Motivo: ${motivoRechazo}` : '';
+          mensaje = `Tu solicitud de adopción para ${nombreAnimal} ha sido rechazada.${motivo}`;
+        }
+        
+        await enviarNotificacionAdoptante(adoptante.email, tipo, mensaje, solicitudActual.idSolicitud);
+      }
+    }
+    
     res.json({
       message: 'Solicitud actualizada exitosamente',
       solicitud: actualizado,
@@ -246,5 +306,176 @@ exports.eliminarSolicitud = async (req, res) => {
     res.json({ message: 'Solicitud eliminada correctamente' });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar solicitud' });
+  }
+};
+
+// Listar adopciones formalizadas
+exports.listarAdopciones = async (req, res) => {
+  try {
+    const adopciones = await Adopcion.getAll();
+    res.json(adopciones);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener adopciones' });
+  }
+};
+
+// Obtener adopción por id
+exports.obtenerAdopcion = async (req, res) => {
+  try {
+    const adopcion = await Adopcion.getById(req.params.id);
+    if (!adopcion) return res.status(404).json({ error: 'Adopción no encontrada' });
+    res.json(adopcion);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al buscar adopción' });
+  }
+};
+
+// Formalizar adopción
+exports.formalizarAdopcion = async (req, res) => {
+  try {
+    const { idSolicitud, contrato } = req.body;
+    const idUsuario = req.user.id; // administrador que formaliza
+
+    if (!idSolicitud) {
+      return res.status(400).json({ error: 'idSolicitud es obligatorio' });
+    }
+
+    // Obtener solicitud y validar
+    const solicitud = await Solicitud.getById(idSolicitud);
+    if (!solicitud) {
+      return res.status(404).json({ error: 'Solicitud no encontrada' });
+    }
+
+    if (solicitud.estado !== 'Aprobada') {
+      return res.status(400).json({ error: 'La solicitud debe estar Aprobada para formalizar la adopción' });
+    }
+
+    // Verificar que el animal no esté ya adoptado
+    const pool = require('../config/db');
+    const [animalRows] = await pool.query('SELECT * FROM animal WHERE idAnimal = ?', [solicitud.idAnimal]);
+    if (animalRows.length === 0) {
+      return res.status(404).json({ error: 'Animal no encontrado' });
+    }
+    const animal = animalRows[0];
+    if (animal.estado === 'Adoptado') {
+      return res.status(409).json({ error: 'El animal ya está adoptado' });
+    }
+
+    // Crear registro de adopción
+    const fecha = new Date().toISOString().split('T')[0];
+    const nuevaAdopcion = await Adopcion.create({ idSolicitud, idUsuario, fecha, contrato });
+
+    // Actualizar estado del animal a "Adoptado" usando el historial de estados
+    try {
+      await EstadoAnimal.updateAnimalStatus(solicitud.idAnimal, 'Adoptado', 'Adopción formalizada', `usuario:${idUsuario}`);
+    } catch (e) {
+      // Si falla el cambio de estado, dejamos trazado pero no deshacemos la adopción creada.
+      console.error('Error al actualizar estado del animal a Adoptado:', e.message);
+    }
+
+    // Responder con datos enriquecidos
+    const detalle = await Adopcion.getById(nuevaAdopcion.idAdopcion);
+    res.status(201).json({
+      message: 'Adopción formalizada exitosamente',
+      adopcion: detalle
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || 'Error al formalizar adopción' });
+  }
+};
+
+// Controladores para Perfil de Adoptante Autenticado
+exports.obtenerMiPerfil = async (req, res) => {
+  try {
+    // Obtener usuario autenticado
+    const usuario = await User.findById(req.user.id);
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Buscar adoptante por email
+    let adoptante = await Adoptante.getByEmail(usuario.email);
+    
+    // Si no existe, crear uno vacío con el email del usuario
+    // Usar valores por defecto ya que nombre y apellido son NOT NULL
+    if (!adoptante) {
+      adoptante = await Adoptante.create({
+        nombre: 'Pendiente',
+        apellido: 'Pendiente',
+        email: usuario.email,
+        telefono: null,
+        direccion: null,
+        ocupacion: null
+      });
+    }
+
+    res.json(adoptante);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener perfil' });
+  }
+};
+
+exports.actualizarMiPerfil = async (req, res) => {
+  try {
+    const { nombre, apellido, telefono, direccion, ocupacion } = req.body;
+
+    // Validar campos obligatorios
+    if (!nombre || !apellido) {
+      return res.status(400).json({ 
+        error: 'Los campos nombre y apellido son obligatorios',
+        campos: { nombre, apellido }
+      });
+    }
+
+    // Validar formato de teléfono (opcional pero si se proporciona debe ser válido)
+    if (telefono) {
+      const telefonoRegex = /^[\+]?[0-9\s\-\(\)]{7,15}$/;
+      if (!telefonoRegex.test(telefono)) {
+        return res.status(400).json({ error: 'Formato de teléfono inválido' });
+      }
+    }
+
+    // Obtener usuario autenticado
+    const usuario = await User.findById(req.user.id);
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Buscar adoptante por email
+    let adoptante = await Adoptante.getByEmail(usuario.email);
+    
+    // Si no existe, crear uno nuevo
+    if (!adoptante) {
+      adoptante = await Adoptante.create({
+        nombre,
+        apellido,
+        email: usuario.email,
+        telefono: telefono || null,
+        direccion: direccion || null,
+        ocupacion: ocupacion || null
+      });
+    } else {
+      // Actualizar adoptante existente (mantener el email del usuario)
+      adoptante = await Adoptante.update(adoptante.idAdoptante, {
+        nombre,
+        apellido,
+        email: usuario.email, // Mantener el email del usuario autenticado
+        telefono: telefono || null,
+        direccion: direccion || null,
+        ocupacion: ocupacion || null
+      });
+    }
+
+    res.json({
+      message: 'Perfil actualizado exitosamente',
+      adoptante
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al actualizar perfil' });
   }
 };

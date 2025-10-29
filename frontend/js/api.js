@@ -21,7 +21,12 @@ const api = {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error en la petición');
+        const error = new Error(data.error || 'Error en la petición');
+        // Pasar todos los datos adicionales del error
+        if (data.intentosRestantes !== undefined) error.intentosRestantes = data.intentosRestantes;
+        if (data.minutosRestantes !== undefined) error.minutosRestantes = data.minutosRestantes;
+        if (data.mensaje) error.mensaje = data.mensaje;
+        throw error;
       }
 
       return data;
@@ -46,9 +51,25 @@ const api = {
     });
   },
 
+  // Gestión de usuarios (solo administradores)
+  async getUsuarios() {
+    return this.request('/usuarios/usuarios');
+  },
+
+  async actualizarRol(idUsuario, nuevoRol) {
+    return this.request(`/usuarios/usuarios/${idUsuario}/rol`, {
+      method: 'PUT',
+      body: JSON.stringify({ rol: nuevoRol }),
+    });
+  },
+
   // Animales
   async getAnimales() {
     return this.request('/animales');
+  },
+
+  async getAnimalesDisponibles() {
+    return this.request('/animales/disponibles');
   },
 
   async getAnimal(id) {
@@ -174,6 +195,90 @@ const api = {
     });
   },
 
+  // Perfil de adoptante autenticado
+  async obtenerMiPerfil() {
+    return this.request('/adopcion/mi-perfil');
+  },
+
+  async actualizarMiPerfil(datos) {
+    return this.request('/adopcion/mi-perfil', {
+      method: 'PUT',
+      body: JSON.stringify(datos),
+    });
+  },
+
+  // Notificaciones
+  async getMisNotificaciones() {
+    return this.request('/notificaciones');
+  },
+
+  async getMisNotificacionesNoLeidas() {
+    return this.request('/notificaciones/no-leidas');
+  },
+
+  async contarNotificacionesNoLeidas() {
+    return this.request('/notificaciones/contar');
+  },
+
+  async marcarNotificacionComoLeida(id) {
+    return this.request(`/notificaciones/${id}/leida`, {
+      method: 'PUT',
+    });
+  },
+
+  async marcarTodasNotificacionesComoLeidas() {
+    return this.request('/notificaciones/marcar-todas-leidas', {
+      method: 'PUT',
+    });
+  },
+
+  async eliminarNotificacion(id) {
+    return this.request(`/notificaciones/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Preferencias de notificación
+  async getMisPreferenciasNotificacion() {
+    return this.request('/notificaciones/preferencias');
+  },
+
+  async actualizarMisPreferenciasNotificacion(preferencias) {
+    return this.request('/notificaciones/preferencias', {
+      method: 'PUT',
+      body: JSON.stringify(preferencias),
+    });
+  },
+
+  // Campañas (solo administradores)
+  async getCampanas() {
+    return this.request('/campanas');
+  },
+
+  async getCampana(id) {
+    return this.request(`/campanas/${id}`);
+  },
+
+  async crearCampana(datos) {
+    return this.request('/campanas', {
+      method: 'POST',
+      body: JSON.stringify(datos),
+    });
+  },
+
+  async actualizarCampana(id, datos) {
+    return this.request(`/campanas/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(datos),
+    });
+  },
+
+  async eliminarCampana(id) {
+    return this.request(`/campanas/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   async actualizarSolicitud(id, data) {
     return this.request(`/adopcion/solicitudes/${id}`, {
       method: 'PUT',
@@ -185,6 +290,55 @@ const api = {
     return this.request(`/adopcion/solicitudes/${id}`, {
       method: 'DELETE',
     });
+  },
+
+  // Adopciones formalizadas
+  async getAdopciones() {
+    return this.request('/adopcion/adopciones');
+  },
+
+  async getAdopcion(id) {
+    return this.request(`/adopcion/adopciones/${id}`);
+  },
+
+  async formalizarAdopcion(idSolicitud, contrato) {
+    return this.request('/adopcion/formalizar', {
+      method: 'POST',
+      body: JSON.stringify({ idSolicitud, contrato }),
+    });
+  },
+
+  // Seguimiento de adopción
+  async crearSeguimiento(data) {
+    return this.request('/seguimiento', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async completarSeguimiento(id, data) {
+    return this.request(`/seguimiento/${id}/completar`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getSeguimientosPendientes() {
+    return this.request('/seguimiento/pendientes');
+  },
+
+  async getSeguimientosPorAnimal(animalId) {
+    return this.request(`/seguimiento/animal/${animalId}`);
+  },
+
+  async getSeguimientosPorAdopcion(adopcionId) {
+    return this.request(`/seguimiento/adopcion/${adopcionId}`);
+  },
+
+  // Reportes
+  async getReporteAdopciones(desde, hasta) {
+    const params = new URLSearchParams({ desde, hasta });
+    return this.request(`/reportes/adopciones?${params.toString()}`);
   },
 };
 

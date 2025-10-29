@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Usuarios - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="./css/admin_solicitudes.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .badge-rol {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .badge-rol.admin {
+      background-color: #e74c3c;
+      color: #fff;
+    }
+    .badge-rol.adoptante {
+      background-color: #3498db;
+      color: #fff;
+    }
+    .section-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+  </style>
+</head>
+<body>
+  <main class="main">
+    <div class="admin-panel">
+      <h2>Gestión de Usuarios y Roles</h2>
+
+      <div class="section-card" style="background:#fff; border-radius:8px; padding:16px; margin:16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <h3>Lista de Usuarios</h3>
+        <div class="table-container">
+          <table class="admin-table" id="tablaUsuarios">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Rol Actual</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" style="text-align:center; padding:20px;">Cargando usuarios...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal para cambiar rol -->
+  <div id="modalRol" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Cambiar Rol de Usuario</h3>
+        <span class="close" onclick="cerrarModalRol()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="usuarioInfo" style="margin-bottom: 16px;"></div>
+        <form id="formCambiarRol">
+          <div class="form-group">
+            <label for="nuevoRol">Nuevo Rol *</label>
+            <select id="nuevoRol" name="nuevoRol" required>
+              <option value="">Seleccionar rol</option>
+              <option value="administrador">Administrador</option>
+              <option value="adoptante">Adoptante</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Actualizar Rol</button>
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalRol()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/header.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/admin_usuarios.js"></script>
+</body>
+</html>
+

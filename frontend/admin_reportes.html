@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reportes de Adopciones - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <main class="main">
+    <div class="admin-panel">
+      <h2>Reportes de Adopciones</h2>
+
+      <div class="section-card" style="background:#fff; border-radius:8px; padding:16px; margin:16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <h3>Filtros</h3>
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
+          <div class="form-group">
+            <label for="fechaDesde">Desde *</label>
+            <input type="date" id="fechaDesde" required />
+          </div>
+          <div class="form-group">
+            <label for="fechaHasta">Hasta *</label>
+            <input type="date" id="fechaHasta" required />
+          </div>
+          <div class="form-group" style="align-self:end;">
+            <button id="btnGenerar" class="btn btn-primary">Generar</button>
+          </div>
+          <div class="form-group" style="align-self:end; text-align:right;">
+            <button id="btnCSV" class="btn btn-secondary">Exportar CSV</button>
+            <button id="btnPDF" class="btn btn-secondary">Exportar PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>Resumen</h3>
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
+          <div class="stat-card"><h3>Total adopciones</h3><span id="totalAdop" class="stat-number">0</span></div>
+          <div class="stat-card"><h3>Por especie</h3><div id="porEspecie"></div></div>
+          <div class="stat-card"><h3>Rango</h3><div id="rango"></div></div>
+          <div class="stat-card"><h3>Promedio/mes</h3><span id="promedioMes" class="stat-number">0</span></div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
+        <div class="section-card">
+          <h3>Gráfico por especie</h3>
+          <canvas id="chartEspecie" height="200"></canvas>
+        </div>
+        <div class="section-card">
+          <h3>Evolución mensual</h3>
+          <canvas id="chartEvolucion" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>Top 5 razas más adoptadas</h3>
+        <div class="table-container">
+          <table class="admin-table" id="tablaRazas">
+            <thead>
+              <tr>
+                <th>Posición</th>
+                <th>Raza</th>
+                <th>Cantidad</th>
+                <th>Porcentaje</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>Detalle</h3>
+        <div class="table-container">
+          <table class="admin-table" id="tablaReporte">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Adoptante</th>
+                <th>Animal</th>
+                <th>Especie</th>
+                <th>Raza</th>
+                <th>Contrato</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/header.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/admin_reportes.js"></script>
+</body>
+</html>
+
+
