@@ -12,19 +12,19 @@ const Animal = {
   },
 
   async create(data) {
-    const { nombre, especie, raza, edad, estado, fechaIngreso } = data;
+    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion } = data;
     const [result] = await pool.query(
-      'INSERT INTO animal (nombre, especie, raza, edad, estado, fechaIngreso) VALUES (?, ?, ?, ?, ?, ?)',
-      [nombre, especie, raza, edad, estado, fechaIngreso]
+      'INSERT INTO animal (nombre, especie, raza, edad, estado, fechaIngreso, descripcion) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [nombre, especie, raza, edad, estado, fechaIngreso, descripcion]
     );
     return { idAnimal: result.insertId, ...data };
   },
 
   async update(id, data) {
-    const { nombre, especie, raza, edad, estado, fechaIngreso } = data;
+    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion } = data;
     await pool.query(
-      'UPDATE animal SET nombre=?, especie=?, raza=?, edad=?, estado=?, fechaIngreso=? WHERE idAnimal=?',
-      [nombre, especie, raza, edad, estado, fechaIngreso, id]
+      'UPDATE animal SET nombre=?, especie=?, raza=?, edad=?, estado=?, fechaIngreso=?, descripcion=? WHERE idAnimal=?',
+      [nombre, especie, raza, edad, estado, fechaIngreso, descripcion, id]
     );
     return this.getById(id);
   },
@@ -32,6 +32,11 @@ const Animal = {
   async remove(id) {
     const [result] = await pool.query('DELETE FROM animal WHERE idAnimal = ?', [id]);
     return result.affectedRows > 0;
+  },
+
+  async findByName(nombre) {
+    const [rows] = await pool.query('SELECT * FROM animal WHERE nombre = ?', [nombre]);
+    return rows[0];
   },
 };
 

@@ -22,8 +22,41 @@ exports.obtenerAnimal = async (req, res) => {
 
 exports.crearAnimal = async (req, res) => {
   try {
+    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion } = req.body;
+
+    // Validaciones básicas
+    if (!nombre || !especie || !edad || !estado || !fechaIngreso) {
+      return res.status(400).json({ 
+        error: 'Campos obligatorios faltantes',
+        campos: { nombre, especie, edad, estado, fechaIngreso }
+      });
+    }
+
+    // Validar edad
+    if (edad < 0 || edad > 30) {
+      return res.status(400).json({ error: 'La edad debe estar entre 0 y 30 años' });
+    }
+
+    // Validar fecha
+    const fecha = new Date(fechaIngreso);
+    if (fecha > new Date()) {
+      return res.status(400).json({ error: 'La fecha de ingreso no puede ser futura' });
+    }
+
+    // Verificar duplicados por nombre
+    const duplicado = await Animal.findByName(nombre);
+    if (duplicado) {
+      return res.status(409).json({ 
+        error: 'Ya existe un animal con ese nombre',
+        animalExistente: { id: duplicado.idAnimal, nombre: duplicado.nombre }
+      });
+    }
+
     const nuevo = await Animal.create(req.body);
-    res.status(201).json(nuevo);
+    res.status(201).json({
+      message: 'Animal registrado exitosamente',
+      animal: nuevo
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al crear animal' });
@@ -32,8 +65,32 @@ exports.crearAnimal = async (req, res) => {
 
 exports.actualizarAnimal = async (req, res) => {
   try {
+    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion } = req.body;
+
+    // Validaciones básicas
+    if (!nombre || !especie || !edad || !estado || !fechaIngreso) {
+      return res.status(400).json({ 
+        error: 'Campos obligatorios faltantes',
+        campos: { nombre, especie, edad, estado, fechaIngreso }
+      });
+    }
+
+    // Validar edad
+    if (edad < 0 || edad > 30) {
+      return res.status(400).json({ error: 'La edad debe estar entre 0 y 30 años' });
+    }
+
+    // Validar fecha
+    const fecha = new Date(fechaIngreso);
+    if (fecha > new Date()) {
+      return res.status(400).json({ error: 'La fecha de ingreso no puede ser futura' });
+    }
+
     const actualizado = await Animal.update(req.params.id, req.body);
-    res.json(actualizado);
+    res.json({
+      message: 'Animal actualizado exitosamente',
+      animal: actualizado
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al actualizar animal' });

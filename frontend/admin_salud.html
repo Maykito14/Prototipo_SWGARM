@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Salud - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="main-header">
+    <div class="header-container">
+      <!-- Logo -->
+      <div class="logo-container">
+        <img src="images/logo.png" alt="Logo Corazón de Trapo" class="logo">
+        <h1 class="title">Gestión de Salud</h1>
+      </div>
+      <div>
+        <!-- Menú -->
+        <nav class="nav">
+          <a href="index.html">Inicio</a>
+          <a href="animales.html">Animales</a>
+          <a href="admin_animales.html">Gestión Animales</a>
+          <a href="admin_salud.html">Gestión Salud</a>
+          <a href="admin_estados.html">Gestión Estados</a>
+          <a href="admin-solicitudes.html">Solicitudes</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="admin-panel">
+      <h2>Panel de Administración - Salud de Animales</h2>
+      
+      <!-- Formulario de registro de control de salud -->
+      <div class="form-section">
+        <h3>Registrar Control de Salud</h3>
+        <form id="saludForm" class="salud-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="idAnimal">Animal *</label>
+              <select id="idAnimal" name="idAnimal" required>
+                <option value="">Seleccionar animal</option>
+                <!-- Los animales se cargarán dinámicamente -->
+              </select>
+              <span class="error-message" id="idAnimal-error"></span>
+            </div>
+            <div class="form-group">
+              <label for="fechaControl">Fecha del Control *</label>
+              <input type="date" id="fechaControl" name="fechaControl" required>
+              <span class="error-message" id="fechaControl-error"></span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="veterinario">Veterinario</label>
+              <input type="text" id="veterinario" name="veterinario" placeholder="Nombre del veterinario">
+            </div>
+            <div class="form-group">
+              <label for="vacunas">Vacunas</label>
+              <input type="text" id="vacunas" name="vacunas" placeholder="Ej: Triple felina, Antirrábica">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="tratamientos">Tratamientos</label>
+            <textarea id="tratamientos" name="tratamientos" rows="2" placeholder="Describir tratamientos aplicados, medicamentos, etc."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" name="observaciones" rows="3" placeholder="Observaciones generales del estado de salud, comportamiento, etc."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Registrar Control</button>
+            <button type="reset" class="btn btn-secondary">Limpiar Formulario</button>
+          </div>
+
+          <!-- Mensajes de respuesta -->
+          <div id="success-message" class="success-message" style="display: none;"></div>
+          <div id="error-message" class="error-message" style="display: none;"></div>
+        </form>
+      </div>
+
+      <!-- Historial de controles de salud -->
+      <div class="historial-section">
+        <h3>Historial de Controles de Salud</h3>
+        
+        <!-- Filtro por animal -->
+        <div class="filter-section">
+          <label for="filtroAnimal">Filtrar por animal:</label>
+          <select id="filtroAnimal">
+            <option value="">Todos los animales</option>
+            <!-- Los animales se cargarán dinámicamente -->
+          </select>
+          <button id="btnFiltrar" class="btn btn-secondary">Filtrar</button>
+        </div>
+
+        <div class="table-container">
+          <table id="saludTable" class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Animal</th>
+                <th>Fecha</th>
+                <th>Veterinario</th>
+                <th>Vacunas</th>
+                <th>Tratamientos</th>
+                <th>Observaciones</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Los datos se cargarán dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    © 2025 Corazón de Trapo - Todos los derechos reservados
+  </footer>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/admin_salud.js"></script>
+</body>
+</html>

@@ -17,76 +17,91 @@
       <p class="login-subtitle">Completa la información para postularte</p>
     </div>
 
+    <!-- Información del animal -->
+    <div id="animal-info" class="animal-info" style="display: none;">
+      <h3>Animal seleccionado</h3>
+      <div id="animal-details"></div>
+    </div>
+
     <!-- Formulario de adopción -->
-    <form class="login-form">
+    <form id="adopcionForm" class="login-form">
 
       <!-- Datos del adoptante -->
       <h3>Datos personales</h3>
       <div class="form-group">
-        <label for="nombre">Nombre completo</label>
-        <input type="text" id="nombre" placeholder="Ingrese su nombre completo" required>
+        <label for="nombre">Nombre *</label>
+        <input type="text" id="nombre" name="nombre" placeholder="Ingrese su nombre" required>
+        <span class="error-message" id="nombre-error"></span>
+      </div>
+      <div class="form-group">
+        <label for="apellido">Apellido *</label>
+        <input type="text" id="apellido" name="apellido" placeholder="Ingrese su apellido" required>
+        <span class="error-message" id="apellido-error"></span>
+      </div>
+      <div class="form-group">
+        <label for="email">Correo electrónico *</label>
+        <input type="email" id="email" name="email" placeholder="Ingrese su correo electrónico" required>
+        <span class="error-message" id="email-error"></span>
       </div>
       <div class="form-group">
         <label for="telefono">Teléfono</label>
-        <input type="tel" id="telefono" placeholder="Ingrese su número de teléfono" required>
+        <input type="tel" id="telefono" name="telefono" placeholder="Ingrese su número de teléfono">
+        <span class="error-message" id="telefono-error"></span>
       </div>
       <div class="form-group">
         <label for="direccion">Dirección</label>
-        <input type="text" id="direccion" placeholder="Ingrese su dirección" required>
+        <input type="text" id="direccion" name="direccion" placeholder="Ingrese su dirección">
+      </div>
+      <div class="form-group">
+        <label for="ocupacion">Ocupación</label>
+        <input type="text" id="ocupacion" name="ocupacion" placeholder="Ingrese su ocupación">
       </div>
 
-      <!-- Condiciones del hogar -->
-      <h3>Condiciones del hogar</h3>
+      <!-- Motivo de adopción -->
+      <h3>Motivo de adopción</h3>
       <div class="form-group">
-        <label for="tipo-vivienda">Tipo de vivienda</label>
-        <select id="tipo-vivienda" required>
-          <option value="">Seleccione...</option>
-          <option>Casa con patio</option>
-          <option>Departamento</option>
-          <option>Casa sin patio</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="espacio">¿Tiene espacio para la mascota?</label>
-        <select id="espacio" required>
-          <option value="">Seleccione...</option>
-          <option>Sí</option>
-          <option>No</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="otras-mascotas">¿Tiene otras mascotas?</label>
-        <select id="otras-mascotas" required>
-          <option value="">Seleccione...</option>
-          <option>Sí</option>
-          <option>No</option>
-        </select>
+        <label for="motivoAdopcion">¿Por qué quiere adoptar esta mascota? *</label>
+        <textarea id="motivoAdopcion" name="motivoAdopcion" rows="3" placeholder="Explique brevemente por qué desea adoptar esta mascota" required></textarea>
+        <span class="error-message" id="motivoAdopcion-error"></span>
       </div>
 
-      <!-- Disponibilidad -->
-      <h3>Disponibilidad y cuidados</h3>
+      <!-- Experiencia con mascotas -->
+      <h3>Experiencia con mascotas</h3>
       <div class="form-group">
-        <label for="tiempo">¿Cuántas horas al día pasa en casa?</label>
-        <select id="tiempo" required>
+        <label for="experienciaMascotas">¿Tiene experiencia previa con mascotas? *</label>
+        <select id="experienciaMascotas" name="experienciaMascotas" required>
           <option value="">Seleccione...</option>
-          <option>Menos de 4 horas</option>
-          <option>4 a 8 horas</option>
-          <option>Más de 8 horas</option>
+          <option value="Sí, he tenido mascotas antes">Sí, he tenido mascotas antes</option>
+          <option value="No, sería mi primera mascota">No, sería mi primera mascota</option>
+          <option value="Sí, pero hace mucho tiempo">Sí, pero hace mucho tiempo</option>
         </select>
+        <span class="error-message" id="experienciaMascotas-error"></span>
       </div>
+
+      <!-- Condiciones de vivienda -->
+      <h3>Condiciones de vivienda</h3>
       <div class="form-group">
-        <label for="experiencia">¿Tiene experiencia previa con mascotas?</label>
-        <select id="experiencia" required>
-          <option value="">Seleccione...</option>
-          <option>Sí</option>
-          <option>No</option>
-        </select>
+        <label for="condicionesVivienda">Describa las condiciones de su vivienda *</label>
+        <textarea id="condicionesVivienda" name="condicionesVivienda" rows="3" placeholder="Tipo de vivienda, espacio disponible, patio, etc." required></textarea>
+        <span class="error-message" id="condicionesVivienda-error"></span>
       </div>
 
       <!-- Botón de envío -->
       <button type="submit" class="btn btn-adopt">Enviar postulación</button>
+
+      <!-- Mensajes de respuesta -->
+      <div id="success-message" class="success-message" style="display: none;"></div>
+      <div id="error-message" class="error-message" style="display: none;"></div>
     </form>
+
+    <!-- Links -->
+    <div class="login-links">
+      <a href="animales.html">← Volver a la lista de animales</a>
+    </div>
   </div>
 
+  <script src="./js/api.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/formulario-adopcion.js"></script>
 </body>
 </html>

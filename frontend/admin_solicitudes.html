@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evaluación de Solicitudes - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="./css/admin_solicitudes.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="main-header">
+    <div class="header-container">
+      <!-- Logo -->
+      <div class="logo-container">
+        <img src="images/logo.png" alt="Logo Corazón de Trapo" class="logo">
+        <h1 class="title">Evaluación de Solicitudes</h1>
+      </div>
+      <div>
+        <!-- Menú -->
+        <nav class="nav">
+          <a href="index.html">Inicio</a>
+          <a href="animales.html">Animales</a>
+          <a href="admin_animales.html">Gestión Animales</a>
+          <a href="admin_salud.html">Gestión Salud</a>
+          <a href="admin_estados.html">Gestión Estados</a>
+          <a href="admin_solicitudes.html">Evaluar Solicitudes</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="admin-panel">
+      <h2>Panel de Administración - Evaluación de Solicitudes</h2>
+      
+      <!-- Filtros -->
+      <div class="filter-section">
+        <div class="filter-group">
+          <label for="filtroEstado">Filtrar por estado:</label>
+          <select id="filtroEstado">
+            <option value="">Todos los estados</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En evaluación">En evaluación</option>
+            <option value="Aprobada">Aprobada</option>
+            <option value="Rechazada">Rechazada</option>
+            <option value="No Seleccionada">No Seleccionada</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filtroAnimal">Filtrar por animal:</label>
+          <select id="filtroAnimal">
+            <option value="">Todos los animales</option>
+            <!-- Los animales se cargarán dinámicamente -->
+          </select>
+        </div>
+        <button id="btnFiltrar" class="btn btn-secondary">Filtrar</button>
+        <button id="btnLimpiar" class="btn btn-secondary">Limpiar Filtros</button>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="stats-section">
+        <div class="stat-card">
+          <h3>Total Solicitudes</h3>
+          <span id="totalSolicitudes" class="stat-number">0</span>
+        </div>
+        <div class="stat-card">
+          <h3>Pendientes</h3>
+          <span id="solicitudesPendientes" class="stat-number">0</span>
+        </div>
+        <div class="stat-card">
+          <h3>Aprobadas</h3>
+          <span id="solicitudesAprobadas" class="stat-number">0</span>
+        </div>
+        <div class="stat-card">
+          <h3>Rechazadas</h3>
+          <span id="solicitudesRechazadas" class="stat-number">0</span>
+        </div>
+      </div>
+
+      <!-- Tabla de solicitudes -->
+      <div class="table-section">
+        <h3>Solicitudes de Adopción</h3>
+        <div class="table-container">
+          <table id="solicitudesTable" class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Adoptante</th>
+                <th>Animal</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Puntaje</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Los datos se cargarán dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal de evaluación -->
+  <div id="evaluacionModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Evaluar Solicitud</h3>
+        <span class="close" onclick="cerrarModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="solicitudDetalles"></div>
+        
+        <form id="evaluacionForm">
+          <div class="form-group">
+            <label for="nuevoEstado">Nuevo Estado *</label>
+            <select id="nuevoEstado" name="nuevoEstado" required>
+              <option value="">Seleccionar estado</option>
+              <option value="En evaluación">En evaluación</option>
+              <option value="Aprobada">Aprobada</option>
+              <option value="Rechazada">Rechazada</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="puntajeEvaluacion">Puntaje de Evaluación (0-100)</label>
+            <input type="number" id="puntajeEvaluacion" name="puntajeEvaluacion" min="0" max="100" value="0">
+          </div>
+          
+          <div class="form-group" id="motivoRechazoGroup" style="display: none;">
+            <label for="motivoRechazo">Motivo del Rechazo</label>
+            <textarea id="motivoRechazo" name="motivoRechazo" rows="3" placeholder="Explique el motivo del rechazo"></textarea>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar Evaluación</button>
+            <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    © 2025 Corazón de Trapo - Todos los derechos reservados
+  </footer>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/admin_solicitudes.js"></script>
+</body>
+</html>

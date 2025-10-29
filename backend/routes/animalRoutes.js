@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const animalController = require('../controllers/animalController');
+const { authMiddleware, adminMiddleware } = require('../middlewares/autMiddleware');
 
-// Endpoints REST
+// Rutas públicas (solo lectura)
 router.get('/', animalController.listarAnimales);
 router.get('/:id', animalController.obtenerAnimal);
-router.post('/', animalController.crearAnimal);
-router.put('/:id', animalController.actualizarAnimal);
-router.delete('/:id', animalController.eliminarAnimal);
+
+// Rutas protegidas para administradores
+router.post('/', authMiddleware, adminMiddleware, animalController.crearAnimal);
+router.put('/:id', authMiddleware, adminMiddleware, animalController.actualizarAnimal);
+router.delete('/:id', authMiddleware, adminMiddleware, animalController.eliminarAnimal);
 
 module.exports = router;

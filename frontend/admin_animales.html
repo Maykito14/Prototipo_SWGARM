@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Animales - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="main-header">
+    <div class="header-container">
+      <!-- Logo -->
+      <div class="logo-container">
+        <img src="images/logo.png" alt="Logo Corazón de Trapo" class="logo">
+        <h1 class="title">Gestión de Animales</h1>
+      </div>
+      <div>
+        <!-- Menú -->
+        <nav class="nav">
+          <a href="index.html">Inicio</a>
+          <a href="animales.html">Animales</a>
+          <a href="admin-solicitudes.html">Solicitudes</a>
+          <a href="admin_animales.html">Gestión Animales</a>
+          <a href="admin_salud.html">Gestión Salud</a>
+          <a href="admin_estados.html">Gestión Estados</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="admin-panel">
+      <h2>Panel de Administración - Animales</h2>
+      
+      <!-- Formulario de registro de animal -->
+      <div class="form-section">
+        <h3>Registrar Nuevo Animal</h3>
+        <form id="animalForm" class="animal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nombre">Nombre del Animal *</label>
+              <input type="text" id="nombre" name="nombre" required>
+              <span class="error-message" id="nombre-error"></span>
+            </div>
+            <div class="form-group">
+              <label for="especie">Especie *</label>
+              <select id="especie" name="especie" required>
+                <option value="">Seleccionar especie</option>
+                <option value="Perro">Perro</option>
+                <option value="Gato">Gato</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <span class="error-message" id="especie-error"></span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="raza">Raza</label>
+              <input type="text" id="raza" name="raza" placeholder="Ej: Labrador, Persa, etc.">
+            </div>
+            <div class="form-group">
+              <label for="edad">Edad (años) *</label>
+              <input type="number" id="edad" name="edad" min="0" max="30" required>
+              <span class="error-message" id="edad-error"></span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="estado">Estado *</label>
+              <select id="estado" name="estado" required>
+                <option value="">Seleccionar estado</option>
+                <option value="Disponible">Disponible para adopción</option>
+                <option value="En proceso">En proceso de adopción</option>
+                <option value="Adoptado">Adoptado</option>
+                <option value="En tratamiento">En tratamiento médico</option>
+              </select>
+              <span class="error-message" id="estado-error"></span>
+            </div>
+            <div class="form-group">
+              <label for="fechaIngreso">Fecha de Ingreso *</label>
+              <input type="date" id="fechaIngreso" name="fechaIngreso" required>
+              <span class="error-message" id="fechaIngreso-error"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" name="descripcion" rows="3" placeholder="Características, personalidad, necesidades especiales..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Registrar Animal</button>
+            <button type="reset" class="btn btn-secondary">Limpiar Formulario</button>
+          </div>
+
+          <!-- Mensajes de respuesta -->
+          <div id="success-message" class="success-message" style="display: none;"></div>
+          <div id="error-message" class="error-message" style="display: none;"></div>
+        </form>
+      </div>
+
+      <!-- Lista de animales registrados -->
+      <div class="animals-section">
+        <h3>Animales Registrados</h3>
+        <div class="table-container">
+          <table id="animalsTable" class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Especie</th>
+                <th>Raza</th>
+                <th>Edad</th>
+                <th>Estado</th>
+                <th>Fecha Ingreso</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Los datos se cargarán dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    © 2025 Corazón de Trapo - Todos los derechos reservados
+  </footer>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/admin_animales.js"></script>
+</body>
+</html>
