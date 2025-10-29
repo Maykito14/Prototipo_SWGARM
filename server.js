@@ -1,3 +1,4 @@
+require('dotenv').config();
 const app = require('./backend/app');
 const pool = require('./backend/config/db');
 const Notificacion = require('./backend/models/notificacion');
