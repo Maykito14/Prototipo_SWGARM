@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body data-page-title="Panel de Administración">
+  <main class="main">
+    <div class="admin-panel">
+      <h2>Panel de Administración</h2>
+      <p class="panel-description">Gestiona todos los aspectos del sistema de adopciones</p>
+      
+      <div class="cards">
+        <!-- Gestión de Animales -->
+        <div class="card">
+          <div class="card-icon">🐕</div>
+          <h3>Gestión de Animales</h3>
+          <p>Registra, edita y administra la información de todos los animales rescatados.</p>
+          <a href="admin_animales.html" class="btn">Gestionar Animales</a>
+        </div>
+
+        <!-- Evaluación de Solicitudes -->
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <h3>Evaluar Solicitudes</h3>
+          <p>Revisa y evalúa las solicitudes de adopción de los usuarios.</p>
+          <a href="admin_solicitudes.html" class="btn">Ver Solicitudes</a>
+        </div>
+
+        <!-- Gestión de Salud -->
+        <div class="card">
+          <div class="card-icon">🏥</div>
+          <h3>Gestión de Salud</h3>
+          <p>Registra controles médicos, vacunas y tratamientos de los animales.</p>
+          <a href="admin_salud.html" class="btn">Control de Salud</a>
+        </div>
+
+        <!-- Gestión de Estados -->
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <h3>Gestión de Estados</h3>
+          <p>Actualiza el estado de los animales (disponible, adoptado, en tratamiento).</p>
+          <a href="admin_estados.html" class="btn">Cambiar Estados</a>
+        </div>
+
+        <!-- Seguimiento -->
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h3>Seguimiento</h3>
+          <p>Programa y realiza seguimientos post-adopción de los animales.</p>
+          <a href="admin_seguimiento.html" class="btn">Ver Seguimientos</a>
+        </div>
+
+        <!-- Reportes -->
+        <div class="card">
+          <div class="card-icon">📈</div>
+          <h3>Reportes</h3>
+          <p>Genera reportes y estadísticas del sistema de adopciones.</p>
+          <a href="admin_reportes.html" class="btn">Ver Reportes</a>
+        </div>
+
+        <!-- Gestión de Usuarios -->
+        <div class="card">
+          <div class="card-icon">👥</div>
+          <h3>Gestión de Usuarios</h3>
+          <p>Administra usuarios, roles y permisos del sistema.</p>
+          <a href="admin_usuarios.html" class="btn">Gestionar Usuarios</a>
+        </div>
+
+        <!-- Gestión de Campañas -->
+        <div class="card">
+          <div class="card-icon">📢</div>
+          <h3>Gestión de Campañas</h3>
+          <p>Crea y administra campañas de concientización y eventos.</p>
+          <a href="admin_campanas.html" class="btn">Gestionar Campañas</a>
+        </div>
+      </div>
+
+      <!-- Estadísticas rápidas -->
+      <div class="quick-stats">
+        <h3>Estadísticas Rápidas</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="total-animales">-</div>
+            <div class="stat-label">Total Animales</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="solicitudes-pendientes">-</div>
+            <div class="stat-label">Solicitudes Pendientes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="adopciones-mes">-</div>
+            <div class="stat-label">Adopciones este Mes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="usuarios-activos">-</div>
+            <div class="stat-label">Usuarios Activos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/header.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/admin_dashboard.js"></script>
+</body>
+</html>

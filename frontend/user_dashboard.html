@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Panel - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body data-page-title="Mi Panel">
+  <main class="main">
+    <div class="user-panel">
+      <h2>Mi Panel</h2>
+      <p class="panel-description">Gestiona tus solicitudes y encuentra tu compañero perfecto</p>
+      
+      <div class="cards">
+        <!-- Ver Animales -->
+        <div class="card">
+          <div class="card-icon">🐾</div>
+          <h3>Ver Animales</h3>
+          <p>Explora todos los animales disponibles para adopción.</p>
+          <a href="animales.html" class="btn">Ver Animales</a>
+        </div>
+
+        <!-- Postular Adopción -->
+        <div class="card">
+          <div class="card-icon">📝</div>
+          <h3>Postular Adopción</h3>
+          <p>Completa el formulario para postularte como adoptante.</p>
+          <a href="formulario-adopción.html" class="btn">Postular Adopción</a>
+        </div>
+
+        <!-- Mi Perfil -->
+        <div class="card">
+          <div class="card-icon">👤</div>
+          <h3>Mi Perfil</h3>
+          <p>Actualiza tu información personal y preferencias.</p>
+          <a href="perfil.html" class="btn">Ver Perfil</a>
+        </div>
+
+        <!-- Mis Notificaciones -->
+        <div class="card">
+          <div class="card-icon">🔔</div>
+          <h3>Mis Notificaciones</h3>
+          <p>Revisa las actualizaciones sobre tus solicitudes.</p>
+          <a href="notificaciones.html" class="btn">Ver Notificaciones</a>
+        </div>
+
+        <!-- Mis Solicitudes -->
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <h3>Mis Solicitudes</h3>
+          <p>Revisa el estado de tus solicitudes de adopción.</p>
+          <a href="mis_solicitudes.html" class="btn">Ver Solicitudes</a>
+        </div>
+
+        <!-- Seguimiento -->
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h3>Seguimiento</h3>
+          <p>Información sobre el seguimiento post-adopción.</p>
+          <a href="mi_seguimiento.html" class="btn">Ver Seguimiento</a>
+        </div>
+      </div>
+
+      <!-- Información personal -->
+      <div class="user-info">
+        <h3>Información Personal</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <strong>Nombre:</strong>
+            <span id="user-name">Cargando...</span>
+          </div>
+          <div class="info-item">
+            <strong>Email:</strong>
+            <span id="user-email">Cargando...</span>
+          </div>
+          <div class="info-item">
+            <strong>Solicitudes Activas:</strong>
+            <span id="active-requests">-</span>
+          </div>
+          <div class="info-item">
+            <strong>Última Actividad:</strong>
+            <span id="last-activity">-</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/header.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/user_dashboard.js"></script>
+</body>
+</html>

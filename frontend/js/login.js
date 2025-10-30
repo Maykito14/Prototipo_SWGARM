@@ -25,12 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // Guardar sesión
       saveSession(result.token, result.user);
 
-      // Redirigir según rol
-      if (result.user.rol === 'administrador') {
-        window.location.href = 'index.html';
-      } else {
-        window.location.href = 'animales.html';
-      }
+      // Redirigir al dashboard correcto
+      redirectToDashboard();
     } catch (error) {
       let mensajeError = error.message || 'Error al iniciar sesión';
       

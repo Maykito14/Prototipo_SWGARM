@@ -12,9 +12,11 @@ function buildHeader(titleText) {
         <span></span>
       </button>
       <nav class="nav" id="mainNav">
-        <a href="index.html">Inicio</a>
-        <a href="animales.html">Animales</a>
-        <a href="formulario-adopción.html" data-role="public">Postular adopción</a>
+        <a href="welcome.html" data-role="public">Inicio</a>
+        <a href="user_dashboard.html" data-role="authenticated">Mi Panel</a>
+        <a href="admin_dashboard.html" data-role="admin">Panel Admin</a>
+        <a href="animales.html" data-role="authenticated">Animales</a>
+        <a href="formulario-adopción.html" data-role="authenticated">Postular adopción</a>
         <a href="admin_solicitudes.html" data-role="admin">Evaluar Solicitudes</a>
         <a href="admin_animales.html" data-role="admin">Gestión Animales</a>
         <a href="admin_salud.html" data-role="admin">Gestión Salud</a>

@@ -18,7 +18,7 @@ function getSession() {
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  window.location.href = 'login.html';
+  window.location.href = 'welcome.html';
 }
 
 function isAuthenticated() {
@@ -32,13 +32,24 @@ function isAdmin() {
 
 function requireAuth() {
   if (!isAuthenticated()) {
-    window.location.href = 'login.html';
+    window.location.href = 'welcome.html';
   }
 }
 
 function requireAdmin() {
   if (!isAuthenticated() || !isAdmin()) {
-    window.location.href = 'index.html';
+    window.location.href = 'welcome.html';
+  }
+}
+
+// Redirigir al dashboard correcto según el rol del usuario
+function redirectToDashboard() {
+  if (isAdmin()) {
+    window.location.href = 'admin_dashboard.html';
+  } else if (isAuthenticated()) {
+    window.location.href = 'user_dashboard.html';
+  } else {
+    window.location.href = 'welcome.html';
   }
 }
 
