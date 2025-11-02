@@ -1,4 +1,58 @@
 function buildHeader(titleText) {
+  const isAuthenticated = isAuthenticatedUser();
+  const isAdmin = isAuthenticated && isAdminUser();
+  const isPublicPage = !isAuthenticated;
+  
+  // Construir navegación según el estado del usuario
+  let navLinks = '';
+  
+  if (isPublicPage) {
+    // Usuarios no logueados: solo Inicio y Animales
+    navLinks = `
+      <a href="index.html">Inicio</a>
+      <a href="animales.html">Animales</a>
+    `;
+  } else if (isAdmin) {
+    // Administradores: Panel Admin + todas las funciones
+    navLinks = `
+      <a href="admin_dashboard.html">Panel Admin</a>
+      <a href="animales.html">Animales</a>
+      <a href="admin_solicitudes.html">Evaluar Solicitudes</a>
+      <a href="admin_animales.html">Gestión Animales</a>
+      <a href="admin_salud.html">Gestión Salud</a>
+      <a href="admin_estados.html">Gestión Estados</a>
+      <a href="admin_seguimiento.html">Seguimiento</a>
+      <a href="admin_reportes.html">Reportes</a>
+      <a href="admin_usuarios.html">Gestión Usuarios</a>
+      <a href="admin_campanas.html">Gestión Campañas</a>
+    `;
+  } else {
+    // Usuarios adoptantes logueados: Mi Panel, Animales, Postular adopción
+    navLinks = `
+      <a href="user_dashboard.html">Mi Panel</a>
+      <a href="animales.html">Animales</a>
+      <a href="formulario-adopción.html">Postular adopción</a>
+    `;
+  }
+  
+  // Construir sección de usuario
+  let userSection = '';
+  if (isAuthenticated) {
+    userSection = `
+      <a href="perfil.html" class="btn-perfil-link">Mi Perfil</a>
+      <a href="notificaciones.html" class="btn-notificaciones-link">
+        Notificaciones <span id="badge-notificaciones" class="badge-no-leida" style="display:none;">0</span>
+      </a>
+      <span class="user-name"></span>
+      <button class="btn-logout">Cerrar Sesión</button>
+    `;
+  } else {
+    userSection = `
+      <a href="login.html" class="btn-login-link">Iniciar sesión</a>
+      <a href="register.html" class="btn-register-link">Registrarse</a>
+    `;
+  }
+  
   return `
   <header class="main-header">
     <div class="header-container">
@@ -12,31 +66,35 @@ function buildHeader(titleText) {
         <span></span>
       </button>
       <nav class="nav" id="mainNav">
-        <a href="welcome.html" data-role="public">Inicio</a>
-        <a href="user_dashboard.html" data-role="authenticated">Mi Panel</a>
-        <a href="admin_dashboard.html" data-role="admin">Panel Admin</a>
-        <a href="animales.html" data-role="authenticated">Animales</a>
-        <a href="formulario-adopción.html" data-role="authenticated">Postular adopción</a>
-        <a href="admin_solicitudes.html" data-role="admin">Evaluar Solicitudes</a>
-        <a href="admin_animales.html" data-role="admin">Gestión Animales</a>
-        <a href="admin_salud.html" data-role="admin">Gestión Salud</a>
-        <a href="admin_estados.html" data-role="admin">Gestión Estados</a>
-        <a href="admin_seguimiento.html" data-role="admin">Seguimiento</a>
-        <a href="admin_reportes.html" data-role="admin">Reportes</a>
-        <a href="admin_usuarios.html" data-role="admin">Gestión Usuarios</a>
-        <a href="admin_campanas.html" data-role="admin">Gestión Campañas</a>
+        ${navLinks}
       </nav>
       <div class="user">
-        <a href="login.html" class="btn-login-link">Iniciar sesión</a>
-        <a href="perfil.html" class="btn-perfil-link" data-role="authenticated" style="display:none;">Mi Perfil</a>
-        <a href="notificaciones.html" class="btn-notificaciones-link" data-role="authenticated" style="display:none;">
-          Notificaciones <span id="badge-notificaciones" class="badge-no-leida" style="display:none;">0</span>
-        </a>
-        <span class="user-name"></span>
-        <button class="btn-logout">Cerrar Sesión</button>
+        ${userSection}
       </div>
     </div>
   </header>`;
+}
+
+// Funciones auxiliares para verificar autenticación y roles
+function isAuthenticatedUser() {
+  try {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    return !!(token && user);
+  } catch (error) {
+    return false;
+  }
+}
+
+function isAdminUser() {
+  try {
+    const user = localStorage.getItem('user');
+    if (!user) return false;
+    const userData = JSON.parse(user);
+    return userData.rol === 'administrador' || userData.rol === 'admin';
+  } catch (error) {
+    return false;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

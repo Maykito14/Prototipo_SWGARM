@@ -1,5 +1,18 @@
 // Panel de Usuario - Corazón de Trapo
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar autenticación
+    if (!isAuthenticated()) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    // Verificar que no sea admin (debe usar admin_dashboard)
+    const user = getSession().user;
+    if (user && (user.rol === 'administrador' || user.rol === 'admin')) {
+        window.location.href = 'admin_dashboard.html';
+        return;
+    }
+    
     loadUserInfo();
     loadUserStats();
 });
@@ -8,7 +21,7 @@ async function loadUserInfo() {
     try {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = 'welcome.html';
+            window.location.href = 'index.html';
             return;
         }
 
@@ -51,10 +64,3 @@ async function loadUserStats() {
     }
 }
 
-// Verificar que el usuario esté logueado
-document.addEventListener('DOMContentLoaded', function() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.href = 'welcome.html';
-    }
-});

@@ -63,12 +63,23 @@ function renderizarAnimales(animales) {
     const imagenSrc = animal.foto || obtenerImagenGenerica(animal.especie);
     const categoriaEdad = categorizarEdad(animal.edad);
     
-    // Mostrar botón de postulación solo si está disponible
-    const botonPostulacion = animal.estado === 'Disponible' 
-      ? `<a href="formulario-adopción.html?animalId=${animal.idAnimal}">
+    // Mostrar botón de postulación solo si está disponible y el usuario está autenticado
+    const isAuthenticated = !!localStorage.getItem('token');
+    let botonPostulacion = '';
+    
+    if (animal.estado === 'Disponible') {
+      if (isAuthenticated) {
+        botonPostulacion = `<a href="formulario-adopción.html?animalId=${animal.idAnimal}">
            <button class="btn btn-adopt">Postularme para adoptar</button>
-         </a>`
-      : `<button class="btn btn-secondary" disabled>No disponible para adopción</button>`;
+         </a>`;
+      } else {
+        botonPostulacion = `<a href="login.html">
+           <button class="btn btn-secondary">Inicia sesión para postularte</button>
+         </a>`;
+      }
+    } else {
+      botonPostulacion = `<button class="btn btn-secondary" disabled>No disponible para adopción</button>`;
+    }
     
     return `
       <div class="animal-card">

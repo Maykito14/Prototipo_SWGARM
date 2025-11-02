@@ -1,5 +1,12 @@
 // Formulario de adopción
 document.addEventListener('DOMContentLoaded', () => {
+  // Verificar autenticación
+  if (!isAuthenticated()) {
+    alert('Debes iniciar sesión para postularte a una adopción');
+    window.location.href = 'index.html';
+    return;
+  }
+  
   const form = document.getElementById('adopcionForm');
   const successMessage = document.getElementById('success-message');
   const errorMessage = document.getElementById('error-message');

@@ -1,5 +1,18 @@
 // Panel de Administración - Corazón de Trapo
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar autenticación y rol de administrador
+    if (!isAuthenticated()) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    const user = getSession().user;
+    if (!user || (user.rol !== 'administrador' && user.rol !== 'admin')) {
+        // Si no es admin, redirigir a su dashboard
+        window.location.href = 'user_dashboard.html';
+        return;
+    }
+    
     loadQuickStats();
 });
 
@@ -29,11 +42,3 @@ async function loadQuickStats() {
     }
 }
 
-// Verificar que el usuario sea administrador
-document.addEventListener('DOMContentLoaded', function() {
-    const userRole = localStorage.getItem('userRole');
-    if (userRole !== 'admin') {
-        // Redirigir a la página de bienvenida si no es admin
-        window.location.href = 'welcome.html';
-    }
-});

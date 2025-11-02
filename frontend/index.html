@@ -3,14 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Corazón de Trapo - Redirigiendo...</title>
-  <script>
-    // Redirigir automáticamente a la página de bienvenida
-    window.location.href = 'welcome.html';
-  </script>
+  <title>Corazón de Trapo - Ayuda a los animales</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="./css/welcome.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 </head>
-<body>
-  <p>Redirigiendo a la página principal...</p>
+<body data-page-title="Bienvenido">
+  <!-- Header simplificado -->
+  <header class="welcome-header">
+    <div class="header-container">
+      <div class="logo-container">
+        <img src="images/logo.png" alt="Logo Corazón de Trapo" class="logo">
+        <h1 class="title">Corazón de Trapo</h1>
+      </div>
+      <div class="welcome-nav">
+        <a href="login.html" class="btn btn-primary">Iniciar Sesión</a>
+        <a href="register.html" class="btn btn-secondary">Registrarse</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner principal con slides -->
+  <section class="hero-banner">
+    <div class="slideshow-container">
+      <div class="slide active">
+        <img src="images/michu.jpg" alt="Mascota rescatada" class="slide-image">
+        <div class="slide-content">
+          <h2>Dale una segunda oportunidad</h2>
+          <p>Cada animal merece un hogar lleno de amor y cuidado</p>
+        </div>
+      </div>
+      <div class="slide">
+        <img src="images/filomena.jpg" alt="Mascota rescatada" class="slide-image">
+        <div class="slide-content">
+          <h2>Adoptá, no compres</h2>
+          <p>Cambia una vida y encuentra tu mejor amigo</p>
+        </div>
+      </div>
+      <div class="slide">
+        <img src="images/merlina.jpg" alt="Mascota rescatada" class="slide-image">
+        <div class="slide-content">
+          <h2>Rescate y rehabilitación</h2>
+          <p>Nos dedicamos a darles una nueva vida</p>
+        </div>
+      </div>
+      <div class="slide">
+        <img src="images/pedro.jpg" alt="Mascota rescatada" class="slide-image">
+        <div class="slide-content">
+          <h2>Amor incondicional</h2>
+          <p>Ellos te darán todo su amor sin pedir nada a cambio</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Indicadores de slides -->
+    <div class="slide-indicators">
+      <span class="indicator active" onclick="currentSlide(1)"></span>
+      <span class="indicator" onclick="currentSlide(2)"></span>
+      <span class="indicator" onclick="currentSlide(3)"></span>
+      <span class="indicator" onclick="currentSlide(4)"></span>
+    </div>
+  </section>
+
+  <!-- Mensaje de bienvenida -->
+  <section class="welcome-message">
+    <div class="container">
+      <div class="message-content">
+        <h2>Bienvenido a Corazón de Trapo</h2>
+        <p class="lead">
+          Somos una organización dedicada al rescate, rehabilitación y adopción de animales abandonados. 
+          Nuestra misión es darles una segunda oportunidad a aquellos que más lo necesitan, 
+          conectándolos con familias amorosas que les brinden el hogar que merecen.
+        </p>
+        <p>
+          Cada día trabajamos incansablemente para salvar vidas, proporcionar cuidados médicos, 
+          rehabilitación emocional y encontrar el hogar perfecto para cada uno de nuestros rescatados. 
+          Tu apoyo y participación son fundamentales para continuar con esta noble labor.
+        </p>
+        <div class="cta-buttons">
+          <a href="animales.html" class="btn btn-primary btn-large">Ver Animales Disponibles</a>
+          <a href="register.html" class="btn btn-secondary btn-large">Únete a Nuestra Causa</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Estadísticas -->
+  <section class="stats-section">
+    <div class="container">
+      <h3>Nuestro Impacto</h3>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-number" id="animales-rescatados">0</div>
+          <div class="stat-label">Animales Rescatados</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="adopciones-exitosas">0</div>
+          <div class="stat-label">Adopciones Exitosas</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="familias-felices">0</div>
+          <div class="stat-label">Familias Felices</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="anos-experiencia">0</div>
+          <div class="stat-label">Años de Experiencia</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>Corazón de Trapo</h4>
+          <p>Dando amor y esperanza a los animales que más lo necesitan.</p>
+        </div>
+        <div class="footer-section">
+          <h4>Contacto</h4>
+          <p>📧 info@corazondetrapo.org</p>
+          <p>📞 +54 11 1234-5678</p>
+        </div>
+        <div class="footer-section">
+          <h4>Síguenos</h4>
+          <p>Facebook | Instagram | Twitter</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 Corazón de Trapo - Todos los derechos reservados</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./js/index.js"></script>
 </body>
 </html>
-

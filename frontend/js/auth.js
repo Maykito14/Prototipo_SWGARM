@@ -18,7 +18,7 @@ function getSession() {
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  window.location.href = 'welcome.html';
+  window.location.href = 'index.html';
 }
 
 function isAuthenticated() {
@@ -32,13 +32,13 @@ function isAdmin() {
 
 function requireAuth() {
   if (!isAuthenticated()) {
-    window.location.href = 'welcome.html';
+    window.location.href = 'index.html';
   }
 }
 
 function requireAdmin() {
   if (!isAuthenticated() || !isAdmin()) {
-    window.location.href = 'welcome.html';
+    window.location.href = 'index.html';
   }
 }
 
@@ -49,7 +49,7 @@ function redirectToDashboard() {
   } else if (isAuthenticated()) {
     window.location.href = 'user_dashboard.html';
   } else {
-    window.location.href = 'welcome.html';
+    window.location.href = 'index.html';
   }
 }
 

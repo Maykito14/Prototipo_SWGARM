@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   if (!isAuthenticated()) {
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
     return;
   }
 

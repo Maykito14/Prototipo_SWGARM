@@ -246,6 +246,17 @@ body {
   background-color: #d4ac0d;
 }
 
+.user .btn-register-link {
+  background-color: transparent;
+  color: #000;
+  border: 2px solid #000;
+  font-weight: 500;
+}
+
+.user .btn-register-link:hover {
+  background-color: rgba(0,0,0,0.1);
+}
+
 .user .btn-perfil-link,
 .user .btn-notificaciones-link {
   background-color: rgba(0,0,0,0.05);

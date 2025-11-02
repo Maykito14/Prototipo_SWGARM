@@ -1,4 +1,4 @@
-// Página de Bienvenida - Corazón de Trapo
+// Página Principal - Corazón de Trapo
 document.addEventListener('DOMContentLoaded', function() {
     initSlideshow();
     initStatsAnimation();
