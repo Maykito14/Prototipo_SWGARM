@@ -105,7 +105,11 @@
           
           <div class="form-group">
             <label for="puntajeEvaluacion">Puntaje de Evaluación (0-100)</label>
-            <input type="number" id="puntajeEvaluacion" name="puntajeEvaluacion" min="0" max="100" value="0">
+            <input type="number" id="puntajeEvaluacion" name="puntajeEvaluacion" min="0" max="100" value="0" readonly>
+            <small style="color: #666; display: block; margin-top: 5px;">
+              Este puntaje se calcula automáticamente basado en las respuestas del formulario de adopción. 
+              Sirve como referencia para la evaluación del administrador.
+            </small>
           </div>
           
           <div class="form-group" id="motivoRechazoGroup" style="display: none;">

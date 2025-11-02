@@ -148,6 +148,30 @@
   color: #666;
 }
 
+/* Estilos para puntajes */
+.puntaje-cumple {
+  color: #28a745;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #d4edda;
+}
+
+.puntaje-no-cumple {
+  color: #dc3545;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #f8d7da;
+}
+
+.puntaje-cumple small,
+.puntaje-no-cumple small {
+  font-size: 0.85em;
+  color: #666;
+  font-weight: normal;
+}
+
 /* Responsive para móviles */
 @media (max-width: 768px) {
   .filter-section {

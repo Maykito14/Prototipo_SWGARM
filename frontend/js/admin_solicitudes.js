@@ -45,9 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     try {
       const formData = new FormData(evaluacionForm);
+      // El puntaje no se modifica desde el formulario, se mantiene el original
       const datosEvaluacion = {
         estado: formData.get('nuevoEstado'),
-        puntajeEvaluacion: parseInt(formData.get('puntajeEvaluacion')) || 0,
+        puntajeEvaluacion: solicitudActual.puntajeEvaluacion || 0, // Mantener el puntaje calculado originalmente
         motivoRechazo: formData.get('motivoRechazo') || null
       };
 
@@ -100,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Función para mostrar solicitudes en la tabla
-  function mostrarSolicitudesEnTabla(solicitudes) {
+  async function mostrarSolicitudesEnTabla(solicitudes) {
     const tbody = solicitudesTable.querySelector('tbody');
     
     if (solicitudes.length === 0) {
@@ -108,14 +109,43 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    tbody.innerHTML = solicitudes.map(solicitud => `
+    // Cargar información de los animales para obtener puntajes mínimos
+    const animalesInfo = {};
+    for (const solicitud of solicitudes) {
+      if (!animalesInfo[solicitud.idAnimal]) {
+        try {
+          const animal = await api.getAnimal(solicitud.idAnimal);
+          animalesInfo[solicitud.idAnimal] = animal;
+        } catch (error) {
+          console.error(`Error al cargar animal ${solicitud.idAnimal}:`, error);
+          animalesInfo[solicitud.idAnimal] = { puntajeMinimo: 0 };
+        }
+      }
+    }
+
+    tbody.innerHTML = solicitudes.map(solicitud => {
+      const animal = animalesInfo[solicitud.idAnimal] || { puntajeMinimo: 0 };
+      const puntaje = solicitud.puntajeEvaluacion || 0;
+      const puntajeMinimo = animal.puntajeMinimo || 0;
+      const cumpleRequisito = puntaje >= puntajeMinimo;
+      
+      // Clase CSS basada en si cumple o no el requisito
+      const clasePuntaje = cumpleRequisito ? 'puntaje-cumple' : 'puntaje-no-cumple';
+      
+      return `
       <tr>
         <td>${solicitud.idSolicitud}</td>
         <td>${solicitud.nombreAdoptante} ${solicitud.apellidoAdoptante}</td>
         <td>${solicitud.nombreAnimal} (${solicitud.especie})</td>
         <td>${formatearFecha(solicitud.fecha)}</td>
         <td><span class="status ${getStatusClass(solicitud.estado)}">${solicitud.estado}</span></td>
-        <td>${solicitud.puntajeEvaluacion || 0}</td>
+        <td>
+          <span class="${clasePuntaje}" title="Puntaje: ${puntaje} / Mínimo requerido: ${puntajeMinimo}">
+            ${puntaje}
+            ${puntajeMinimo > 0 ? ` <small>(${puntajeMinimo} min)</small>` : ''}
+            ${!cumpleRequisito ? ' ⚠️' : ' ✓'}
+          </span>
+        </td>
         <td>
           <button class="btn-table ver" onclick="verSolicitud(${solicitud.idSolicitud})">👁️</button>
           <button class="btn-table evaluar" onclick="evaluarSolicitud(${solicitud.idSolicitud})">📝</button>
@@ -210,6 +240,19 @@ async function evaluarSolicitud(id) {
   try {
     solicitudActual = await api.getSolicitud(id);
     
+    // Obtener información del animal para mostrar puntaje mínimo
+    let animal = null;
+    let puntajeMinimo = 0;
+    try {
+      animal = await api.getAnimal(solicitudActual.idAnimal);
+      puntajeMinimo = animal.puntajeMinimo || 0;
+    } catch (error) {
+      console.error('Error al cargar información del animal:', error);
+    }
+    
+    const puntajeActual = solicitudActual.puntajeEvaluacion || 0;
+    const cumpleRequisito = puntajeActual >= puntajeMinimo;
+    
     // Mostrar detalles de la solicitud
     const detallesDiv = document.getElementById('solicitudDetalles');
     detallesDiv.innerHTML = `
@@ -220,13 +263,32 @@ async function evaluarSolicitud(id) {
         <p><strong>Animal:</strong> ${solicitudActual.nombreAnimal} (${solicitudActual.especie})</p>
         <p><strong>Fecha:</strong> ${new Date(solicitudActual.fecha).toLocaleDateString('es-ES')}</p>
         <p><strong>Estado actual:</strong> <span class="status ${getStatusClass(solicitudActual.estado)}">${solicitudActual.estado}</span></p>
-        <p><strong>Puntaje actual:</strong> ${solicitudActual.puntajeEvaluacion || 0}</p>
+        <div style="margin: 15px 0; padding: 10px; background-color: ${cumpleRequisito ? '#d4edda' : '#f8d7da'}; border-radius: 5px; border-left: 4px solid ${cumpleRequisito ? '#28a745' : '#dc3545'};">
+          <p><strong>Puntaje de Evaluación:</strong> <span style="font-size: 1.2em; font-weight: bold;">${puntajeActual}</span> / 100</p>
+          ${puntajeMinimo > 0 ? `
+            <p><strong>Puntaje Mínimo Requerido:</strong> ${puntajeMinimo}</p>
+            <p style="margin: 5px 0 0 0;">
+              <strong>Estado:</strong> 
+              <span style="color: ${cumpleRequisito ? '#28a745' : '#dc3545'}; font-weight: bold;">
+                ${cumpleRequisito ? '✓ Cumple con el requisito' : '⚠️ No cumple con el requisito mínimo'}
+              </span>
+            </p>
+          ` : '<p><em>Este animal no tiene puntaje mínimo requerido</em></p>'}
+        </div>
+        <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+          <em>Nota: El puntaje es solo una referencia. La decisión final es del administrador.</em>
+        </p>
       </div>
     `;
     
     // Configurar formulario
     document.getElementById('nuevoEstado').value = solicitudActual.estado;
-    document.getElementById('puntajeEvaluacion').value = solicitudActual.puntajeEvaluacion || 0;
+    // El campo de puntaje está deshabilitado ya que se calcula automáticamente
+    // pero lo mostramos como referencia
+    const puntajeInput = document.getElementById('puntajeEvaluacion');
+    puntajeInput.value = puntajeActual;
+    puntajeInput.readOnly = true;
+    puntajeInput.title = 'Este puntaje se calcula automáticamente basado en las respuestas del formulario';
     document.getElementById('motivoRechazo').value = solicitudActual.motivoRechazo || '';
     
     // Mostrar/ocultar motivo de rechazo según estado

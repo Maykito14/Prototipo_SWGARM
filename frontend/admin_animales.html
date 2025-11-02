@@ -65,15 +65,28 @@
             </div>
           </div>
 
+          <div class="form-row">
+            <div class="form-group">
+              <label for="puntajeMinimo">Puntaje Mínimo Requerido *</label>
+              <input type="number" id="puntajeMinimo" name="puntajeMinimo" min="0" max="100" value="0" required>
+              <small style="color: #666;">Puntaje mínimo que debe tener un adoptante para poder adoptar este animal (0-100)</small>
+              <span class="error-message" id="puntajeMinimo-error"></span>
+            </div>
+          </div>
+
           <div class="form-group">
             <label for="descripcion">Descripción</label>
             <textarea id="descripcion" name="descripcion" rows="3" placeholder="Características, personalidad, necesidades especiales..."></textarea>
           </div>
 
           <div class="form-group">
-            <label for="foto">URL de la foto</label>
-            <input type="text" id="foto" name="foto" placeholder="Ej: images/bingo.jpg (dejar vacío para imagen genérica)">
-            <small style="color: #666;">Ruta relativa desde la carpeta frontend, ej: images/nombre.jpg</small>
+            <label for="foto">Foto del Animal</label>
+            <input type="file" id="foto" name="foto" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
+            <small style="color: #666;">Formatos permitidos: JPG, PNG, GIF, WEBP (máx. 5MB). Si no subes una imagen, se usará una imagen genérica.</small>
+            <div id="foto-preview" style="margin-top: 10px; display: none;">
+              <img id="foto-preview-img" src="" alt="Vista previa" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd;">
+              <button type="button" id="btn-remove-foto" style="margin-left: 10px; padding: 5px 10px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">Eliminar</button>
+            </div>
           </div>
 
           <div class="form-actions">
@@ -100,6 +113,7 @@
                 <th>Raza</th>
                 <th>Edad</th>
                 <th>Estado</th>
+                <th>Puntaje Mín.</th>
                 <th>Fecha Ingreso</th>
                 <th>Acciones</th>
               </tr>

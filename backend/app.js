@@ -22,6 +22,9 @@ app.use(express.urlencoded({ extended: true }));
 // Archivos estáticos - frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// Archivos estáticos - uploads (imágenes subidas)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Rutas API
 app.use('/api/usuarios', userRoutes);
 app.use('/api/animales', animalRoutes);

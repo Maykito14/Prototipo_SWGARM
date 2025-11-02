@@ -54,6 +54,23 @@
         <input type="text" id="ocupacion" name="ocupacion" placeholder="Ingrese su ocupación">
       </div>
 
+      <!-- Verificación de edad -->
+      <h3>Verificación</h3>
+      <div class="form-group">
+        <label>¿Sos mayor de edad? *</label>
+        <div style="display: flex; gap: 20px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="mayorEdad" value="Sí" required>
+            <span>Sí</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="mayorEdad" value="No" required>
+            <span>No</span>
+          </label>
+        </div>
+        <span class="error-message" id="mayorEdad-error"></span>
+      </div>
+
       <!-- Motivo de adopción -->
       <h3>Motivo de adopción</h3>
       <div class="form-group">
@@ -75,12 +92,174 @@
         <span class="error-message" id="experienciaMascotas-error"></span>
       </div>
 
-      <!-- Condiciones de vivienda -->
-      <h3>Condiciones de vivienda</h3>
+      <!-- Datos sobre convivencia -->
+      <h3>Datos sobre convivencia</h3>
       <div class="form-group">
-        <label for="condicionesVivienda">Describa las condiciones de su vivienda *</label>
-        <textarea id="condicionesVivienda" name="condicionesVivienda" rows="3" placeholder="Tipo de vivienda, espacio disponible, patio, etc." required></textarea>
-        <span class="error-message" id="condicionesVivienda-error"></span>
+        <label>¿Vive en casa propia o alquilada? *</label>
+        <div style="display: flex; gap: 20px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="tipoVivienda" value="Casa propia" required>
+            <span>Casa propia</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="tipoVivienda" value="Alquilada" required>
+            <span>Alquilada</span>
+          </label>
+        </div>
+        <span class="error-message" id="tipoVivienda-error"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="cerramiento">Seguridad: ¿Cómo es el cerramiento de tu patio y/o balcón? Detalle. *</label>
+        <textarea id="cerramiento" name="cerramiento" rows="3" placeholder="Describa el tipo de cerramiento, altura, material, etc." required></textarea>
+        <span class="error-message" id="cerramiento-error"></span>
+      </div>
+
+      <div class="form-group">
+        <label>¿Cuenta con patio o espacio abierto en el domicilio? *</label>
+        <div style="display: flex; gap: 20px; margin-top: 8px; flex-wrap: wrap;">
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="patio" value="Sí, amplio" required>
+            <span>Sí, amplio</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="patio" value="Sí, pequeño" required>
+            <span>Sí, pequeño</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="patio" value="No" required>
+            <span>No</span>
+          </label>
+        </div>
+        <span class="error-message" id="patio-error"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="espaciosAcceso">Espacio: ¿A qué espacios de tu hogar tendría acceso el nuevo integrante? ¿Dónde dormiría? *</label>
+        <textarea id="espaciosAcceso" name="espaciosAcceso" rows="3" placeholder="Describa los espacios disponibles y dónde dormiría la mascota" required></textarea>
+        <span class="error-message" id="espaciosAcceso-error"></span>
+      </div>
+
+      <div class="form-group">
+        <label>¿Convive con niños pequeños? *</label>
+        <div style="display: flex; gap: 20px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="ninosPequenos" value="Sí" required>
+            <span>Sí</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="ninosPequenos" value="No" required>
+            <span>No</span>
+          </label>
+        </div>
+        <span class="error-message" id="ninosPequenos-error"></span>
+      </div>
+
+      <div class="form-group">
+        <label>¿Hay otras mascotas en el hogar? ¿están castrados? *</label>
+        <div style="display: flex; gap: 20px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="otrasMascotas" value="Sí" required>
+            <span>Sí</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="otrasMascotas" value="No" required>
+            <span>No</span>
+          </label>
+        </div>
+        <div id="detalleOtrasMascotas" style="margin-top: 10px; display: none;">
+          <label for="detalleMascotas">Especificar especie/cantidad y si están castrados: *</label>
+          <textarea id="detalleMascotas" name="detalleMascotas" rows="2" placeholder="Ej: 2 perros castrados, 1 gato sin castrar"></textarea>
+          <span class="error-message" id="detalleMascotas-error"></span>
+        </div>
+        <span class="error-message" id="otrasMascotas-error"></span>
+      </div>
+
+      <!-- Disponibilidad y compromiso -->
+      <h3>Disponibilidad y compromiso</h3>
+      <div class="form-group">
+        <label>Permisos: ¿Consultaste en tu edificio, consorcio, propietario (si alquilás) y/o demás integrantes del hogar si están de acuerdo con la adopción? *</label>
+        <div style="display: flex; gap: 20px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="permisos" value="Sí" required>
+            <span>Sí</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="permisos" value="No" required>
+            <span>No</span>
+          </label>
+        </div>
+        <span class="error-message" id="permisos-error"></span>
+      </div>
+
+      <div class="form-group">
+        <label>¿Cuántas horas al día permanece fuera del hogar? *</label>
+        <div style="display: flex; gap: 20px; margin-top: 8px; flex-wrap: wrap;">
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="horasFuera" value="Menos de 4 horas" required>
+            <span>Menos de 4 horas</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="horasFuera" value="Entre 4 y 8 horas" required>
+            <span>Entre 4 y 8 horas</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="horasFuera" value="Más de 8 horas" required>
+            <span>Más de 8 horas</span>
+          </label>
+        </div>
+        <span class="error-message" id="horasFuera-error"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="cuidadoAusencia">Viajes: ¿Si tuvieses que ausentarte por viajes u otras razones personales? ¿Al cuidado de quién lo dejarías? *</label>
+        <textarea id="cuidadoAusencia" name="cuidadoAusencia" rows="3" placeholder="Describa quién cuidaría de la mascota en su ausencia" required></textarea>
+        <span class="error-message" id="cuidadoAusencia-error"></span>
+      </div>
+
+      <div class="form-group">
+        <label>¿Posee trabajo estable y/o una fuente de ingresos mensuales fija? *</label>
+        <div style="display: flex; gap: 20px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="trabajoEstable" value="Sí" required>
+            <span>Sí</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="trabajoEstable" value="No" required>
+            <span>No</span>
+          </label>
+        </div>
+        <span class="error-message" id="trabajoEstable-error"></span>
+      </div>
+
+      <div class="form-group">
+        <label>¿Está dispuesto a asumir gastos de alimentación, atención veterinaria y vacunas? *</label>
+        <div style="display: flex; gap: 20px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="disposicionGastos" value="Sí" required>
+            <span>Sí</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="disposicionGastos" value="No" required>
+            <span>No</span>
+          </label>
+        </div>
+        <span class="error-message" id="disposicionGastos-error"></span>
+      </div>
+
+      <div class="form-group">
+        <label>¿Acepta que la asociación realice un seguimiento posterior a la adopción? *</label>
+        <div style="display: flex; gap: 20px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="aceptaSeguimiento" value="Sí" required>
+            <span>Sí</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="radio" name="aceptaSeguimiento" value="No" required>
+            <span>No</span>
+          </label>
+        </div>
+        <span class="error-message" id="aceptaSeguimiento-error"></span>
       </div>
 
       <!-- Botón de envío -->

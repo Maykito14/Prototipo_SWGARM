@@ -147,7 +147,7 @@ exports.obtenerSolicitudesPorAnimal = async (req, res) => {
 
 exports.crearSolicitudAdopcion = async (req, res) => {
   try {
-    const { datosAdoptante, idAnimal, motivoAdopcion, experienciaMascotas, condicionesVivienda } = req.body;
+    const { datosAdoptante, idAnimal, respuestasFormulario, puntajeEvaluacion } = req.body;
 
     // Validaciones básicas
     if (!datosAdoptante || !idAnimal) {
@@ -191,13 +191,34 @@ exports.crearSolicitudAdopcion = async (req, res) => {
       });
     }
 
+    // Validar y preparar puntaje (debe estar entre 0 y 100)
+    const puntaje = parseInt(puntajeEvaluacion) || 0;
+    const puntajeFinal = Math.max(0, Math.min(100, puntaje));
+
+    // Validar respuestas del formulario (debe ser un JSON válido si se proporciona)
+    let respuestasGuardar = null;
+    if (respuestasFormulario) {
+      try {
+        // Si es string, parsearlo para validar que es JSON válido
+        if (typeof respuestasFormulario === 'string') {
+          JSON.parse(respuestasFormulario);
+          respuestasGuardar = respuestasFormulario;
+        } else {
+          respuestasGuardar = JSON.stringify(respuestasFormulario);
+        }
+      } catch (error) {
+        return res.status(400).json({ error: 'Formato inválido en respuestasFormulario (debe ser JSON válido)' });
+      }
+    }
+
     // Crear solicitud
     const nuevaSolicitud = await Solicitud.create({
       idAdoptante: adoptante.idAdoptante,
       idAnimal: idAnimal,
       fecha: new Date().toISOString().split('T')[0],
       estado: 'Pendiente',
-      puntajeEvaluacion: 0
+      puntajeEvaluacion: puntajeFinal,
+      respuestasFormulario: respuestasGuardar
     });
 
     res.status(201).json({

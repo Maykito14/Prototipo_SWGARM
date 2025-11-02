@@ -11,6 +11,46 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cargar animales al iniciar
   cargarAnimales();
 
+  // Vista previa de imagen
+  const fotoInput = document.getElementById('foto');
+  const fotoPreview = document.getElementById('foto-preview');
+  const fotoPreviewImg = document.getElementById('foto-preview-img');
+  const btnRemoveFoto = document.getElementById('btn-remove-foto');
+
+  fotoInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      // Validar tamaño
+      if (file.size > 5 * 1024 * 1024) {
+        mostrarError('La imagen es demasiado grande. El tamaño máximo es 5MB.');
+        e.target.value = '';
+        return;
+      }
+
+      // Validar tipo
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        mostrarError('Formato de imagen no válido. Use JPG, PNG, GIF o WEBP.');
+        e.target.value = '';
+        return;
+      }
+
+      // Mostrar vista previa
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        fotoPreviewImg.src = e.target.result;
+        fotoPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  btnRemoveFoto.addEventListener('click', function() {
+    fotoInput.value = '';
+    fotoPreview.style.display = 'none';
+    fotoPreviewImg.src = '';
+  });
+
   // Manejar envío del formulario
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -25,33 +65,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      // Obtener datos del formulario
+      // Crear FormData para enviar archivo
       const formData = new FormData(form);
-      const animalData = {
-        nombre: formData.get('nombre').trim(),
-        especie: formData.get('especie'),
-        raza: formData.get('raza').trim(),
-        edad: parseInt(formData.get('edad')),
-        estado: formData.get('estado'),
-        fechaIngreso: formData.get('fechaIngreso'),
-        descripcion: formData.get('descripcion').trim(),
-        foto: formData.get('foto')?.trim() || null
-      };
-
+      
+      // Agregar campos al FormData (los campos del formulario ya están incluidos)
+      // Si hay una imagen, se incluirá automáticamente
+      
       // Verificar duplicados por nombre
-      if (await verificarDuplicado(animalData.nombre)) {
+      const nombre = formData.get('nombre').trim();
+      if (await verificarDuplicado(nombre)) {
         mostrarError('Ya existe un animal registrado con ese nombre. Por favor, verifica o usa un nombre diferente.');
         return;
       }
 
-      // Registrar animal
-      const response = await api.crearAnimal(animalData);
+      // Obtener token de autenticación
+      const token = localStorage.getItem('token');
+      if (!token) {
+        mostrarError('Debes estar autenticado para registrar animales');
+        return;
+      }
+
+      // Enviar formulario con archivo usando FormData
+      const response = await fetch('/api/animales', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al registrar el animal');
+      }
       
       // Mostrar éxito
-      mostrarExito(`Animal "${response.animal.nombre}" registrado exitosamente con ID: ${response.animal.idAnimal}`);
+      mostrarExito(`Animal "${data.animal.nombre}" registrado exitosamente con ID: ${data.animal.idAnimal}`);
       
-      // Limpiar formulario
+      // Limpiar formulario y vista previa
       form.reset();
+      fotoPreview.style.display = 'none';
+      fotoPreviewImg.src = '';
       
       // Recargar tabla
       cargarAnimales();
@@ -68,6 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarError('La edad debe estar entre 0 y 30 años');
       } else if (error.message.includes('fecha de ingreso no puede ser futura')) {
         mostrarError('La fecha de ingreso no puede ser futura');
+      } else if (error.message.includes('puntaje mínimo')) {
+        mostrarError('El puntaje mínimo debe estar entre 0 y 100');
       } else {
         mostrarError(error.message || 'Error al registrar el animal. Por favor, intenta nuevamente.');
       }
@@ -77,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Función para validar formulario
   function validarFormulario() {
     let esValido = true;
-    const camposObligatorios = ['nombre', 'especie', 'edad', 'estado', 'fechaIngreso'];
+    const camposObligatorios = ['nombre', 'especie', 'edad', 'estado', 'fechaIngreso', 'puntajeMinimo'];
 
     camposObligatorios.forEach(campo => {
       const input = document.getElementById(campo);
@@ -110,6 +167,12 @@ document.addEventListener('DOMContentLoaded', () => {
       esValido = false;
     }
 
+    const puntajeMinimo = parseInt(document.getElementById('puntajeMinimo').value);
+    if (isNaN(puntajeMinimo) || puntajeMinimo < 0 || puntajeMinimo > 100) {
+      mostrarErrorCampo('puntajeMinimo', 'El puntaje mínimo debe estar entre 0 y 100');
+      esValido = false;
+    }
+
     return esValido;
   }
 
@@ -133,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const tbody = animalsTable.querySelector('tbody');
       
       if (animales.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No hay animales registrados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No hay animales registrados</td></tr>';
         return;
       }
 
@@ -145,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${animal.raza || '-'}</td>
           <td>${animal.edad || '-'}</td>
           <td><span class="status ${getStatusClass(animal.estado)}">${animal.estado || '-'}</span></td>
+          <td>${animal.puntajeMinimo !== null && animal.puntajeMinimo !== undefined ? animal.puntajeMinimo : 0}</td>
           <td>${formatearFecha(animal.fechaIngreso)}</td>
           <td>
             <button class="btn-table ver" onclick="verAnimal(${animal.idAnimal})">👁️</button>
@@ -210,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function limpiarErrores() {
-    const campos = ['nombre', 'especie', 'edad', 'estado', 'fechaIngreso'];
+    const campos = ['nombre', 'especie', 'edad', 'estado', 'fechaIngreso', 'puntajeMinimo'];
     campos.forEach(campo => limpiarErrorCampo(campo));
   }
 });
@@ -219,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function verAnimal(id) {
   try {
     const animal = await api.getAnimal(id);
-    alert(`Ficha del Animal:\n\nID: ${animal.idAnimal}\nNombre: ${animal.nombre}\nEspecie: ${animal.especie}\nRaza: ${animal.raza}\nEdad: ${animal.edad} años\nEstado: ${animal.estado}\nFecha Ingreso: ${new Date(animal.fechaIngreso).toLocaleDateString('es-ES')}`);
+    alert(`Ficha del Animal:\n\nID: ${animal.idAnimal}\nNombre: ${animal.nombre}\nEspecie: ${animal.especie}\nRaza: ${animal.raza}\nEdad: ${animal.edad} años\nEstado: ${animal.estado}\nPuntaje Mínimo Requerido: ${animal.puntajeMinimo || 0}\nFecha Ingreso: ${new Date(animal.fechaIngreso).toLocaleDateString('es-ES')}`);
   } catch (error) {
     alert('Error al obtener información del animal');
   }

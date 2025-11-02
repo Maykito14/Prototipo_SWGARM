@@ -127,3 +127,7 @@ build/
 
 # Archivos específicos del proyecto
 # (agregar aquí archivos específicos que no quieras subir)
+
+# Imágenes subidas por usuarios
+backend/uploads/
+backend/uploads/**

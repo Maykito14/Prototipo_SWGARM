@@ -92,10 +92,10 @@ const Solicitud = {
   },
 
   async create(data) {
-    const { idAdoptante, idAnimal, fecha, estado = 'Pendiente', puntajeEvaluacion = 0 } = data;
+    const { idAdoptante, idAnimal, fecha, estado = 'Pendiente', puntajeEvaluacion = 0, respuestasFormulario = null } = data;
     const [result] = await pool.query(
-      'INSERT INTO solicitud (idAdoptante, idAnimal, fecha, estado, puntajeEvaluacion) VALUES (?, ?, ?, ?, ?)',
-      [idAdoptante, idAnimal, fecha, estado, puntajeEvaluacion]
+      'INSERT INTO solicitud (idAdoptante, idAnimal, fecha, estado, puntajeEvaluacion, respuestasFormulario) VALUES (?, ?, ?, ?, ?, ?)',
+      [idAdoptante, idAnimal, fecha, estado, puntajeEvaluacion, respuestasFormulario]
     );
     return { idSolicitud: result.insertId, ...data };
   },

@@ -8,6 +8,7 @@ Sistema web desarrollado para la gestión de adopción de mascotas de un refugio
 - **Backend:** Node.js, Express.js
 - **Base de Datos:** MySQL
 - **Autenticación:** JWT (JSON Web Tokens)
+- **Subida de Archivos:** Multer
 
 ## 📋 Requisitos Previos
 
@@ -66,13 +67,16 @@ Prototipo_SWGARM/
 │   │   ├── animalController.js
 │   │   └── userController.js
 │   ├── middlewares/
-│   │   └── autMiddleware.js # Middleware de autenticación
+│   │   ├── autMiddleware.js # Middleware de autenticación
+│   │   └── uploadMiddleware.js # Middleware de subida de archivos
 │   ├── models/
 │   │   ├── animal.js
 │   │   └── User.js
 │   ├── routes/
 │   │   ├── animalRoutes.js
 │   │   └── userRoutes.js
+│   ├── uploads/
+│   │   └── images/         # Carpeta para imágenes subidas
 │   └── app.js              # Configuración de Express
 ├── frontend/
 │   ├── css/
@@ -117,11 +121,24 @@ Prototipo_SWGARM/
 - `PUT /api/animales/:id` - Actualizar un animal (requiere auth)
 - `DELETE /api/animales/:id` - Eliminar un animal (requiere auth)
 
+## 📸 Sistema de Subida de Imágenes
+
+✅ **Implementado:** Sistema completo para subir y gestionar imágenes de animales.
+
+**Características:**
+- Subida de imágenes directamente desde la computadora
+- Validación de tipo (JPG, PNG, GIF, WEBP) y tamaño (máx. 5MB)
+- Vista previa antes de subir
+- Almacenamiento automático en servidor
+- Acceso desde todas las páginas del sistema
+
+📖 **Documentación Completa:** Ver [DOCUMENTACION_SUBIDA_IMAGENES.md](./DOCUMENTACION_SUBIDA_IMAGENES.md)
+
 ## 🐛 Problemas Conocidos y Mejoras Futuras
 
-1. **Autenticación:** Implementar protección completa de rutas en el frontend
-2. **Validación:** Agregar validación más robusta de datos en el backend
-3. **Imágenes:** Implementar almacenamiento de imágenes de animales
+1. **Autenticación:** ✅ Protección completa de rutas implementada
+2. **Validación:** ✅ Validación robusta implementada
+3. **Imágenes:** ✅ Sistema de subida de imágenes implementado
 4. **Email:** Agregar notificaciones por email
 5. **Reportes:** Implementar generación de reportes PDF
 

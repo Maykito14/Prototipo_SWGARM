@@ -13,25 +13,16 @@ function buildHeader(titleText) {
       <a href="animales.html">Animales</a>
     `;
   } else if (isAdmin) {
-    // Administradores: Panel Admin + todas las funciones
+    // Administradores: Solo Panel Admin y Animales (el resto está en el Panel Admin)
     navLinks = `
       <a href="admin_dashboard.html">Panel Admin</a>
       <a href="animales.html">Animales</a>
-      <a href="admin_solicitudes.html">Evaluar Solicitudes</a>
-      <a href="admin_animales.html">Gestión Animales</a>
-      <a href="admin_salud.html">Gestión Salud</a>
-      <a href="admin_estados.html">Gestión Estados</a>
-      <a href="admin_seguimiento.html">Seguimiento</a>
-      <a href="admin_reportes.html">Reportes</a>
-      <a href="admin_usuarios.html">Gestión Usuarios</a>
-      <a href="admin_campanas.html">Gestión Campañas</a>
     `;
   } else {
-    // Usuarios adoptantes logueados: Mi Panel, Animales, Postular adopción
+    // Usuarios adoptantes logueados: Mi Panel y Animales (postulación solo desde tarjeta de animal)
     navLinks = `
       <a href="user_dashboard.html">Mi Panel</a>
       <a href="animales.html">Animales</a>
-      <a href="formulario-adopción.html">Postular adopción</a>
     `;
   }
   

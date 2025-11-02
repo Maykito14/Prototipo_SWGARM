@@ -60,7 +60,17 @@ function renderizarAnimales(animales) {
   }
   
   container.innerHTML = animales.map(animal => {
-    const imagenSrc = animal.foto || obtenerImagenGenerica(animal.especie);
+    // Construir ruta de imagen correctamente
+    let imagenSrc = obtenerImagenGenerica(animal.especie); // Por defecto
+    if (animal.foto) {
+      // Si la foto comienza con "uploads/", es una imagen subida, agregar "/"
+      if (animal.foto.startsWith('uploads/')) {
+        imagenSrc = `/${animal.foto}`;
+      } else {
+        // Si es una ruta relativa (ej: images/bingo.jpg), usarla directamente
+        imagenSrc = animal.foto;
+      }
+    }
     const categoriaEdad = categorizarEdad(animal.edad);
     
     // Mostrar botón de postulación solo si está disponible y el usuario está autenticado

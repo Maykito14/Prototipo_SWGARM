@@ -17,19 +17,19 @@ const Animal = {
   },
 
   async create(data) {
-    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto } = data;
+    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto, puntajeMinimo } = data;
     const [result] = await pool.query(
-      'INSERT INTO animal (nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto || null]
+      'INSERT INTO animal (nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto, puntajeMinimo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto || null, puntajeMinimo || 0]
     );
     return { idAnimal: result.insertId, ...data };
   },
 
   async update(id, data) {
-    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto } = data;
+    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto, puntajeMinimo } = data;
     await pool.query(
-      'UPDATE animal SET nombre=?, especie=?, raza=?, edad=?, estado=?, fechaIngreso=?, descripcion=?, foto=? WHERE idAnimal=?',
-      [nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto || null, id]
+      'UPDATE animal SET nombre=?, especie=?, raza=?, edad=?, estado=?, fechaIngreso=?, descripcion=?, foto=?, puntajeMinimo=? WHERE idAnimal=?',
+      [nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto || null, puntajeMinimo || 0, id]
     );
     return this.getById(id);
   },

@@ -32,7 +32,14 @@ exports.obtenerAnimal = async (req, res) => {
 
 exports.crearAnimal = async (req, res) => {
   try {
-    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto } = req.body;
+    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, puntajeMinimo } = req.body;
+    
+    // Manejar archivo subido
+    let foto = null;
+    if (req.file) {
+      // Guardar ruta relativa: uploads/images/nombre-archivo.ext
+      foto = `uploads/images/${req.file.filename}`;
+    }
 
     // Validaciones básicas
     if (!nombre || !especie || !edad || !estado || !fechaIngreso) {
@@ -53,6 +60,12 @@ exports.crearAnimal = async (req, res) => {
       return res.status(400).json({ error: 'La fecha de ingreso no puede ser futura' });
     }
 
+    // Validar puntaje mínimo
+    const puntajeMin = parseInt(puntajeMinimo) || 0;
+    if (puntajeMin < 0 || puntajeMin > 100) {
+      return res.status(400).json({ error: 'El puntaje mínimo debe estar entre 0 y 100' });
+    }
+
     // Verificar duplicados por nombre
     const duplicado = await Animal.findByName(nombre);
     if (duplicado) {
@@ -62,7 +75,20 @@ exports.crearAnimal = async (req, res) => {
       });
     }
 
-    const nuevo = await Animal.create(req.body);
+    // Crear objeto con los datos del animal incluyendo la foto
+    const animalData = {
+      nombre,
+      especie,
+      raza,
+      edad: parseInt(edad),
+      estado,
+      fechaIngreso,
+      descripcion,
+      foto,
+      puntajeMinimo: puntajeMin
+    };
+
+    const nuevo = await Animal.create(animalData);
     res.status(201).json({
       message: 'Animal registrado exitosamente',
       animal: nuevo
@@ -75,7 +101,16 @@ exports.crearAnimal = async (req, res) => {
 
 exports.actualizarAnimal = async (req, res) => {
   try {
-    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, foto } = req.body;
+    const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, puntajeMinimo } = req.body;
+    
+    // Manejar archivo subido
+    let foto = req.body.foto; // Mantener foto existente si no se sube una nueva
+    if (req.file) {
+      // Guardar ruta relativa: uploads/images/nombre-archivo.ext
+      foto = `uploads/images/${req.file.filename}`;
+      
+      // TODO: Eliminar foto antigua si existe
+    }
 
     // Validaciones básicas
     if (!nombre || !especie || !edad || !estado || !fechaIngreso) {
@@ -96,7 +131,26 @@ exports.actualizarAnimal = async (req, res) => {
       return res.status(400).json({ error: 'La fecha de ingreso no puede ser futura' });
     }
 
-    const actualizado = await Animal.update(req.params.id, req.body);
+    // Validar puntaje mínimo
+    const puntajeMin = parseInt(puntajeMinimo) || 0;
+    if (puntajeMin < 0 || puntajeMin > 100) {
+      return res.status(400).json({ error: 'El puntaje mínimo debe estar entre 0 y 100' });
+    }
+
+    // Crear objeto con los datos del animal incluyendo la foto
+    const animalData = {
+      nombre,
+      especie,
+      raza,
+      edad: parseInt(edad),
+      estado,
+      fechaIngreso,
+      descripcion,
+      foto,
+      puntajeMinimo: puntajeMin
+    };
+
+    const actualizado = await Animal.update(req.params.id, animalData);
     res.json({
       message: 'Animal actualizado exitosamente',
       animal: actualizado

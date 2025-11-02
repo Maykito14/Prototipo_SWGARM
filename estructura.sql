@@ -66,6 +66,7 @@ CREATE TABLE `animal` (
   `descripcion` text,
   `foto` varchar(255) DEFAULT NULL,
   `fechaIngreso` date DEFAULT NULL,
+  `puntajeMinimo` int DEFAULT 0,
   PRIMARY KEY (`idAnimal`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -98,6 +99,7 @@ CREATE TABLE `solicitud` (
   `estado` varchar(255) DEFAULT NULL,
   `puntajeEvaluacion` int NOT NULL,
   `motivoRechazo` varchar(255) DEFAULT NULL,
+  `respuestasFormulario` text,
   PRIMARY KEY (`idSolicitud`),
   KEY `solicitud_adoptante_idx` (`idAdoptante`),
   KEY `solicitud_animal_idx` (`idAnimal`),
