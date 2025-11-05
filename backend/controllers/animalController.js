@@ -103,10 +103,16 @@ exports.actualizarAnimal = async (req, res) => {
   try {
     const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, puntajeMinimo } = req.body;
     
+    // Obtener animal actual para preservar la foto si no se sube una nueva
+    const animalActual = await Animal.getById(req.params.id);
+    if (!animalActual) {
+      return res.status(404).json({ error: 'Animal no encontrado' });
+    }
+    
     // Manejar archivo subido
-    let foto = req.body.foto; // Mantener foto existente si no se sube una nueva
+    let foto = animalActual.foto; // Mantener foto existente por defecto
     if (req.file) {
-      // Guardar ruta relativa: uploads/images/nombre-archivo.ext
+      // Si se sube una nueva foto, usar la nueva
       foto = `uploads/images/${req.file.filename}`;
       
       // TODO: Eliminar foto antigua si existe

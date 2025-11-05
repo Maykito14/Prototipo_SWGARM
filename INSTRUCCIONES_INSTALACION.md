@@ -365,7 +365,7 @@ VALUES ('admin@corazondetrapo.com', 'password_hash_aqui', 'administrador');
 
 Para cambiar un usuario a administrador:
 ```sql
-UPDATE usuario SET rol = 'administrador' WHERE email = 'tu_email@ejemplo.com';
+UPDATE usuario SET rol = 'administrador' WHERE email = 'admin@admin.com';
 ```
 
 ### Crear Datos de Prueba

@@ -4,12 +4,35 @@
 -- Versión: 1.0 (Unificado con todas las actualizaciones)
 -- ============================================================================
 -- 
--- INSTRUCCIONES:
--- 1. Crear la base de datos: CREATE DATABASE swgarm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
--- 2. Seleccionar la base de datos: USE swgarm;
--- 3. Ejecutar este script completo
+-- INSTRUCCIONES DE USO:
+-- Ejecutar este script completo desde MySQL/MariaDB. El script creará
+-- automáticamente la base de datos y todas las tablas necesarias.
+-- 
+-- Ejemplo de ejecución:
+--   mysql -u root -p < estructura.sql
+-- 
+-- O desde MySQL Workbench/phpMyAdmin: ejecutar todo el contenido del archivo.
+-- 
+-- ACTUALIZACIONES INCLUIDAS:
+-- - Todos los campos VARCHAR son de 255 caracteres (no se usan VARCHAR(45))
+-- - Tabla 'animal': Campo 'puntajeMinimo' (int DEFAULT 0) para sistema de puntajes
+-- - Tabla 'solicitud': Campo 'respuestasFormulario' (text) para guardar respuestas del formulario en JSON
+-- 
+-- NOTA: Este archivo ya incluye todas las actualizaciones de las migraciones:
+--   - migracion_puntaje_minimo.sql
+--   - migracion_respuestas_formulario.sql
+-- 
+-- Si tienes una base de datos existente, usa los scripts de migración individuales.
+-- Si estás creando la base de datos desde cero, usa este archivo.
 -- 
 -- ============================================================================
+
+-- ============================================================================
+-- CREAR BASE DE DATOS
+-- ============================================================================
+DROP DATABASE IF EXISTS `swgarm`;
+CREATE DATABASE `swgarm` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `swgarm`;
 
 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT;
 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS;
@@ -66,7 +89,7 @@ CREATE TABLE `animal` (
   `descripcion` text,
   `foto` varchar(255) DEFAULT NULL,
   `fechaIngreso` date DEFAULT NULL,
-  `puntajeMinimo` int DEFAULT 0,
+  `puntajeMinimo` int DEFAULT 0, -- Actualización: Sistema de puntajes mínimos requeridos
   PRIMARY KEY (`idAnimal`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -99,7 +122,7 @@ CREATE TABLE `solicitud` (
   `estado` varchar(255) DEFAULT NULL,
   `puntajeEvaluacion` int NOT NULL,
   `motivoRechazo` varchar(255) DEFAULT NULL,
-  `respuestasFormulario` text,
+  `respuestasFormulario` text, -- Actualización: Almacena todas las respuestas del formulario en formato JSON
   PRIMARY KEY (`idSolicitud`),
   KEY `solicitud_adoptante_idx` (`idAdoptante`),
   KEY `solicitud_animal_idx` (`idAnimal`),

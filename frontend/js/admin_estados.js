@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${cambio.usuario || '-'}</td>
         <td>
           <button class="btn-table ver" onclick="verCambioEstado(${cambio.idEstado})">👁️</button>
+          <button class="btn-table editar" onclick="editarAnimalDesdeEstados(${cambio.idAnimal})">✏️</button>
           <button class="btn-table eliminar" onclick="eliminarCambioEstado(${cambio.idEstado})">🗑️</button>
         </td>
       </tr>
@@ -295,4 +296,9 @@ async function eliminarCambioEstado(id) {
   } catch (error) {
     alert('Error al eliminar el cambio de estado');
   }
+}
+
+async function editarAnimalDesdeEstados(animalId) {
+  // Redirigir a la página de gestión de animales con el animal pre-seleccionado
+  window.location.href = `admin_animales.html?editar=${animalId}`;
 }

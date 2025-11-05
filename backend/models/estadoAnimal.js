@@ -63,7 +63,7 @@ const EstadoAnimal = {
 
     // Registrar cambio en historial
     const cambioEstado = await this.create({
-      idAnimal,
+      idAnimal: animalId,
       estadoAnterior,
       estadoNuevo: nuevoEstado,
       fechaCambio: new Date().toISOString().split('T')[0],
@@ -72,7 +72,7 @@ const EstadoAnimal = {
     });
 
     return {
-      animal: { idAnimal, estadoAnterior, estadoNuevo: nuevoEstado },
+      animal: { idAnimal: animalId, estadoAnterior, estadoNuevo: nuevoEstado },
       historial: cambioEstado
     };
   },
@@ -82,7 +82,7 @@ const EstadoAnimal = {
       'Disponible': ['En proceso', 'En tratamiento', 'Adoptado'],
       'En proceso': ['Disponible', 'Adoptado'],
       'En tratamiento': ['Disponible', 'En proceso'],
-      'Adoptado': [] // Una vez adoptado, no puede cambiar de estado
+      'Adoptado': ['Disponible', 'En proceso', 'En tratamiento'] // Permitir que animales adoptados vuelvan al refugio
     };
 
     return transicionesValidas[estadoAnterior]?.includes(estadoNuevo) || false;
@@ -93,7 +93,7 @@ const EstadoAnimal = {
       'Disponible': ['En proceso', 'En tratamiento', 'Adoptado'],
       'En proceso': ['Disponible', 'Adoptado'],
       'En tratamiento': ['Disponible', 'En proceso'],
-      'Adoptado': []
+      'Adoptado': ['Disponible', 'En proceso', 'En tratamiento'] // Permitir que animales adoptados vuelvan al refugio
     };
 
     return transicionesValidas[estadoActual] || [];

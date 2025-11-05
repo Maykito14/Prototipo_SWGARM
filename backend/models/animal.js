@@ -2,7 +2,7 @@ const pool = require('../config/db');
 
 const Animal = {
   async getAll() {
-    const [rows] = await pool.query('SELECT * FROM animal ORDER BY fechaIngreso DESC');
+    const [rows] = await pool.query('SELECT * FROM animal ORDER BY idAnimal DESC');
     return rows;
   },
 
