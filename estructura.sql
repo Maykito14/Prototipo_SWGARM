@@ -57,6 +57,7 @@ CREATE TABLE `usuario` (
   `intentosFallidos` int NOT NULL DEFAULT 0,
   `cuentaBloqueada` tinyint(1) NOT NULL DEFAULT 0,
   `fechaBloqueo` datetime DEFAULT NULL,
+  `bloqueoPermanente` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`idUsuario`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

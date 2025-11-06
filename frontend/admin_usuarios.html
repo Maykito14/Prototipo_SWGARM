@@ -31,6 +31,47 @@
       margin: 16px 0;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
+    .filter-input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+    .filter-input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    .filter-row th {
+      padding: 8px;
+      background-color: #f8f9fa;
+    }
+    .filter-select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      box-sizing: border-box;
+      background-color: #fff;
+    }
+    .filter-select:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    .btn-table {
+      margin: 2px;
+      padding: 6px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    #tablaUsuarios td:last-child {
+      white-space: nowrap;
+      min-width: 300px;
+    }
   </style>
 </head>
 <body data-page-title="Gestión de Usuarios">
@@ -46,13 +87,43 @@
               <tr>
                 <th>ID</th>
                 <th>Email</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
                 <th>Rol Actual</th>
                 <th>Acciones</th>
+              </tr>
+              <tr class="filter-row">
+                <th></th>
+                <th>
+                  <input type="text" class="filter-input" id="filterEmail" placeholder="Buscar email..." onkeyup="filtrarUsuarios()">
+                </th>
+                <th>
+                  <input type="text" class="filter-input" id="filterNombre" placeholder="Buscar nombre..." onkeyup="filtrarUsuarios()">
+                </th>
+                <th>
+                  <input type="text" class="filter-input" id="filterApellido" placeholder="Buscar apellido..." onkeyup="filtrarUsuarios()">
+                </th>
+                <th>
+                  <input type="text" class="filter-input" id="filterTelefono" placeholder="Buscar teléfono..." onkeyup="filtrarUsuarios()">
+                </th>
+                <th>
+                  <input type="text" class="filter-input" id="filterDireccion" placeholder="Buscar dirección..." onkeyup="filtrarUsuarios()">
+                </th>
+                <th>
+                  <select class="filter-select" id="filterRol" onchange="filtrarUsuarios()">
+                    <option value="">Todos los roles</option>
+                    <option value="administrador">Administrador</option>
+                    <option value="adoptante">Adoptante</option>
+                  </select>
+                </th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td colspan="4" style="text-align:center; padding:20px;">Cargando usuarios...</td>
+                <td colspan="8" style="text-align:center; padding:20px;">Cargando usuarios...</td>
               </tr>
             </tbody>
           </table>

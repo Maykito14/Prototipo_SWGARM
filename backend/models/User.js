@@ -51,6 +51,9 @@ const User = {
     const user = await this.findByEmail(email);
     if (!user || !user.cuentaBloqueada) return false;
     
+    // No desbloquear si está bloqueado permanentemente
+    if (user.bloqueoPermanente) return false;
+    
     // Desbloquear después de 30 minutos
     if (user.fechaBloqueo) {
       const fechaBloqueo = new Date(user.fechaBloqueo);
@@ -67,9 +70,21 @@ const User = {
   },
 
   async getAll() {
-    const [rows] = await pool.query(
-      'SELECT idUsuario, email, rol FROM usuario ORDER BY email ASC'
-    );
+    const [rows] = await pool.query(`
+      SELECT 
+        u.idUsuario, 
+        u.email, 
+        u.rol,
+        u.cuentaBloqueada,
+        u.bloqueoPermanente,
+        a.nombre,
+        a.apellido,
+        a.telefono,
+        a.direccion
+      FROM usuario u
+      LEFT JOIN adoptante a ON u.email = a.email
+      ORDER BY u.email ASC
+    `);
     return rows;
   },
 
@@ -84,6 +99,50 @@ const User = {
       [nuevoRol, idUsuario]
     );
     
+    return await this.findById(idUsuario);
+  },
+
+  async blanquearPassword(idUsuario) {
+    const bcrypt = require('bcrypt');
+    // Contraseña temporal fija
+    const passwordTemporal = 'corazondetrapo';
+    const hash = await bcrypt.hash(passwordTemporal, 10);
+    
+    // Obtener usuario para verificar si está bloqueado
+    const user = await this.findById(idUsuario);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Si está bloqueado, desbloquearlo también
+    if (user.cuentaBloqueada) {
+      await pool.query(
+        'UPDATE usuario SET password = ?, intentosFallidos = 0, cuentaBloqueada = 0, fechaBloqueo = NULL WHERE idUsuario = ?',
+        [hash, idUsuario]
+      );
+    } else {
+      await pool.query(
+        'UPDATE usuario SET password = ? WHERE idUsuario = ?',
+        [hash, idUsuario]
+      );
+    }
+    
+    return passwordTemporal;
+  },
+
+  async bloquearPermanentemente(idUsuario) {
+    await pool.query(
+      'UPDATE usuario SET bloqueoPermanente = 1, cuentaBloqueada = 1 WHERE idUsuario = ?',
+      [idUsuario]
+    );
+    return await this.findById(idUsuario);
+  },
+
+  async desbloquearPermanentemente(idUsuario) {
+    await pool.query(
+      'UPDATE usuario SET bloqueoPermanente = 0, cuentaBloqueada = 0, fechaBloqueo = NULL, intentosFallidos = 0 WHERE idUsuario = ?',
+      [idUsuario]
+    );
     return await this.findById(idUsuario);
   },
 };

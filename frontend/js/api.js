@@ -63,6 +63,24 @@ const api = {
     });
   },
 
+  async blanquearPassword(idUsuario) {
+    return this.request(`/usuarios/usuarios/${idUsuario}/blanquear-password`, {
+      method: 'POST',
+    });
+  },
+
+  async bloquearPermanentemente(idUsuario) {
+    return this.request(`/usuarios/usuarios/${idUsuario}/bloquear-permanente`, {
+      method: 'POST',
+    });
+  },
+
+  async desbloquearPermanentemente(idUsuario) {
+    return this.request(`/usuarios/usuarios/${idUsuario}/desbloquear-permanente`, {
+      method: 'POST',
+    });
+  },
+
   // Animales
   async getAnimales() {
     return this.request('/animales');

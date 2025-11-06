@@ -35,6 +35,14 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
+    // Verificar bloqueo permanente
+    if (user.bloqueoPermanente) {
+      return res.status(403).json({ 
+        error: 'Cuenta bloqueada permanentemente por un administrador',
+        mensaje: 'Su cuenta ha sido bloqueada permanentemente. Contacte al administrador para más información.'
+      });
+    }
+
     // Verificar si la cuenta está bloqueada y si puede desbloquearse
     const desbloqueada = await User.verificarYDesbloquearSiEsNecesario(email);
     if (!desbloqueada && user.cuentaBloqueada) {
@@ -142,5 +150,102 @@ exports.actualizarRol = async (req, res) => {
     } else {
       res.status(500).json({ error: 'Error al actualizar rol del usuario' });
     }
+  }
+};
+
+exports.blanquearPassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validar que el usuario existe
+    const usuarioActual = await User.findById(id);
+    if (!usuarioActual) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Validar que no se está blanqueando la contraseña del mismo admin
+    if (usuarioActual.idUsuario === req.user.id) {
+      return res.status(400).json({ error: 'No puede blanquear su propia contraseña' });
+    }
+
+    // Blanquear contraseña
+    const passwordTemporal = await User.blanquearPassword(id);
+
+    res.json({
+      message: 'Contraseña blanqueada exitosamente',
+      passwordTemporal: passwordTemporal,
+      usuario: {
+        idUsuario: usuarioActual.idUsuario,
+        email: usuarioActual.email,
+        cuentaBloqueada: false // Se desbloquea si estaba bloqueada
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al blanquear contraseña' });
+  }
+};
+
+exports.bloquearPermanentemente = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validar que el usuario existe
+    const usuarioActual = await User.findById(id);
+    if (!usuarioActual) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Validar que no se está bloqueando a sí mismo
+    if (usuarioActual.idUsuario === req.user.id) {
+      return res.status(400).json({ error: 'No puede bloquear su propia cuenta' });
+    }
+
+    // Validar que no se está bloqueando a otro administrador
+    if (usuarioActual.rol === 'administrador') {
+      return res.status(400).json({ error: 'No se puede bloquear permanentemente a otro administrador' });
+    }
+
+    // Bloquear permanentemente
+    const usuarioBloqueado = await User.bloquearPermanentemente(id);
+
+    res.json({
+      message: 'Cuenta bloqueada permanentemente',
+      usuario: {
+        idUsuario: usuarioBloqueado.idUsuario,
+        email: usuarioBloqueado.email,
+        bloqueoPermanente: true
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al bloquear cuenta permanentemente' });
+  }
+};
+
+exports.desbloquearPermanentemente = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validar que el usuario existe
+    const usuarioActual = await User.findById(id);
+    if (!usuarioActual) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Desbloquear permanentemente
+    const usuarioDesbloqueado = await User.desbloquearPermanentemente(id);
+
+    res.json({
+      message: 'Cuenta desbloqueada exitosamente',
+      usuario: {
+        idUsuario: usuarioDesbloqueado.idUsuario,
+        email: usuarioDesbloqueado.email,
+        bloqueoPermanente: false
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al desbloquear cuenta' });
   }
 };

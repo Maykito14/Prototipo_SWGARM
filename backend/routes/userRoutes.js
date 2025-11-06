@@ -10,5 +10,8 @@ router.post('/login', userController.login);
 // Rutas protegidas para administradores
 router.get('/usuarios', authMiddleware, adminMiddleware, userController.listarUsuarios);
 router.put('/usuarios/:id/rol', authMiddleware, adminMiddleware, userController.actualizarRol);
+router.post('/usuarios/:id/blanquear-password', authMiddleware, adminMiddleware, userController.blanquearPassword);
+router.post('/usuarios/:id/bloquear-permanente', authMiddleware, adminMiddleware, userController.bloquearPermanentemente);
+router.post('/usuarios/:id/desbloquear-permanente', authMiddleware, adminMiddleware, userController.desbloquearPermanentemente);
 
 module.exports = router;
