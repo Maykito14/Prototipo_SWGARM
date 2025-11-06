@@ -56,7 +56,7 @@ async function loadUserStats() {
 
         if (response.ok) {
             const solicitudes = await response.json();
-            const activas = solicitudes.filter(s => s.estado === 'Pendiente' || s.estado === 'En evaluación').length;
+            const activas = solicitudes.filter(s => s.estado === 'Pendiente').length;
             document.getElementById('active-requests').textContent = activas;
         }
     } catch (error) {

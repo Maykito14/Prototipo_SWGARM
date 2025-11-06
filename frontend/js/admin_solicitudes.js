@@ -15,7 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let solicitudes = [];
   let animales = [];
-  let solicitudActual = null;
+  // Hacer solicitudActual global para que las funciones fuera del scope puedan accederla
+  window.solicitudActual = null;
+  let solicitudActual = window.solicitudActual; // Referencia local también
 
   // Cargar datos iniciales
   cargarSolicitudes();
@@ -44,13 +46,31 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     
     try {
+      // Validar que tenemos una solicitud actual (usar la variable global)
+      const solicitudActual = window.solicitudActual;
+      if (!solicitudActual || !solicitudActual.idSolicitud) {
+        alert('Error: No hay una solicitud seleccionada. Por favor, cierra el modal y vuelve a intentar.');
+        return;
+      }
+      
       const formData = new FormData(evaluacionForm);
+      
+      // Obtener el puntaje desde el input del formulario (que es readonly pero contiene el valor)
+      const puntajeInput = document.getElementById('puntajeEvaluacion');
+      const puntajeEvaluacion = puntajeInput ? (parseInt(puntajeInput.value) || 0) : (solicitudActual.puntajeEvaluacion || 0);
+      
       // El puntaje no se modifica desde el formulario, se mantiene el original
       const datosEvaluacion = {
         estado: formData.get('nuevoEstado'),
-        puntajeEvaluacion: solicitudActual.puntajeEvaluacion || 0, // Mantener el puntaje calculado originalmente
+        puntajeEvaluacion: puntajeEvaluacion, // Mantener el puntaje calculado originalmente
         motivoRechazo: formData.get('motivoRechazo') || null
       };
+
+      // Validar que el estado esté presente
+      if (!datosEvaluacion.estado) {
+        alert('Por favor, selecciona un estado para la solicitud');
+        return;
+      }
 
       // Actualizar solicitud
       const response = await api.actualizarSolicitud(solicitudActual.idSolicitud, datosEvaluacion);
@@ -73,12 +93,27 @@ document.addEventListener('DOMContentLoaded', () => {
   // Función para cargar solicitudes
   async function cargarSolicitudes() {
     try {
+      console.log('Cargando solicitudes...');
       solicitudes = await api.getSolicitudes();
+      console.log('Solicitudes recibidas:', solicitudes);
+      
+      if (!solicitudes || !Array.isArray(solicitudes)) {
+        console.error('Las solicitudes no son un array válido:', solicitudes);
+        solicitudes = [];
+      }
+      
       mostrarSolicitudesEnTabla(solicitudes);
       actualizarEstadisticas(solicitudes);
     } catch (error) {
       console.error('Error al cargar solicitudes:', error);
-      alert('Error al cargar las solicitudes');
+      console.error('Detalles del error:', error.message, error.stack);
+      alert(`Error al cargar las solicitudes: ${error.message || 'Error desconocido'}`);
+      
+      // Mostrar mensaje en la tabla también
+      const tbody = solicitudesTable.querySelector('tbody');
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #e74c3c;">Error al cargar las solicitudes. Por favor, recarga la página.</td></tr>';
+      }
     }
   }
 
@@ -104,6 +139,17 @@ document.addEventListener('DOMContentLoaded', () => {
   async function mostrarSolicitudesEnTabla(solicitudes) {
     const tbody = solicitudesTable.querySelector('tbody');
     
+    if (!tbody) {
+      console.error('No se encontró el tbody de la tabla de solicitudes');
+      return;
+    }
+    
+    if (!solicitudes || !Array.isArray(solicitudes)) {
+      console.error('Las solicitudes no son un array válido:', solicitudes);
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #e74c3c;">Error: Datos inválidos recibidos</td></tr>';
+      return;
+    }
+    
     if (solicitudes.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No hay solicitudes registradas</td></tr>';
       return;
@@ -123,37 +169,49 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    tbody.innerHTML = solicitudes.map(solicitud => {
-      const animal = animalesInfo[solicitud.idAnimal] || { puntajeMinimo: 0 };
-      const puntaje = solicitud.puntajeEvaluacion || 0;
-      const puntajeMinimo = animal.puntajeMinimo || 0;
-      const cumpleRequisito = puntaje >= puntajeMinimo;
-      
-      // Clase CSS basada en si cumple o no el requisito
-      const clasePuntaje = cumpleRequisito ? 'puntaje-cumple' : 'puntaje-no-cumple';
-      
-      return `
-      <tr>
-        <td>${solicitud.idSolicitud}</td>
-        <td>${solicitud.nombreAdoptante} ${solicitud.apellidoAdoptante}</td>
-        <td>${solicitud.nombreAnimal} (${solicitud.especie})</td>
-        <td>${formatearFecha(solicitud.fecha)}</td>
-        <td><span class="status ${getStatusClass(solicitud.estado)}">${solicitud.estado}</span></td>
-        <td>
-          <span class="${clasePuntaje}" title="Puntaje: ${puntaje} / Mínimo requerido: ${puntajeMinimo}">
-            ${puntaje}
-            ${puntajeMinimo > 0 ? ` <small>(${puntajeMinimo} min)</small>` : ''}
-            ${!cumpleRequisito ? ' ⚠️' : ' ✓'}
-          </span>
-        </td>
-        <td>
-          <button class="btn-table ver" onclick="verSolicitud(${solicitud.idSolicitud})">👁️</button>
-          <button class="btn-table evaluar" onclick="evaluarSolicitud(${solicitud.idSolicitud})">📝</button>
-          <button class="btn-table eliminar" onclick="eliminarSolicitud(${solicitud.idSolicitud})">🗑️</button>
-          ${solicitud.estado === 'Aprobada' ? `<button class="btn-table aprobar" onclick="formalizarSolicitud(${solicitud.idSolicitud})">✅</button>` : ''}
-        </td>
-      </tr>
-    `).join('');
+    try {
+      tbody.innerHTML = solicitudes.map(solicitud => {
+        // Validar que la solicitud tenga los datos necesarios
+        if (!solicitud || !solicitud.idSolicitud) {
+          console.warn('Solicitud inválida:', solicitud);
+          return '';
+        }
+        
+        const animal = animalesInfo[solicitud.idAnimal] || { puntajeMinimo: 0 };
+        const puntaje = solicitud.puntajeEvaluacion || 0;
+        const puntajeMinimo = animal.puntajeMinimo || 0;
+        const cumpleRequisito = puntaje >= puntajeMinimo;
+        
+        // Clase CSS basada en si cumple o no el requisito
+        const clasePuntaje = cumpleRequisito ? 'puntaje-cumple' : 'puntaje-no-cumple';
+        
+        return `
+        <tr>
+          <td>${solicitud.idSolicitud}</td>
+          <td>${solicitud.nombreAdoptante || 'N/A'} ${solicitud.apellidoAdoptante || ''}</td>
+          <td>${solicitud.nombreAnimal || 'N/A'} (${solicitud.especie || 'N/A'})</td>
+          <td>${formatearFecha(solicitud.fecha)}</td>
+          <td><span class="status ${getStatusClass(solicitud.estado || 'Pendiente')}">${solicitud.estado || 'Pendiente'}</span></td>
+          <td>
+            <span class="${clasePuntaje}" title="Puntaje: ${puntaje} / Mínimo requerido: ${puntajeMinimo}">
+              ${puntaje}
+              ${puntajeMinimo > 0 ? ` <small>(${puntajeMinimo} min)</small>` : ''}
+              ${!cumpleRequisito ? ' ⚠️' : ' ✓'}
+            </span>
+          </td>
+          <td>
+            <button class="btn-table ver" onclick="verSolicitud(${solicitud.idSolicitud})">👁️</button>
+            <button class="btn-table evaluar" onclick="evaluarSolicitud(${solicitud.idSolicitud})">📝</button>
+            <button class="btn-table eliminar" onclick="eliminarSolicitud(${solicitud.idSolicitud})">🗑️</button>
+            ${solicitud.estado === 'Aprobada' ? `<button class="btn-table aprobar" onclick="formalizarSolicitud(${solicitud.idSolicitud})">✅</button>` : ''}
+          </td>
+        </tr>
+      `;
+      }).filter(row => row !== '').join('');
+    } catch (error) {
+      console.error('Error al renderizar solicitudes:', error);
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #e74c3c;">Error al mostrar las solicitudes</td></tr>';
+    }
   }
 
   // Función para actualizar estadísticas
@@ -198,10 +256,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function getStatusClass(estado) {
     const estados = {
       'Pendiente': 'proceso',
-      'En evaluación': 'proceso',
       'Aprobada': 'disponible',
-      'Rechazada': 'tratamiento',
-      'No Seleccionada': 'tratamiento'
+      'Rechazada': 'tratamiento'
     };
     return estados[estado] || '';
   }
@@ -238,19 +294,32 @@ async function verSolicitud(id) {
 
 async function evaluarSolicitud(id) {
   try {
-    solicitudActual = await api.getSolicitud(id);
+    console.log('Cargando solicitud para evaluación, ID:', id);
+    window.solicitudActual = await api.getSolicitud(id);
+    const solicitudActual = window.solicitudActual;
+    
+    // Validar que se obtuvo la solicitud correctamente
+    if (!solicitudActual || !solicitudActual.idSolicitud) {
+      alert('Error: No se pudo cargar la información de la solicitud');
+      console.error('Solicitud no encontrada o inválida:', solicitudActual);
+      return;
+    }
+    
+    console.log('Solicitud cargada:', solicitudActual);
     
     // Obtener información del animal para mostrar puntaje mínimo
     let animal = null;
     let puntajeMinimo = 0;
     try {
-      animal = await api.getAnimal(solicitudActual.idAnimal);
-      puntajeMinimo = animal.puntajeMinimo || 0;
+      if (solicitudActual && solicitudActual.idAnimal) {
+        animal = await api.getAnimal(solicitudActual.idAnimal);
+        puntajeMinimo = animal.puntajeMinimo || 0;
+      }
     } catch (error) {
       console.error('Error al cargar información del animal:', error);
     }
     
-    const puntajeActual = solicitudActual.puntajeEvaluacion || 0;
+    const puntajeActual = (solicitudActual && solicitudActual.puntajeEvaluacion) ? solicitudActual.puntajeEvaluacion : 0;
     const cumpleRequisito = puntajeActual >= puntajeMinimo;
     
     // Mostrar detalles de la solicitud
@@ -282,27 +351,45 @@ async function evaluarSolicitud(id) {
     `;
     
     // Configurar formulario
-    document.getElementById('nuevoEstado').value = solicitudActual.estado;
+    const nuevoEstadoInput = document.getElementById('nuevoEstado');
+    if (nuevoEstadoInput) {
+      nuevoEstadoInput.value = solicitudActual.estado || 'Pendiente';
+    }
+    
     // El campo de puntaje está deshabilitado ya que se calcula automáticamente
     // pero lo mostramos como referencia
     const puntajeInput = document.getElementById('puntajeEvaluacion');
-    puntajeInput.value = puntajeActual;
-    puntajeInput.readOnly = true;
-    puntajeInput.title = 'Este puntaje se calcula automáticamente basado en las respuestas del formulario';
-    document.getElementById('motivoRechazo').value = solicitudActual.motivoRechazo || '';
+    if (puntajeInput) {
+      puntajeInput.value = puntajeActual;
+      puntajeInput.readOnly = true;
+      puntajeInput.title = 'Este puntaje se calcula automáticamente basado en las respuestas del formulario';
+    }
+    
+    const motivoRechazoInput = document.getElementById('motivoRechazo');
+    if (motivoRechazoInput) {
+      motivoRechazoInput.value = solicitudActual.motivoRechazo || '';
+    }
     
     // Mostrar/ocultar motivo de rechazo según estado
-    if (solicitudActual.estado === 'Rechazada') {
-      motivoRechazoGroup.style.display = 'block';
-    } else {
-      motivoRechazoGroup.style.display = 'none';
+    if (motivoRechazoGroup) {
+      if (solicitudActual.estado === 'Rechazada') {
+        motivoRechazoGroup.style.display = 'block';
+      } else {
+        motivoRechazoGroup.style.display = 'none';
+      }
     }
     
     // Mostrar modal
-    evaluacionModal.style.display = 'block';
+    if (evaluacionModal) {
+      evaluacionModal.style.display = 'block';
+    } else {
+      console.error('No se encontró el modal de evaluación');
+      alert('Error: No se pudo abrir el modal de evaluación');
+    }
     
   } catch (error) {
-    alert('Error al cargar la solicitud para evaluación');
+    console.error('Error al cargar la solicitud para evaluación:', error);
+    alert(`Error al cargar la solicitud para evaluación: ${error.message || 'Error desconocido'}`);
   }
 }
 
@@ -322,19 +409,29 @@ async function eliminarSolicitud(id) {
 }
 
 function cerrarModal() {
-  evaluacionModal.style.display = 'none';
-  evaluacionForm.reset();
-  motivoRechazoGroup.style.display = 'none';
+  const evaluacionModal = document.getElementById('evaluacionModal');
+  const evaluacionForm = document.getElementById('evaluacionForm');
+  const motivoRechazoGroup = document.getElementById('motivoRechazoGroup');
+  
+  if (evaluacionModal) {
+    evaluacionModal.style.display = 'none';
+  }
+  if (evaluacionForm) {
+    evaluacionForm.reset();
+  }
+  if (motivoRechazoGroup) {
+    motivoRechazoGroup.style.display = 'none';
+  }
+  // Limpiar la solicitud actual al cerrar el modal
+  window.solicitudActual = null;
 }
 
 // Función auxiliar para obtener clase CSS del estado
 function getStatusClass(estado) {
   const estados = {
     'Pendiente': 'proceso',
-    'En evaluación': 'proceso',
     'Aprobada': 'disponible',
-    'Rechazada': 'tratamiento',
-    'No Seleccionada': 'tratamiento'
+    'Rechazada': 'tratamiento'
   };
   return estados[estado] || '';
 }

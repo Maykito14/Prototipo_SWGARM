@@ -42,15 +42,26 @@ const Adoptante = {
 
 const Solicitud = {
   async getAll() {
-    const [rows] = await pool.query(`
-      SELECT s.*, a.nombre as nombreAdoptante, a.apellido as apellidoAdoptante, a.email,
-             an.nombre as nombreAnimal, an.especie, an.raza
-      FROM solicitud s 
-      JOIN adoptante a ON s.idAdoptante = a.idAdoptante 
-      JOIN animal an ON s.idAnimal = an.idAnimal 
-      ORDER BY s.fecha DESC, s.idSolicitud DESC
-    `);
-    return rows;
+    try {
+      const [rows] = await pool.query(`
+        SELECT s.idSolicitud, s.idAdoptante, s.idAnimal, s.fecha, 
+               COALESCE(s.estado, 'Pendiente') as estado,
+               COALESCE(s.puntajeEvaluacion, 0) as puntajeEvaluacion,
+               s.motivoRechazo, s.respuestasFormulario,
+               a.nombre as nombreAdoptante, a.apellido as apellidoAdoptante, 
+               COALESCE(a.email, '') as email,
+               an.nombre as nombreAnimal, an.especie, an.raza
+        FROM solicitud s 
+        LEFT JOIN adoptante a ON s.idAdoptante = a.idAdoptante 
+        LEFT JOIN animal an ON s.idAnimal = an.idAnimal 
+        ORDER BY s.fecha DESC, s.idSolicitud DESC
+      `);
+      console.log(`Consulta ejecutada. Filas encontradas: ${rows.length}`);
+      return rows || [];
+    } catch (error) {
+      console.error('Error en Solicitud.getAll():', error);
+      throw error;
+    }
   },
 
   async getById(id) {

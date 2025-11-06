@@ -107,11 +107,14 @@ exports.crearAdoptante = async (req, res) => {
 // Controladores para Solicitudes
 exports.listarSolicitudes = async (req, res) => {
   try {
+    console.log('Listando solicitudes...');
     const solicitudes = await Solicitud.getAll();
+    console.log(`Se encontraron ${solicitudes.length} solicitudes`);
     res.json(solicitudes);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error al obtener solicitudes' });
+    console.error('Error al obtener solicitudes:', error);
+    console.error('Stack trace:', error.stack);
+    res.status(500).json({ error: 'Error al obtener solicitudes', detalle: error.message });
   }
 };
 
@@ -244,7 +247,7 @@ exports.actualizarSolicitud = async (req, res) => {
       });
     }
 
-    const estadosValidos = ['Pendiente', 'Aprobada', 'Rechazada', 'En evaluación', 'No Seleccionada'];
+    const estadosValidos = ['Pendiente', 'Aprobada', 'Rechazada', 'No Seleccionada'];
     if (!estadosValidos.includes(estado)) {
       return res.status(400).json({ 
         error: 'Estado inválido',
@@ -252,22 +255,116 @@ exports.actualizarSolicitud = async (req, res) => {
       });
     }
 
-    // Obtener solicitud actual
+    // Obtener solicitud actual (ANTES de actualizarla)
     const solicitudActual = await Solicitud.getById(req.params.id);
     if (!solicitudActual) {
       return res.status(404).json({ error: 'Solicitud no encontrada' });
     }
 
-    // Si se aprueba una solicitud, marcar las demás del mismo animal como "No Seleccionada"
+    const pool = require('../config/db');
+    const estadoAnterior = solicitudActual.estado;
+    
+    console.log(`[DEBUG] ===== INICIO ACTUALIZACIÓN SOLICITUD =====`);
+    console.log(`[DEBUG] Solicitud ID: ${req.params.id}`);
+    console.log(`[DEBUG] Estado anterior: "${estadoAnterior}"`);
+    console.log(`[DEBUG] Estado nuevo: "${estado}"`);
+    console.log(`[DEBUG] ID Animal: ${solicitudActual.idAnimal}`);
+    console.log(`[DEBUG] Condición check: estadoAnterior === 'Aprobada' && (estado === 'Pendiente' || estado === 'Rechazada')`);
+    console.log(`[DEBUG] Resultado condición: ${estadoAnterior === 'Aprobada' && (estado === 'Pendiente' || estado === 'Rechazada')}`);
+
+    // Si se aprueba una solicitud, marcar las demás del mismo animal como "Rechazada"
     if (estado === 'Aprobada') {
-      await marcarOtrasSolicitudesComoNoSeleccionadas(solicitudActual.idAnimal, req.params.id);
+      console.log('[DEBUG] Aprobando solicitud - marcando otras como "Rechazada"');
+      await marcarOtrasSolicitudesComoRechazadas(solicitudActual.idAnimal, req.params.id);
       
-      // Cambiar estado del animal a "En proceso"
-      const pool = require('../config/db');
-      await pool.query(
-        'UPDATE animal SET estado = ? WHERE idAnimal = ?',
-        ['En proceso', solicitudActual.idAnimal]
+      // Obtener estado actual del animal
+      const [animalRows] = await pool.query('SELECT estado FROM animal WHERE idAnimal = ?', [solicitudActual.idAnimal]);
+      const estadoAnimalActual = animalRows[0]?.estado;
+      
+      // Cambiar estado del animal a "En proceso" (si no está ya en ese estado o "Adoptado")
+      if (estadoAnimalActual !== 'En proceso' && estadoAnimalActual !== 'Adoptado') {
+        await pool.query(
+          'UPDATE animal SET estado = ? WHERE idAnimal = ?',
+          ['En proceso', solicitudActual.idAnimal]
+        );
+        console.log(`[DEBUG] Animal ${solicitudActual.idAnimal} cambiado de "${estadoAnimalActual}" a "En proceso"`);
+      } else {
+        console.log(`[DEBUG] Animal ${solicitudActual.idAnimal} ya está en "${estadoAnimalActual}" - no se cambia`);
+      }
+    }
+    
+    // Si se cambia de "Aprobada" a "Pendiente" o "Rechazada", restaurar otras solicitudes y verificar estado del animal
+    let otrasAprobadasCount = 0;
+    if (estadoAnterior === 'Aprobada' && (estado === 'Pendiente' || estado === 'Rechazada')) {
+      console.log(`[DEBUG] Cambiando de Aprobada a ${estado} - restaurando otras solicitudes y verificando estado del animal`);
+      
+      // Primero, verificar qué solicitudes hay para este animal
+      const [solicitudesAnimal] = await pool.query(
+        'SELECT idSolicitud, estado FROM solicitud WHERE idAnimal = ? AND idSolicitud != ?',
+        [solicitudActual.idAnimal, req.params.id]
       );
+      console.log(`[DEBUG] Solicitudes del animal ${solicitudActual.idAnimal} (excluyendo ${req.params.id}):`, solicitudesAnimal);
+      
+      // Restaurar las solicitudes "Rechazada" del mismo animal a "Pendiente"
+      // IMPORTANTE: Hacer esto ANTES de actualizar la solicitud actual
+      // Usar una comparación más flexible para manejar posibles espacios o variaciones
+      const [restauradas] = await pool.query(
+        'UPDATE solicitud SET estado = ? WHERE idAnimal = ? AND idSolicitud != ? AND (estado = ? OR TRIM(estado) = ?)',
+        ['Pendiente', solicitudActual.idAnimal, req.params.id, 'Rechazada', 'Rechazada']
+      );
+      console.log(`[DEBUG] Solicitudes restauradas de "Rechazada" a "Pendiente": ${restauradas.affectedRows}`);
+      
+      // Si aún no se restauraron, intentar restaurar todas las que no sean "Aprobada" o "Pendiente"
+      // (esto cubre casos donde el estado podría tener variaciones)
+      if (restauradas.affectedRows === 0 && solicitudesAnimal.length > 0) {
+        console.log(`[DEBUG] No se restauraron solicitudes con la consulta estándar. Intentando restaurar todas las no aprobadas...`);
+        const estadosNoRestaurar = ['Aprobada', 'Pendiente'];
+        for (const solicitud of solicitudesAnimal) {
+          if (!estadosNoRestaurar.includes(solicitud.estado) && solicitud.estado !== null) {
+            console.log(`[DEBUG] Restaurando solicitud ${solicitud.idSolicitud} de estado "${solicitud.estado}" a "Pendiente"`);
+            await pool.query(
+              'UPDATE solicitud SET estado = ? WHERE idSolicitud = ?',
+              ['Pendiente', solicitud.idSolicitud]
+            );
+          }
+        }
+      }
+      
+      // Verificar después de la actualización
+      const [solicitudesDespues] = await pool.query(
+        'SELECT idSolicitud, estado FROM solicitud WHERE idAnimal = ? AND idSolicitud != ?',
+        [solicitudActual.idAnimal, req.params.id]
+      );
+      console.log(`[DEBUG] Solicitudes del animal después de restaurar:`, solicitudesDespues);
+      
+      // Verificar si hay otras solicitudes aprobadas para el mismo animal
+      const [otrasAprobadas] = await pool.query(
+        'SELECT COUNT(*) as count FROM solicitud WHERE idAnimal = ? AND idSolicitud != ? AND estado = ?',
+        [solicitudActual.idAnimal, req.params.id, 'Aprobada']
+      );
+      
+      otrasAprobadasCount = otrasAprobadas[0].count;
+      console.log(`[DEBUG] Otras solicitudes aprobadas encontradas: ${otrasAprobadasCount}`);
+      
+      // Si no hay otras solicitudes aprobadas, cambiar el animal a "Disponible"
+      // (incluso si estaba en "Adoptado", porque se está revirtiendo la aprobación)
+      if (otrasAprobadasCount === 0) {
+        console.log(`[DEBUG] No hay otras aprobadas - cambiando animal ${solicitudActual.idAnimal} a "Disponible"`);
+        const [result] = await pool.query(
+          'UPDATE animal SET estado = ? WHERE idAnimal = ?',
+          ['Disponible', solicitudActual.idAnimal]
+        );
+        console.log(`[DEBUG] Animal actualizado. Filas afectadas: ${result.affectedRows}`);
+        
+        // Verificar el estado actual del animal después de la actualización
+        const [animalCheck] = await pool.query(
+          'SELECT estado FROM animal WHERE idAnimal = ?',
+          [solicitudActual.idAnimal]
+        );
+        console.log(`[DEBUG] Estado actual del animal después de actualización: ${animalCheck[0]?.estado}`);
+      } else {
+        console.log(`[DEBUG] Hay ${otrasAprobadasCount} otras solicitudes aprobadas - manteniendo animal en "En proceso"`);
+      }
     }
 
     // Si se rechaza, agregar motivo si se proporciona
@@ -300,10 +397,22 @@ exports.actualizarSolicitud = async (req, res) => {
       }
     }
     
+    // Preparar mensaje de acción según el cambio realizado
+    let accion = 'Solicitud actualizada';
+    if (estado === 'Aprobada') {
+      accion = 'Solicitud aprobada y otras marcadas como "Rechazada". Animal cambiado a "En proceso".';
+    } else if (estadoAnterior === 'Aprobada' && (estado === 'Pendiente' || estado === 'Rechazada')) {
+      if (otrasAprobadasCount === 0) {
+        accion = 'Solicitud actualizada. Otras solicitudes restauradas a "Pendiente". Animal vuelto a "Disponible" (no hay otras solicitudes aprobadas).';
+      } else {
+        accion = 'Solicitud actualizada. Otras solicitudes restauradas a "Pendiente". El animal sigue en "En proceso" (hay otras solicitudes aprobadas).';
+      }
+    }
+    
     res.json({
       message: 'Solicitud actualizada exitosamente',
       solicitud: actualizado,
-      accion: estado === 'Aprobada' ? 'Solicitud aprobada y otras marcadas como no seleccionadas' : 'Solicitud actualizada'
+      accion: accion
     });
   } catch (error) {
     console.error(error);
@@ -311,12 +420,14 @@ exports.actualizarSolicitud = async (req, res) => {
   }
 };
 
-// Función auxiliar para marcar otras solicitudes como no seleccionadas
-async function marcarOtrasSolicitudesComoNoSeleccionadas(animalId, solicitudIdExcluir) {
+// Función auxiliar para marcar otras solicitudes como "Rechazada" cuando se aprueba una
+async function marcarOtrasSolicitudesComoRechazadas(animalId, solicitudIdExcluir) {
   const pool = require('../config/db');
+  // Marcar todas las solicitudes pendientes del mismo animal como "Rechazada"
+  // Esto mantiene todos los datos de la solicitud (puntaje, respuestas, etc.)
   await pool.query(
-    'UPDATE solicitud SET estado = ?, puntajeEvaluacion = 0 WHERE idAnimal = ? AND idSolicitud != ? AND estado = ?',
-    ['No Seleccionada', animalId, solicitudIdExcluir, 'Pendiente']
+    'UPDATE solicitud SET estado = ? WHERE idAnimal = ? AND idSolicitud != ? AND estado = ?',
+    ['Rechazada', animalId, solicitudIdExcluir, 'Pendiente']
   );
 }
 
