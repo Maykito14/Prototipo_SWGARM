@@ -2,34 +2,185 @@ const pool = require('../config/db');
 
 const EstadoAnimal = {
   async getAll() {
+    // Consulta simple para obtener todos los cambios de estado
     const [rows] = await pool.query(`
-      SELECT ea.*, a.nombre as nombreAnimal, a.especie 
+      SELECT 
+        ea.*, 
+        a.nombre as nombreAnimal, 
+        a.especie
       FROM estado_animal ea 
       JOIN animal a ON ea.idAnimal = a.idAnimal 
       ORDER BY ea.fechaCambio DESC, ea.idEstado DESC
     `);
-    return rows;
+    
+    // Para cada cambio, buscar el adoptante relacionado
+    const rowsWithAdoptante = await Promise.all(rows.map(async (row) => {
+      // Buscar la solicitud aprobada más reciente antes o en la fecha del cambio
+      const [solicitud] = await pool.query(`
+        SELECT s.idSolicitud, s.idAdoptante, s.fecha
+        FROM solicitud s
+        WHERE s.idAnimal = ?
+          AND s.estado = 'Aprobada'
+          AND s.fecha <= ?
+        ORDER BY s.fecha DESC, s.idSolicitud DESC
+        LIMIT 1
+      `, [row.idAnimal, row.fechaCambio]);
+      
+      if (solicitud.length > 0) {
+        const [adoptante] = await pool.query(`
+          SELECT nombre, apellido, email
+          FROM adoptante
+          WHERE idAdoptante = ?
+        `, [solicitud[0].idAdoptante]);
+        
+        if (adoptante.length > 0) {
+          return {
+            ...row,
+            nombreAdoptante: `${adoptante[0].nombre} ${adoptante[0].apellido}`,
+            emailAdoptante: adoptante[0].email || ''
+          };
+        }
+      }
+      
+      // Si no hay adoptante, mostrar información del usuario o sistema
+      let nombreAdoptante = 'Sistema';
+      if (row.usuario) {
+        if (row.usuario.startsWith('usuario:')) {
+          nombreAdoptante = 'Administrador';
+        } else if (row.usuario !== 'sistema') {
+          nombreAdoptante = row.usuario;
+        }
+      }
+      
+      return {
+        ...row,
+        nombreAdoptante,
+        emailAdoptante: ''
+      };
+    }));
+    
+    return rowsWithAdoptante;
   },
 
   async getById(id) {
     const [rows] = await pool.query(`
-      SELECT ea.*, a.nombre as nombreAnimal, a.especie 
+      SELECT 
+        ea.*, 
+        a.nombre as nombreAnimal, 
+        a.especie
       FROM estado_animal ea 
       JOIN animal a ON ea.idAnimal = a.idAnimal 
       WHERE ea.idEstado = ?
+      LIMIT 1
     `, [id]);
-    return rows[0];
+    
+    if (rows.length === 0) return null;
+    
+    const row = rows[0];
+    
+    // Buscar la solicitud aprobada más reciente antes o en la fecha del cambio
+    const [solicitud] = await pool.query(`
+      SELECT s.idSolicitud, s.idAdoptante, s.fecha
+      FROM solicitud s
+      WHERE s.idAnimal = ?
+        AND s.estado = 'Aprobada'
+        AND s.fecha <= ?
+      ORDER BY s.fecha DESC, s.idSolicitud DESC
+      LIMIT 1
+    `, [row.idAnimal, row.fechaCambio]);
+    
+    if (solicitud.length > 0) {
+      const [adoptante] = await pool.query(`
+        SELECT nombre, apellido, email
+        FROM adoptante
+        WHERE idAdoptante = ?
+      `, [solicitud[0].idAdoptante]);
+      
+      if (adoptante.length > 0) {
+        return {
+          ...row,
+          nombreAdoptante: `${adoptante[0].nombre} ${adoptante[0].apellido}`,
+          emailAdoptante: adoptante[0].email || ''
+        };
+      }
+    }
+    
+    // Si no hay adoptante, mostrar información del usuario o sistema
+    let nombreAdoptante = 'Sistema';
+    if (row.usuario) {
+      if (row.usuario.startsWith('usuario:')) {
+        nombreAdoptante = 'Administrador';
+      } else if (row.usuario !== 'sistema') {
+        nombreAdoptante = row.usuario;
+      }
+    }
+    
+    return {
+      ...row,
+      nombreAdoptante,
+      emailAdoptante: ''
+    };
   },
 
   async getByAnimalId(animalId) {
     const [rows] = await pool.query(`
-      SELECT ea.*, a.nombre as nombreAnimal, a.especie 
+      SELECT 
+        ea.*, 
+        a.nombre as nombreAnimal, 
+        a.especie
       FROM estado_animal ea 
       JOIN animal a ON ea.idAnimal = a.idAnimal 
-      WHERE ea.idAnimal = ? 
+      WHERE ea.idAnimal = ?
       ORDER BY ea.fechaCambio DESC, ea.idEstado DESC
     `, [animalId]);
-    return rows;
+    
+    // Para cada cambio, buscar el adoptante relacionado
+    const rowsWithAdoptante = await Promise.all(rows.map(async (row) => {
+      // Buscar la solicitud aprobada más reciente antes o en la fecha del cambio
+      const [solicitud] = await pool.query(`
+        SELECT s.idSolicitud, s.idAdoptante, s.fecha
+        FROM solicitud s
+        WHERE s.idAnimal = ?
+          AND s.estado = 'Aprobada'
+          AND s.fecha <= ?
+        ORDER BY s.fecha DESC, s.idSolicitud DESC
+        LIMIT 1
+      `, [row.idAnimal, row.fechaCambio]);
+      
+      if (solicitud.length > 0) {
+        const [adoptante] = await pool.query(`
+          SELECT nombre, apellido, email
+          FROM adoptante
+          WHERE idAdoptante = ?
+        `, [solicitud[0].idAdoptante]);
+        
+        if (adoptante.length > 0) {
+          return {
+            ...row,
+            nombreAdoptante: `${adoptante[0].nombre} ${adoptante[0].apellido}`,
+            emailAdoptante: adoptante[0].email || ''
+          };
+        }
+      }
+      
+      // Si no hay adoptante, mostrar información del usuario o sistema
+      let nombreAdoptante = 'Sistema';
+      if (row.usuario) {
+        if (row.usuario.startsWith('usuario:')) {
+          nombreAdoptante = 'Administrador';
+        } else if (row.usuario !== 'sistema') {
+          nombreAdoptante = row.usuario;
+        }
+      }
+      
+      return {
+        ...row,
+        nombreAdoptante,
+        emailAdoptante: ''
+      };
+    }));
+    
+    return rowsWithAdoptante;
   },
 
   async create(data) {

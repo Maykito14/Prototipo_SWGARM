@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = estadosTable.querySelector('tbody');
     
     if (cambios.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No hay cambios de estado registrados</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No hay cambios de estado registrados</td></tr>';
       return;
     }
 
@@ -182,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <td><span class="status ${getStatusClass(cambio.estadoNuevo)}">${cambio.estadoNuevo}</span></td>
         <td>${formatearFecha(cambio.fechaCambio)}</td>
         <td>${cambio.motivo || '-'}</td>
-        <td>${cambio.usuario || '-'}</td>
         <td>
           <button class="btn-table ver" onclick="verCambioEstado(${cambio.idEstado})">👁️</button>
           <button class="btn-table editar" onclick="editarAnimalDesdeEstados(${cambio.idAnimal})">✏️</button>
@@ -277,7 +276,10 @@ document.addEventListener('DOMContentLoaded', () => {
 async function verCambioEstado(id) {
   try {
     const cambio = await api.getCambioEstado(id);
-    alert(`Cambio de Estado:\n\nID: ${cambio.idEstado}\nAnimal: ${cambio.nombreAnimal}\nEstado Anterior: ${cambio.estadoAnterior}\nEstado Nuevo: ${cambio.estadoNuevo}\nFecha: ${new Date(cambio.fechaCambio).toLocaleDateString('es-ES')}\nMotivo: ${cambio.motivo || 'No especificado'}\nUsuario: ${cambio.usuario || 'No especificado'}`);
+    const adoptanteInfo = cambio.emailAdoptante 
+      ? `${cambio.nombreAdoptante || 'Sistema'}\nEmail: ${cambio.emailAdoptante}`
+      : cambio.nombreAdoptante || 'Sistema';
+    alert(`Cambio de Estado:\n\nID: ${cambio.idEstado}\nAnimal: ${cambio.nombreAnimal}\nEstado Anterior: ${cambio.estadoAnterior}\nEstado Nuevo: ${cambio.estadoNuevo}\nFecha: ${new Date(cambio.fechaCambio).toLocaleDateString('es-ES')}\nMotivo: ${cambio.motivo || 'No especificado'}\nAdoptante: ${adoptanteInfo}`);
   } catch (error) {
     alert('Error al obtener información del cambio de estado');
   }

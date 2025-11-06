@@ -282,12 +282,27 @@ exports.actualizarSolicitud = async (req, res) => {
       const estadoAnimalActual = animalRows[0]?.estado;
       
       // Cambiar estado del animal a "En proceso" (si no está ya en ese estado o "Adoptado")
+      // Usar updateAnimalStatus para registrar el cambio en el historial
       if (estadoAnimalActual !== 'En proceso' && estadoAnimalActual !== 'Adoptado') {
-        await pool.query(
-          'UPDATE animal SET estado = ? WHERE idAnimal = ?',
-          ['En proceso', solicitudActual.idAnimal]
-        );
-        console.log(`[DEBUG] Animal ${solicitudActual.idAnimal} cambiado de "${estadoAnimalActual}" a "En proceso"`);
+        try {
+          const idUsuario = req.user ? req.user.id : null;
+          const usuarioStr = idUsuario ? `usuario:${idUsuario}` : 'sistema';
+          await EstadoAnimal.updateAnimalStatus(
+            solicitudActual.idAnimal,
+            'En proceso',
+            'Solicitud de adopción aprobada',
+            usuarioStr
+          );
+          console.log(`[DEBUG] Animal ${solicitudActual.idAnimal} cambiado de "${estadoAnimalActual}" a "En proceso" (registrado en historial)`);
+        } catch (error) {
+          console.error(`[DEBUG] Error al actualizar estado del animal: ${error.message}`);
+          // Si falla la validación de transición, hacer el cambio directo como fallback
+          await pool.query(
+            'UPDATE animal SET estado = ? WHERE idAnimal = ?',
+            ['En proceso', solicitudActual.idAnimal]
+          );
+          console.log(`[DEBUG] Animal ${solicitudActual.idAnimal} cambiado directamente a "En proceso" (sin historial)`);
+        }
       } else {
         console.log(`[DEBUG] Animal ${solicitudActual.idAnimal} ya está en "${estadoAnimalActual}" - no se cambia`);
       }
@@ -350,11 +365,34 @@ exports.actualizarSolicitud = async (req, res) => {
       // (incluso si estaba en "Adoptado", porque se está revirtiendo la aprobación)
       if (otrasAprobadasCount === 0) {
         console.log(`[DEBUG] No hay otras aprobadas - cambiando animal ${solicitudActual.idAnimal} a "Disponible"`);
-        const [result] = await pool.query(
-          'UPDATE animal SET estado = ? WHERE idAnimal = ?',
-          ['Disponible', solicitudActual.idAnimal]
+        
+        // Obtener estado actual del animal antes de cambiarlo
+        const [animalCheckAntes] = await pool.query(
+          'SELECT estado FROM animal WHERE idAnimal = ?',
+          [solicitudActual.idAnimal]
         );
-        console.log(`[DEBUG] Animal actualizado. Filas afectadas: ${result.affectedRows}`);
+        const estadoAnimalAntes = animalCheckAntes[0]?.estado;
+        
+        // Usar updateAnimalStatus para registrar el cambio en el historial
+        try {
+          const idUsuario = req.user ? req.user.id : null;
+          const usuarioStr = idUsuario ? `usuario:${idUsuario}` : 'sistema';
+          await EstadoAnimal.updateAnimalStatus(
+            solicitudActual.idAnimal,
+            'Disponible',
+            `Solicitud aprobada revertida a ${estado} - animal vuelve a estar disponible`,
+            usuarioStr
+          );
+          console.log(`[DEBUG] Animal ${solicitudActual.idAnimal} cambiado de "${estadoAnimalAntes}" a "Disponible" (registrado en historial)`);
+        } catch (error) {
+          console.error(`[DEBUG] Error al actualizar estado del animal: ${error.message}`);
+          // Si falla la validación de transición, hacer el cambio directo como fallback
+          await pool.query(
+            'UPDATE animal SET estado = ? WHERE idAnimal = ?',
+            ['Disponible', solicitudActual.idAnimal]
+          );
+          console.log(`[DEBUG] Animal ${solicitudActual.idAnimal} cambiado directamente a "Disponible" (sin historial)`);
+        }
         
         // Verificar el estado actual del animal después de la actualización
         const [animalCheck] = await pool.query(
