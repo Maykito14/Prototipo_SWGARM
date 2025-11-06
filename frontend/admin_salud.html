@@ -30,6 +30,11 @@
               <input type="date" id="fechaControl" name="fechaControl" required>
               <span class="error-message" id="fechaControl-error"></span>
             </div>
+            <div class="form-group">
+              <label for="fechaProgramada">Fecha Programada (opcional)</label>
+              <input type="date" id="fechaProgramada" name="fechaProgramada" placeholder="Para controles programados">
+              <small style="color: #666;">Si se especifica, se usará para determinar el estado del control</small>
+            </div>
           </div>
 
           <div class="form-row">
@@ -85,6 +90,7 @@
                 <th>ID</th>
                 <th>Animal</th>
                 <th>Fecha</th>
+                <th>Estado</th>
                 <th>Veterinario</th>
                 <th>Vacunas</th>
                 <th>Tratamientos</th>

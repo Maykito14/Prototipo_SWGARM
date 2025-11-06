@@ -133,6 +133,19 @@ const api = {
     });
   },
 
+  async darAltaVeterinaria(id) {
+    return this.request(`/salud/${id}/alta`, {
+      method: 'PUT',
+    });
+  },
+
+  async cambiarEstadoControl(id, estado, fechaProgramada = null) {
+    return this.request(`/salud/${id}/estado`, {
+      method: 'PUT',
+      body: JSON.stringify({ estado, fechaProgramada }),
+    });
+  },
+
   // Estados de Animales
   async getCambiosEstado() {
     return this.request('/estados');

@@ -12,6 +12,8 @@ router.get('/:id', saludController.obtenerControlSalud);
 // Rutas protegidas para administradores
 router.post('/', authMiddleware, adminMiddleware, saludController.crearControlSalud);
 router.put('/:id', authMiddleware, adminMiddleware, saludController.actualizarControlSalud);
+router.put('/:id/alta', authMiddleware, adminMiddleware, saludController.darAltaVeterinaria);
+router.put('/:id/estado', authMiddleware, adminMiddleware, saludController.cambiarEstadoControl);
 router.delete('/:id', authMiddleware, adminMiddleware, saludController.eliminarControlSalud);
 
 module.exports = router;
