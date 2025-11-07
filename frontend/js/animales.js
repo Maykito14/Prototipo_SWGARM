@@ -1,5 +1,9 @@
-// Página de animales - funcionalidad de adopción
+const galeriaAnimales = {};
+let modalGaleria = null;
+let estadoGaleria = { id: null, fotos: [], indice: 0, nombre: '' };
+
 document.addEventListener('DOMContentLoaded', async () => {
+  inicializarModalGaleria();
   await cargarAnimales();
   
   const buscador = document.getElementById('buscador');
@@ -16,6 +20,141 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 let todosLosAnimales = [];
+
+function normalizarRutaImagen(ruta) {
+  if (!ruta) return '';
+  if (ruta.startsWith('http') || ruta.startsWith('data:')) return ruta;
+  const limpia = ruta.replace(/^\/+/, '').replace(/\\/g, '/');
+  return `/${limpia}`;
+}
+
+function inicializarModalGaleria() {
+  if (modalGaleria) return;
+
+  modalGaleria = document.createElement('div');
+  modalGaleria.id = 'galeriaModal';
+  modalGaleria.className = 'gallery-modal';
+  modalGaleria.innerHTML = `
+    <div class="gallery-backdrop" data-action="close"></div>
+    <div class="gallery-content" role="dialog" aria-modal="true" aria-labelledby="galeriaTitulo">
+      <button class="gallery-close" data-action="close" aria-label="Cerrar galería">&times;</button>
+      <div class="gallery-main">
+        <button class="gallery-nav prev" data-action="prev" aria-label="Foto anterior">&#10094;</button>
+        <img id="galeriaImagen" src="" alt="Galería de animal">
+        <button class="gallery-nav next" data-action="next" aria-label="Foto siguiente">&#10095;</button>
+      </div>
+      <div class="gallery-caption">
+        <span id="galeriaTitulo"></span>
+        <span id="galeriaIndice"></span>
+      </div>
+      <div class="gallery-thumbs" id="galeriaThumbs"></div>
+    </div>
+  `;
+
+  modalGaleria.addEventListener('click', manejarEventosModal);
+  document.addEventListener('keydown', manejarTeclasGaleria);
+  document.body.appendChild(modalGaleria);
+}
+
+function manejarEventosModal(evento) {
+  const accion = evento.target.dataset?.action;
+  if (!accion) return;
+
+  if (accion === 'close') {
+    cerrarGaleria();
+  }
+  if (accion === 'prev') {
+    cambiarSlide(-1);
+  }
+  if (accion === 'next') {
+    cambiarSlide(1);
+  }
+  if (accion === 'thumb') {
+    const index = Number(evento.target.dataset.index || 0);
+    if (!Number.isNaN(index)) {
+      estadoGaleria.indice = index;
+      actualizarModalGaleria();
+    }
+  }
+}
+
+function manejarTeclasGaleria(evento) {
+  if (!modalGaleria || !modalGaleria.classList.contains('is-visible')) return;
+
+  if (evento.key === 'Escape') {
+    cerrarGaleria();
+  } else if (evento.key === 'ArrowLeft') {
+    evento.preventDefault();
+    cambiarSlide(-1);
+  } else if (evento.key === 'ArrowRight') {
+    evento.preventDefault();
+    cambiarSlide(1);
+  }
+}
+
+function abrirGaleria(animalId, indice = 0) {
+  const datos = galeriaAnimales[animalId];
+  if (!datos || !datos.fotos || datos.fotos.length === 0) return;
+
+  estadoGaleria = {
+    id: animalId,
+    fotos: datos.fotos,
+    indice: Math.max(0, Math.min(indice, datos.fotos.length - 1)),
+    nombre: datos.nombre || 'Galería'
+  };
+
+  actualizarModalGaleria();
+  modalGaleria.classList.add('is-visible');
+  document.body.classList.add('no-scroll');
+}
+
+function cerrarGaleria() {
+  if (!modalGaleria) return;
+  modalGaleria.classList.remove('is-visible');
+  document.body.classList.remove('no-scroll');
+}
+
+function cambiarSlide(delta) {
+  if (!estadoGaleria.fotos.length) return;
+  const total = estadoGaleria.fotos.length;
+  estadoGaleria.indice = (estadoGaleria.indice + delta + total) % total;
+  actualizarModalGaleria();
+}
+
+function actualizarModalGaleria() {
+  if (!modalGaleria || !estadoGaleria.fotos.length) return;
+
+  const imagen = modalGaleria.querySelector('#galeriaImagen');
+  const titulo = modalGaleria.querySelector('#galeriaTitulo');
+  const indice = modalGaleria.querySelector('#galeriaIndice');
+  const thumbs = modalGaleria.querySelector('#galeriaThumbs');
+  const fotoActual = normalizarRutaImagen(estadoGaleria.fotos[estadoGaleria.indice]);
+
+  if (imagen) {
+    imagen.src = fotoActual;
+    imagen.alt = `${estadoGaleria.nombre} - foto ${estadoGaleria.indice + 1}`;
+  }
+  if (titulo) {
+    titulo.textContent = estadoGaleria.nombre;
+  }
+  if (indice) {
+    indice.textContent = `${estadoGaleria.indice + 1} / ${estadoGaleria.fotos.length}`;
+  }
+  if (thumbs) {
+    thumbs.innerHTML = '';
+    estadoGaleria.fotos.forEach((foto, idx) => {
+      const miniatura = document.createElement('img');
+      miniatura.src = normalizarRutaImagen(foto);
+      miniatura.alt = `${estadoGaleria.nombre} miniatura ${idx + 1}`;
+      miniatura.dataset.action = 'thumb';
+      miniatura.dataset.index = idx;
+      if (idx === estadoGaleria.indice) {
+        miniatura.classList.add('activo');
+      }
+      thumbs.appendChild(miniatura);
+    });
+  }
+}
 
 async function cargarAnimales() {
   try {
@@ -59,20 +198,30 @@ function renderizarAnimales(animales) {
     return;
   }
   
+  // Reiniciar mapa de galerías
+  Object.keys(galeriaAnimales).forEach((clave) => delete galeriaAnimales[clave]);
+
   container.innerHTML = animales.map(animal => {
     // Construir ruta de imagen correctamente
-    let imagenSrc = obtenerImagenGenerica(animal.especie); // Por defecto
-    if (animal.foto) {
-      // Si la foto comienza con "uploads/", es una imagen subida, agregar "/"
-      if (animal.foto.startsWith('uploads/')) {
-        imagenSrc = `/${animal.foto}`;
-      } else {
-        // Si es una ruta relativa (ej: images/bingo.jpg), usarla directamente
-        imagenSrc = animal.foto;
-      }
+    const fotosDesdeApi = Array.isArray(animal.fotos) && animal.fotos.length > 0
+      ? animal.fotos.map((foto) => (typeof foto === 'string' ? foto : foto.ruta))
+      : [];
+
+    if (!fotosDesdeApi.length && animal.foto) {
+      fotosDesdeApi.push(animal.foto);
     }
-    const categoriaEdad = categorizarEdad(animal.edad);
-    
+
+    const fotosNormalizadas = fotosDesdeApi.length > 0
+      ? fotosDesdeApi.map(normalizarRutaImagen)
+      : [normalizarRutaImagen(obtenerImagenGenerica(animal.especie))];
+
+    galeriaAnimales[animal.idAnimal] = {
+      nombre: animal.nombre,
+      fotos: fotosNormalizadas
+    };
+
+    const imagenSrc = fotosNormalizadas[0] || normalizarRutaImagen(obtenerImagenGenerica(animal.especie));
+    const totalFotos = fotosNormalizadas.length;
     // Mostrar botón de postulación solo si está disponible y el usuario está autenticado
     const isAuthenticated = !!localStorage.getItem('token');
     let botonPostulacion = '';
@@ -93,7 +242,10 @@ function renderizarAnimales(animales) {
     
     return `
       <div class="animal-card">
-        <img src="${imagenSrc}" alt="${animal.nombre}" class="animal-img" onerror="this.src='${obtenerImagenGenerica(animal.especie)}'">
+        <div class="animal-image-wrapper" data-animal-id="${animal.idAnimal}" tabindex="0" role="button" aria-label="Ver galería de ${escapeHtml(animal.nombre)}">
+          <img src="${imagenSrc}" alt="${animal.nombre}" class="animal-img" onerror="this.src='${obtenerImagenGenerica(animal.especie)}'; this.onerror=null;">
+          ${totalFotos > 1 ? `<span class="gallery-badge">+${totalFotos - 1}</span>` : ''}
+        </div>
         <h3>${escapeHtml(animal.nombre)}</h3>
         <p><strong>Especie:</strong> ${escapeHtml(animal.especie || 'No especificada')}</p>
         <p><strong>Edad:</strong> ${animal.edad !== null && animal.edad !== undefined ? animal.edad + ' ' + (animal.edad === 1 ? 'año' : 'años') : 'No especificada'}</p>
@@ -104,6 +256,18 @@ function renderizarAnimales(animales) {
       </div>
     `;
   }).join('');
+
+  // Asignar eventos de galería
+  container.querySelectorAll('.animal-image-wrapper').forEach((wrapper) => {
+    const id = Number(wrapper.dataset.animalId);
+    wrapper.addEventListener('click', () => abrirGaleria(id, 0));
+    wrapper.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Enter' || evento.key === ' ') {
+        evento.preventDefault();
+        abrirGaleria(id, 0);
+      }
+    });
+  });
 }
 
 function aplicarFiltros() {

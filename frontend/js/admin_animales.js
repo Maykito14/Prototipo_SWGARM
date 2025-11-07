@@ -28,8 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const formTitle = document.querySelector('.form-section h3');
     const submitButton = document.getElementById('animalForm')?.querySelector('button[type="submit"]');
     const form = document.getElementById('animalForm');
-    const fotoPreview = document.getElementById('foto-preview');
-    const fotoPreviewImg = document.getElementById('foto-preview-img');
     
     // Restaurar título del formulario
     if (formTitle) formTitle.textContent = 'Registrar Nuevo Animal';
@@ -37,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Limpiar formulario
     if (form) form.reset();
-    if (fotoPreview) fotoPreview.style.display = 'none';
-    if (fotoPreviewImg) fotoPreviewImg.src = '';
+    limpiarVistaPreviaSeleccion();
+    renderGaleriaActual([]);
     
     // Eliminar botón cancelar
     const cancelButton = document.getElementById('btn-cancelar-edicion');
@@ -64,41 +62,104 @@ document.addEventListener('DOMContentLoaded', () => {
   // Vista previa de imagen
   const fotoInput = document.getElementById('foto');
   const fotoPreview = document.getElementById('foto-preview');
-  const fotoPreviewImg = document.getElementById('foto-preview-img');
+  const fotoPreviewList = document.getElementById('foto-preview-list');
   const btnRemoveFoto = document.getElementById('btn-remove-foto');
+  const galeriaActual = document.getElementById('galeria-actual');
+
+  function normalizarRutaImagen(ruta) {
+    if (!ruta) return '';
+    if (ruta.startsWith('http') || ruta.startsWith('data:')) return ruta;
+    const base = ruta.startsWith('/') ? ruta : `/${ruta}`;
+    return base.replace(/\\/g, '/').replace(/\/{2,}/g, '/');
+  }
+
+  function limpiarVistaPreviaSeleccion() {
+    if (fotoPreviewList) {
+      fotoPreviewList.innerHTML = '';
+    }
+    if (fotoPreview) {
+      fotoPreview.style.display = 'none';
+    }
+  }
+
+  function renderGaleriaActual(rutas) {
+    if (!galeriaActual) return;
+
+    if (!rutas || rutas.length === 0) {
+      galeriaActual.innerHTML = '<small style="color:#666;">Este animal aún no tiene fotos registradas.</small>';
+      return;
+    }
+
+    const contenido = rutas.map((ruta) => {
+      const src = normalizarRutaImagen(ruta);
+      return `<img src="${src}" alt="Foto registrada" style="width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">`;
+    }).join('');
+
+    galeriaActual.innerHTML = `
+      <div style="margin-bottom:6px; font-size: 13px; color:#444; font-weight:500;">Galería actual (${rutas.length}):</div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">${contenido}</div>
+    `;
+  }
+
+  renderGaleriaActual([]);
 
   fotoInput.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-      // Validar tamaño
-      if (file.size > 5 * 1024 * 1024) {
-        mostrarError('La imagen es demasiado grande. El tamaño máximo es 5MB.');
-        e.target.value = '';
+    limpiarVistaPreviaSeleccion();
+    const archivos = Array.from(e.target.files || []);
+
+    if (archivos.length === 0) {
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024;
+
+    for (const archivo of archivos) {
+      if (!allowedTypes.includes(archivo.type)) {
+        mostrarError('Formato de imagen no válido. Usa JPG, PNG, GIF o WEBP.');
+        fotoInput.value = '';
         return;
       }
-
-      // Validar tipo
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        mostrarError('Formato de imagen no válido. Use JPG, PNG, GIF o WEBP.');
-        e.target.value = '';
+      if (archivo.size > maxSize) {
+        mostrarError('Alguna imagen supera el máximo de 5MB.');
+        fotoInput.value = '';
         return;
       }
+    }
 
-      // Mostrar vista previa
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        fotoPreviewImg.src = e.target.result;
-        fotoPreview.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
+    if (fotoPreviewList && archivos.length > 0) {
+      fotoPreview.style.display = 'block';
+      archivos.forEach((archivo) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const wrapper = document.createElement('div');
+          wrapper.style.width = '100px';
+          wrapper.style.height = '100px';
+          wrapper.style.border = '1px solid #ddd';
+          wrapper.style.borderRadius = '6px';
+          wrapper.style.overflow = 'hidden';
+          wrapper.style.position = 'relative';
+
+          const img = document.createElement('img');
+          img.src = ev.target.result;
+          img.alt = archivo.name;
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'cover';
+
+          wrapper.appendChild(img);
+          fotoPreviewList.appendChild(wrapper);
+        };
+        reader.readAsDataURL(archivo);
+      });
     }
   });
 
   btnRemoveFoto.addEventListener('click', function() {
-    fotoInput.value = '';
-    fotoPreview.style.display = 'none';
-    fotoPreviewImg.src = '';
+    if (fotoInput) {
+      fotoInput.value = '';
+    }
+    limpiarVistaPreviaSeleccion();
   });
 
   // Manejar envío del formulario
@@ -193,8 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Limpiar formulario y vista previa
         form.reset();
-        fotoPreview.style.display = 'none';
-        fotoPreviewImg.src = '';
+        limpiarVistaPreviaSeleccion();
+        renderGaleriaActual([]);
       }
       
       // Recargar tabla
@@ -508,6 +569,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const campos = ['nombre', 'especie', 'edad', 'estado', 'fechaIngreso', 'puntajeMinimo'];
     campos.forEach(campo => limpiarErrorCampo(campo));
   }
+
+  // Exponer utilidades para funciones globales
+  window.renderGaleriaActual = renderGaleriaActual;
+  window.limpiarVistaPreviaSeleccion = limpiarVistaPreviaSeleccion;
+  window.normalizarRutaImagen = normalizarRutaImagen;
 });
 
 // Funciones globales para acciones de la tabla
@@ -530,7 +596,7 @@ async function editarAnimal(id) {
     const formTitle = document.querySelector('.form-section h3');
     const submitButton = form.querySelector('button[type="submit"]');
     const fotoPreview = document.getElementById('foto-preview');
-    const fotoPreviewImg = document.getElementById('foto-preview-img');
+    const fotoPreviewList = document.getElementById('foto-preview-list');
     
     // Establecer modo edición (usar variables globales si existen, sino crear nuevas)
     if (typeof window.setModoEdicion === 'function') {
@@ -568,12 +634,24 @@ async function editarAnimal(id) {
       puntajeMinimoInput.value = animal.puntajeMinimo !== null && animal.puntajeMinimo !== undefined ? animal.puntajeMinimo : 0;
     }
     
-    // Mostrar foto actual si existe
-    if (animal.foto && fotoPreviewImg && fotoPreview) {
-      fotoPreviewImg.src = animal.foto.startsWith('http') ? animal.foto : `/${animal.foto}`;
-      fotoPreview.style.display = 'block';
-    } else if (fotoPreview) {
-      fotoPreview.style.display = 'none';
+    if (typeof window.limpiarVistaPreviaSeleccion === 'function') {
+      window.limpiarVistaPreviaSeleccion();
+    } else {
+      if (fotoPreviewList) fotoPreviewList.innerHTML = '';
+      if (fotoPreview) fotoPreview.style.display = 'none';
+    }
+
+    const inputFotos = document.getElementById('foto');
+    if (inputFotos) {
+      inputFotos.value = '';
+    }
+
+    const rutasGaleria = Array.isArray(animal.fotos) && animal.fotos.length > 0
+      ? animal.fotos.map((f) => f.ruta)
+      : (animal.foto ? [animal.foto] : []);
+
+    if (typeof window.renderGaleriaActual === 'function') {
+      window.renderGaleriaActual(rutasGaleria);
     }
     
     // Scroll al formulario

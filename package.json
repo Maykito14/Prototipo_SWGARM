@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "validar:fotos": "node scripts/validar_fotos.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

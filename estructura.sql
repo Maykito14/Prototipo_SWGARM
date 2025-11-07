@@ -14,9 +14,14 @@
 -- O desde MySQL Workbench/phpMyAdmin: ejecutar todo el contenido del archivo.
 -- 
 -- ACTUALIZACIONES INCLUIDAS:
--- - Todos los campos VARCHAR son de 255 caracteres (no se usan VARCHAR(45))
--- - Tabla 'animal': Campo 'puntajeMinimo' (int DEFAULT 0) para sistema de puntajes
--- - Tabla 'solicitud': Campo 'respuestasFormulario' (text) para guardar respuestas del formulario en JSON
+-- - Todos los campos VARCHAR usan longitud 255 y colación utf8mb4_0900_ai_ci
+-- - Tabla `animal`: incluye sistema de puntaje mínimo y elimina el campo redundante `foto`
+-- - Nueva tabla `animal_foto` para soportar múltiples imágenes por animal
+-- - Tabla `salud`: añade `fechaProgramada`, `estado` y `fechaAltaVeterinaria`
+-- - Tabla `solicitud`: estado por defecto 'Pendiente' y puntaje con valor inicial 0
+-- - Tabla `adopcion`: campo booleano `activa` para distinguir adopciones vigentes
+-- - Tabla `seguimiento`: registra `idUsuarioCreador`, observaciones extensas y bandera de recordatorio
+-- - Tabla `notificacion`: fecha de envío con timestamp y mensajes de longitud variable
 -- 
 -- NOTA: Este archivo ya incluye todas las actualizaciones de las migraciones:
 --   - migracion_puntaje_minimo.sql
@@ -58,7 +63,8 @@ CREATE TABLE `usuario` (
   `cuentaBloqueada` tinyint(1) NOT NULL DEFAULT 0,
   `fechaBloqueo` datetime DEFAULT NULL,
   `bloqueoPermanente` tinyint(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`idUsuario`)
+  PRIMARY KEY (`idUsuario`),
+  UNIQUE KEY `usuario_email_unique` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ============================================================================
@@ -88,10 +94,25 @@ CREATE TABLE `animal` (
   `edad` int DEFAULT NULL,
   `estado` varchar(255) DEFAULT NULL,
   `descripcion` text,
-  `foto` varchar(255) DEFAULT NULL,
   `fechaIngreso` date DEFAULT NULL,
-  `puntajeMinimo` int DEFAULT 0, -- Actualización: Sistema de puntajes mínimos requeridos
+  `puntajeMinimo` int NOT NULL DEFAULT 0,
   PRIMARY KEY (`idAnimal`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ============================================================================
+-- TABLA: animal_foto
+-- ============================================================================
+DROP TABLE IF EXISTS `animal_foto`;
+CREATE TABLE `animal_foto` (
+  `idFoto` int NOT NULL AUTO_INCREMENT,
+  `idAnimal` int NOT NULL,
+  `ruta` varchar(255) NOT NULL,
+  `esPrincipal` tinyint(1) NOT NULL DEFAULT 0,
+  `fechaSubida` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`idFoto`),
+  UNIQUE KEY `animal_foto_unica` (`idAnimal`, `ruta`),
+  KEY `idx_animal_foto_animal` (`idAnimal`),
+  CONSTRAINT `fk_animal_foto_animal` FOREIGN KEY (`idAnimal`) REFERENCES `animal` (`idAnimal`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ============================================================================
@@ -106,6 +127,9 @@ CREATE TABLE `salud` (
   `veterinario` varchar(255) DEFAULT NULL,
   `observaciones` text,
   `fechaControl` date DEFAULT NULL,
+  `fechaProgramada` date DEFAULT NULL,
+  `estado` varchar(255) DEFAULT NULL,
+  `fechaAltaVeterinaria` date DEFAULT NULL,
   PRIMARY KEY (`idSalud`),
   KEY `salud_animal_idx` (`idAnimal`),
   CONSTRAINT `salud_animal` FOREIGN KEY (`idAnimal`) REFERENCES `animal` (`idAnimal`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -120,8 +144,8 @@ CREATE TABLE `solicitud` (
   `idAdoptante` int NOT NULL,
   `idAnimal` int NOT NULL,
   `fecha` date NOT NULL,
-  `estado` varchar(255) DEFAULT NULL,
-  `puntajeEvaluacion` int NOT NULL,
+  `estado` varchar(255) NOT NULL DEFAULT 'Pendiente',
+  `puntajeEvaluacion` int NOT NULL DEFAULT 0,
   `motivoRechazo` varchar(255) DEFAULT NULL,
   `respuestasFormulario` text, -- Actualización: Almacena todas las respuestas del formulario en formato JSON
   PRIMARY KEY (`idSolicitud`),
@@ -141,9 +165,11 @@ CREATE TABLE `adopcion` (
   `idUsuario` int NOT NULL,
   `fecha` date DEFAULT NULL,
   `contrato` varchar(255) DEFAULT NULL,
+  `activa` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`idAdopcion`),
   KEY `adopcion_usuario_idx` (`idUsuario`),
   KEY `adopcion_solicitud_idx` (`idSolicitud`),
+  KEY `adopcion_activa_idx` (`activa`),
   CONSTRAINT `adopcion_solicitud` FOREIGN KEY (`idSolicitud`) REFERENCES `solicitud` (`idSolicitud`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `adopcion_usuario` FOREIGN KEY (`idUsuario`) REFERENCES `usuario` (`idUsuario`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -173,16 +199,19 @@ CREATE TABLE `seguimiento` (
   `idSeguimiento` int NOT NULL AUTO_INCREMENT,
   `idAdopcion` int NOT NULL,
   `idAnimal` int NOT NULL,
+  `idUsuarioCreador` int DEFAULT NULL,
   `fechaProgramada` date NOT NULL,
   `fechaRealizada` date DEFAULT NULL,
-  `observaciones` varchar(500) DEFAULT NULL,
+  `observaciones` text,
   `estado` varchar(255) NOT NULL DEFAULT 'Pendiente',
   `recordatorioEnviado` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`idSeguimiento`),
   KEY `seg_adopcion_idx` (`idAdopcion`),
   KEY `seg_animal_idx` (`idAnimal`),
+  KEY `seg_usuario_creador_idx` (`idUsuarioCreador`),
   CONSTRAINT `seg_adopcion` FOREIGN KEY (`idAdopcion`) REFERENCES `adopcion` (`idAdopcion`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `seg_animal` FOREIGN KEY (`idAnimal`) REFERENCES `animal` (`idAnimal`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `seg_animal` FOREIGN KEY (`idAnimal`) REFERENCES `animal` (`idAnimal`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `seg_usuario_creador` FOREIGN KEY (`idUsuarioCreador`) REFERENCES `usuario` (`idUsuario`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ============================================================================
@@ -193,8 +222,8 @@ CREATE TABLE `notificacion` (
   `idNotificacion` int NOT NULL AUTO_INCREMENT,
   `idUsuario` int NOT NULL,
   `tipo` varchar(255) DEFAULT NULL,
-  `mensaje` varchar(500) DEFAULT NULL,
-  `fechaEnvio` date DEFAULT NULL,
+  `mensaje` text,
+  `fechaEnvio` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `leido` tinyint(1) NOT NULL DEFAULT 0,
   `fechaLeido` datetime DEFAULT NULL,
   `idSolicitud` int DEFAULT NULL,

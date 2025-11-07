@@ -30,16 +30,28 @@ exports.obtenerAnimal = async (req, res) => {
   }
 };
 
+function obtenerArchivosSubidos(req) {
+  if (!req) return [];
+  if (Array.isArray(req.files)) return req.files;
+
+  let archivos = [];
+  if (req.files && typeof req.files === 'object') {
+    if (Array.isArray(req.files.fotos)) archivos = archivos.concat(req.files.fotos);
+    if (Array.isArray(req.files.foto)) archivos = archivos.concat(req.files.foto);
+  }
+
+  if (req.file) archivos.push(req.file);
+
+  return archivos;
+}
+
 exports.crearAnimal = async (req, res) => {
   try {
     const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, puntajeMinimo } = req.body;
-    
-    // Manejar archivo subido
-    let foto = null;
-    if (req.file) {
-      // Guardar ruta relativa: uploads/images/nombre-archivo.ext
-      foto = `uploads/images/${req.file.filename}`;
-    }
+
+    const archivos = obtenerArchivosSubidos(req);
+    const rutasFotos = archivos.map((file) => `uploads/images/${file.filename}`);
+    const fotoPrincipal = rutasFotos[0] || null;
 
     // Validaciones básicas
     if (!nombre || !especie || !edad || !estado || !fechaIngreso) {
@@ -84,14 +96,19 @@ exports.crearAnimal = async (req, res) => {
       estado,
       fechaIngreso,
       descripcion,
-      foto,
       puntajeMinimo: puntajeMin
     };
 
     const nuevo = await Animal.create(animalData);
+
+    if (rutasFotos.length > 0) {
+      await Animal.addFotos(nuevo.idAnimal, rutasFotos, fotoPrincipal || rutasFotos[0]);
+    }
+
+    const animalCompleto = await Animal.getById(nuevo.idAnimal);
     res.status(201).json({
       message: 'Animal registrado exitosamente',
-      animal: nuevo
+      animal: animalCompleto
     });
   } catch (error) {
     console.error(error);
@@ -102,21 +119,16 @@ exports.crearAnimal = async (req, res) => {
 exports.actualizarAnimal = async (req, res) => {
   try {
     const { nombre, especie, raza, edad, estado, fechaIngreso, descripcion, puntajeMinimo } = req.body;
-    
+
     // Obtener animal actual para preservar la foto si no se sube una nueva
     const animalActual = await Animal.getById(req.params.id);
     if (!animalActual) {
       return res.status(404).json({ error: 'Animal no encontrado' });
     }
-    
-    // Manejar archivo subido
-    let foto = animalActual.foto; // Mantener foto existente por defecto
-    if (req.file) {
-      // Si se sube una nueva foto, usar la nueva
-      foto = `uploads/images/${req.file.filename}`;
-      
-      // TODO: Eliminar foto antigua si existe
-    }
+
+    const archivos = obtenerArchivosSubidos(req);
+    const rutasFotos = archivos.map((file) => `uploads/images/${file.filename}`);
+    const nuevaPrincipal = rutasFotos[0] || null;
 
     // Validaciones básicas
     if (!nombre || !especie || !edad || !estado || !fechaIngreso) {
@@ -152,14 +164,19 @@ exports.actualizarAnimal = async (req, res) => {
       estado,
       fechaIngreso,
       descripcion,
-      foto,
       puntajeMinimo: puntajeMin
     };
 
     const actualizado = await Animal.update(req.params.id, animalData);
+
+    if (rutasFotos.length > 0) {
+      await Animal.addFotos(req.params.id, rutasFotos, nuevaPrincipal);
+    }
+
+    const animalCompleto = await Animal.getById(req.params.id);
     res.json({
       message: 'Animal actualizado exitosamente',
-      animal: actualizado
+      animal: animalCompleto
     });
   } catch (error) {
     console.error(error);
