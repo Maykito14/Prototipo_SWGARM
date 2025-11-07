@@ -379,5 +379,10 @@ const api = {
     const params = new URLSearchParams({ desde, hasta });
     return this.request(`/reportes/adopciones?${params.toString()}`);
   },
+
+  async getReporteAltasAnimales(desde, hasta) {
+    const params = new URLSearchParams({ desde, hasta });
+    return this.request(`/reportes/animales?${params.toString()}`);
+  },
 };
 

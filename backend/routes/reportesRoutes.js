@@ -4,6 +4,7 @@ const { authMiddleware, adminMiddleware } = require('../middlewares/autMiddlewar
 const reportesController = require('../controllers/reportesController');
 
 router.get('/adopciones', authMiddleware, adminMiddleware, reportesController.reporteAdopciones);
+router.get('/animales', authMiddleware, adminMiddleware, reportesController.reporteAltasAnimales);
 
 module.exports = router;
 

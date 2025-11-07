@@ -12,22 +12,23 @@
   <main class="main">
     <div class="admin-panel">
       <h2>Reportes de Adopciones</h2>
+      
 
       <div class="section-card" style="background:#fff; border-radius:8px; padding:16px; margin:16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
         <h3>Filtros</h3>
-        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
-          <div class="form-group">
-            <label for="fechaDesde">Desde *</label>
-            <input type="date" id="fechaDesde" required />
+        <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; justify-content:space-between;">
+          <div style="display:flex; gap:12px; flex-wrap:wrap; flex:1 1 320px;">
+            <div class="form-group" style="flex:1 1 160px; min-width:150px;">
+              <label for="fechaDesde">Desde *</label>
+              <input type="date" id="fechaDesde" required />
+            </div>
+            <div class="form-group" style="flex:1 1 160px; min-width:150px;">
+              <label for="fechaHasta">Hasta *</label>
+              <input type="date" id="fechaHasta" required />
+            </div>
           </div>
-          <div class="form-group">
-            <label for="fechaHasta">Hasta *</label>
-            <input type="date" id="fechaHasta" required />
-          </div>
-          <div class="form-group" style="align-self:end;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; flex:0 0 auto;">
             <button id="btnGenerar" class="btn btn-primary">Generar</button>
-          </div>
-          <div class="form-group" style="align-self:end; text-align:right;">
             <button id="btnCSV" class="btn btn-secondary">Exportar CSV</button>
             <button id="btnPDF" class="btn btn-secondary">Exportar PDF</button>
           </div>
@@ -35,22 +36,74 @@
       </div>
 
       <div class="section-card">
-        <h3>Resumen</h3>
+        <h3>Altas de animales en el sistema</h3>
         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
-          <div class="stat-card"><h3>Total adopciones</h3><span id="totalAdop" class="stat-number">0</span></div>
-          <div class="stat-card"><h3>Por especie</h3><div id="porEspecie"></div></div>
-          <div class="stat-card"><h3>Rango</h3><div id="rango"></div></div>
-          <div class="stat-card"><h3>Promedio/mes</h3><span id="promedioMes" class="stat-number">0</span></div>
+          <div class="stat-card"><h3>Total altas</h3><span id="totalAltasAnimales" class="stat-number">0</span></div>
+          <div class="stat-card"><h3>Promedio/mes</h3><span id="promedioAltasMes" class="stat-number">0</span></div>
+          <div class="stat-card"><h3>Distribución por especie</h3><div id="porEspecieAltas"></div></div>
+          <div class="stat-card"><h3>Distribución por estado</h3><div id="porEstadoAltas"></div></div>
         </div>
       </div>
 
       <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
         <div class="section-card">
-          <h3>Gráfico por especie</h3>
+          <h3>Altas por especie</h3>
+          <canvas id="chartAnimalesEspecie" height="200"></canvas>
+        </div>
+        <div class="section-card">
+          <h3>Altas mensuales</h3>
+          <canvas id="chartAnimalesEvolucion" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>Detalle de altas</h3>
+        <div class="table-container">
+          <table class="admin-table" id="tablaAnimales">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha ingreso</th>
+                <th>Nombre</th>
+                <th>Especie</th>
+                <th>Raza</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <hr style="margin:32px 0; border:none; border-top:1px solid #e2e8f0;" />
+
+      <div class="section-card">
+        <h3>Adopciones formalizadas</h3>
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
+          <div class="stat-card"><h3>Total adopciones</h3><span id="totalAdop" class="stat-number">0</span></div>
+          <div class="stat-card"><h3>Adopciones activas</h3><span id="totalActivas" class="stat-number">0</span></div>
+          <div class="stat-card"><h3>Adopciones fallidas</h3><span id="totalFallidas" class="stat-number">0</span></div>
+          <div class="stat-card"><h3>Promedio/mes (activas)</h3><span id="promedioMes" class="stat-number">0</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin-top:16px;">
+          <div class="stat-card"><h3>Rango</h3><div id="rango"></div></div>
+          <div class="stat-card">
+            <h3>Distribución por especie</h3>
+            <div style="display:flex; gap:12px; justify-content:space-between; flex-wrap:wrap;">
+              <div><strong>Activas</strong><div id="porEspecieActivas"></div></div>
+              <div><strong>Fallidas</strong><div id="porEspecieFallidas"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
+        <div class="section-card">
+          <h3>Adopciones por especie</h3>
           <canvas id="chartEspecie" height="200"></canvas>
         </div>
         <div class="section-card">
-          <h3>Evolución mensual</h3>
+          <h3>Adopciones mensuales</h3>
           <canvas id="chartEvolucion" height="200"></canvas>
         </div>
       </div>
@@ -63,8 +116,10 @@
               <tr>
                 <th>Posición</th>
                 <th>Raza</th>
-                <th>Cantidad</th>
-                <th>Porcentaje</th>
+                <th>Activas</th>
+                <th>Fallidas</th>
+                <th>Total</th>
+                <th>Participación</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -73,7 +128,7 @@
       </div>
 
       <div class="section-card">
-        <h3>Detalle</h3>
+        <h3>Detalle de adopciones</h3>
         <div class="table-container">
           <table class="admin-table" id="tablaReporte">
             <thead>
@@ -84,6 +139,7 @@
                 <th>Animal</th>
                 <th>Especie</th>
                 <th>Raza</th>
+                <th>Estado adopción</th>
                 <th>Contrato</th>
               </tr>
             </thead>
