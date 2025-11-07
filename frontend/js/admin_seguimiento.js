@@ -12,12 +12,42 @@ document.addEventListener('DOMContentLoaded', async () => {
   const filtroAnimal = document.getElementById('filtroAnimal');
 
   let animalesAdoptados = [];
-  let adopciones = [];
+
+  const hoyStr = new Date().toISOString().split('T')[0];
+  if (fechaProgramada) {
+    fechaProgramada.setAttribute('min', hoyStr);
+  }
+
+  // Deshabilitar select de adopción inicialmente
+  selectAdopcion.disabled = true;
+  selectAdopcion.innerHTML = '<option value="">Seleccione primero un animal</option>';
 
   await cargarAnimalesAdoptados();
-  await cargarAdopciones();
+  
+  // Verificar si hay un animal seleccionado por defecto y cargar sus adopciones
+  if (selectAnimal.value) {
+    await cargarAdopcionesPorAnimal(selectAnimal.value);
+    if (selectAdopcion.options.length > 0 && selectAdopcion.options[0].value !== '') {
+      selectAdopcion.disabled = false;
+    }
+  }
+  
   await cargarPendientes();
   await cargarHistorial();
+
+  // Cuando se selecciona un animal, cargar sus adopciones
+  selectAnimal.addEventListener('change', async () => {
+    const idAnimal = selectAnimal.value;
+    if (idAnimal) {
+      await cargarAdopcionesPorAnimal(idAnimal);
+      if (selectAdopcion.options.length > 0 && selectAdopcion.options[0].value !== '') {
+        selectAdopcion.disabled = false;
+      }
+    } else {
+      selectAdopcion.disabled = true;
+      selectAdopcion.innerHTML = '<option value="">Seleccione primero un animal</option>';
+    }
+  });
 
   // Programar seguimiento
   formSeguimiento.addEventListener('submit', async (e) => {
@@ -33,9 +63,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
+      const hoyActual = new Date().toISOString().split('T')[0];
+      if (fecha < hoyActual) {
+        alert('La fecha programada no puede ser anterior al día de hoy');
+        return;
+      }
+
       await api.crearSeguimiento({ idAdopcion, idAnimal, fechaProgramada: fecha, observaciones: obs });
       alert('Seguimiento programado');
       formSeguimiento.reset();
+      selectAdopcion.disabled = true;
+      selectAdopcion.innerHTML = '<option value="">Seleccione primero un animal</option>';
       await cargarPendientes();
       await cargarHistorial();
     } catch (error) {
@@ -51,27 +89,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const todos = await api.getAnimales();
       animalesAdoptados = (todos || []).filter(a => a.estado === 'Adoptado');
-      selectAnimal.innerHTML = '';
+      selectAnimal.innerHTML = '<option value="">Seleccione un animal</option>';
       filtroAnimal.innerHTML = '<option value="">Todos</option>';
       animalesAdoptados.forEach(a => {
         selectAnimal.add(new Option(`${a.nombre} (${a.especie})`, a.idAnimal));
         filtroAnimal.add(new Option(`${a.nombre} (${a.especie})`, a.idAnimal));
       });
+      // Asegurar que no haya selección por defecto
+      selectAnimal.value = '';
     } catch (e) {
       console.error(e);
     }
   }
 
-  async function cargarAdopciones() {
+  async function cargarAdopcionesPorAnimal(animalId) {
     try {
-      const lista = await api.getAdopciones();
-      adopciones = lista || [];
+      const lista = await api.getAdopcionesPorAnimal(animalId);
       selectAdopcion.innerHTML = '';
-      adopciones.forEach(ad => {
-        selectAdopcion.add(new Option(`Adopción #${ad.idAdopcion} - ${ad.nombreAnimal}`, ad.idAdopcion));
-      });
+      if (!lista || lista.length === 0) {
+        selectAdopcion.add(new Option('No hay adopciones activas para este animal', ''));
+        selectAdopcion.disabled = true;
+      } else {
+        lista.forEach(ad => {
+          const adoptanteNombre = `${ad.nombreAdoptante || ''} ${ad.apellidoAdoptante || ''}`.trim();
+          const label = adoptanteNombre 
+            ? `Adopción #${ad.idAdopcion} - ${adoptanteNombre}`
+            : `Adopción #${ad.idAdopcion}`;
+          selectAdopcion.add(new Option(label, ad.idAdopcion));
+        });
+      }
     } catch (e) {
-      console.error(e);
+      console.error('Error al cargar adopciones:', e);
+      selectAdopcion.innerHTML = '<option value="">Error al cargar adopciones</option>';
+      selectAdopcion.disabled = true;
     }
   }
 
@@ -79,20 +129,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const pendientes = await api.getSeguimientosPendientes();
       if (!pendientes || pendientes.length === 0) {
-        tablaPendientes.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 16px;">Sin seguimientos pendientes</td></tr>';
+        tablaPendientes.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 16px;">Sin seguimientos pendientes</td></tr>';
         return;
       }
-      tablaPendientes.innerHTML = pendientes.map(s => `
+      tablaPendientes.innerHTML = pendientes.map(s => {
+        const nombreCompleto = `${s.nombreAdoptante || ''} ${s.apellidoAdoptante || ''}`.trim() || 'N/A';
+        const telefono = s.telefonoAdoptante || 'N/A';
+        return `
         <tr>
           <td>${s.idSeguimiento}</td>
-          <td>${s.idAnimal}</td>
+          <td>${s.nombreAnimal || s.idAnimal}${s.especie ? ` (${s.especie})` : ''}</td>
+          <td>${nombreCompleto}</td>
+          <td>${telefono}</td>
           <td>${formatearFecha(s.fechaProgramada)}</td>
           <td>${s.estado}</td>
           <td>
             <button class="btn-table evaluar" onclick="completarSeg(${s.idSeguimiento})">✔ Completar</button>
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     } catch (e) {
       console.error(e);
     }

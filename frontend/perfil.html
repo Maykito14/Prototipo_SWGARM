@@ -60,6 +60,33 @@
           </div>
         </form>
       </div>
+
+      <div class="section-card">
+        <h3>Mis Seguimientos</h3>
+        <div class="table-container">
+          <table class="admin-table" id="tablaMisSeguimientos">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Animal</th>
+                <th>Fecha Programada</th>
+                <th>Fecha Realizada</th>
+                <th>Estado</th>
+                <th>Observaciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>Mis Notificaciones</h3>
+        <div id="listaNotificaciones" class="notification-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+        <div style="text-align: right; margin-top: 12px;">
+          <button id="btnMarcarTodasLeidas" class="btn btn-secondary">Marcar todas como leídas</button>
+        </div>
+      </div>
     </div>
   </main>
 

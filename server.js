@@ -22,10 +22,16 @@ async function iniciarRecordatoriosSeguimiento() {
     try {
       const hoy = new Date().toISOString().split('T')[0];
       const [pendientes] = await pool.query(
-        `SELECT s.*, a.nombre AS nombreAnimal, adop.idUsuario AS idUsuarioAdoptante
+        `SELECT s.*, 
+                a.nombre AS nombreAnimal,
+                s.idUsuarioCreador,
+                uAdopt.idUsuario AS idUsuarioAdoptante
          FROM seguimiento s
          JOIN animal a ON s.idAnimal = a.idAnimal
          JOIN adopcion adop ON s.idAdopcion = adop.idAdopcion
+         JOIN solicitud sol ON adop.idSolicitud = sol.idSolicitud
+         JOIN adoptante adopt ON sol.idAdoptante = adopt.idAdoptante
+         LEFT JOIN usuario uAdopt ON adopt.email = uAdopt.email
          WHERE s.estado = ? AND s.fechaProgramada <= ? AND s.recordatorioEnviado = 0`,
         ['Pendiente', hoy]
       );
@@ -36,33 +42,35 @@ async function iniciarRecordatoriosSeguimiento() {
       const [admins] = await pool.query('SELECT idUsuario, email FROM usuario WHERE rol = ?', ['administrador']);
       
       for (const seg of pendientes) {
-        // Notificar a administradores
-        if (admins.length > 0) {
-          for (const admin of admins) {
-            await pool.query(
-              'INSERT INTO notificacion (idUsuario, tipo, mensaje, fechaEnvio, idSeguimiento) VALUES (?, ?, ?, ?, ?)',
-              [admin.idUsuario, 'Seguimiento', `Seguimiento pendiente (ID ${seg.idSeguimiento}) para el animal ${seg.nombreAnimal || seg.idAnimal} programado para ${seg.fechaProgramada}`, hoy, seg.idSeguimiento]
-            );
-          }
+        // Notificar al administrador que creó el seguimiento (o a todos si no se registró)
+        const adminsNotificar = new Map();
+
+        if (seg.idUsuarioCreador) {
+          adminsNotificar.set(seg.idUsuarioCreador, seg.idUsuarioCreador);
+        } else {
+          admins.forEach((admin) => adminsNotificar.set(admin.idUsuario, admin.idUsuario));
         }
 
-        // Notificar a adoptante si tiene usuario registrado y preferencias lo permiten
+        for (const adminId of adminsNotificar.keys()) {
+          await Notificacion.create({
+            idUsuario: adminId,
+            tipo: 'Seguimiento',
+            mensaje: `Seguimiento pendiente (ID ${seg.idSeguimiento}) para el animal ${seg.nombreAnimal || seg.idAnimal} programado para ${seg.fechaProgramada}.`,
+            idSeguimiento: seg.idSeguimiento
+          });
+        }
+
+        // Notificar al adoptante si tiene usuario registrado y preferencias lo permiten
         if (seg.idUsuarioAdoptante) {
           const preferencias = await PreferenciasNotificacion.getByUsuario(seg.idUsuarioAdoptante);
-          
-          if (preferencias && preferencias.notificarRecordatorioSeguimiento && preferencias.notificarEnSistema) {
+
+          const mensajeAdoptante = `Recordatorio: Tienes un seguimiento programado para ${seg.nombreAnimal || 'tu mascota adoptada'} el ${seg.fechaProgramada}. Por favor, contacta con el refugio para coordinar la visita.`;
+
+          if (!preferencias || (preferencias.notificarRecordatorioSeguimiento && preferencias.notificarEnSistema)) {
             await Notificacion.create({
               idUsuario: seg.idUsuarioAdoptante,
               tipo: 'Recordatorio Seguimiento',
-              mensaje: `Recordatorio: Tienes un seguimiento programado para ${seg.nombreAnimal || 'tu mascota adoptada'} el ${seg.fechaProgramada}. Por favor, contacta con el refugio para coordinar la visita.`,
-              idSeguimiento: seg.idSeguimiento
-            });
-          } else if (!preferencias) {
-            // Si no tiene preferencias, usar valores por defecto (todos habilitados)
-            await Notificacion.create({
-              idUsuario: seg.idUsuarioAdoptante,
-              tipo: 'Recordatorio Seguimiento',
-              mensaje: `Recordatorio: Tienes un seguimiento programado para ${seg.nombreAnimal || 'tu mascota adoptada'} el ${seg.fechaProgramada}. Por favor, contacta con el refugio para coordinar la visita.`,
+              mensaje: mensajeAdoptante,
               idSeguimiento: seg.idSeguimiento
             });
           }
@@ -71,7 +79,10 @@ async function iniciarRecordatoriosSeguimiento() {
 
       // Marcar como enviado
       const ids = pendientes.map(p => p.idSeguimiento);
-      await pool.query(`UPDATE seguimiento SET recordatorioEnviado = 1 WHERE idSeguimiento IN (${ids.map(() => '?').join(',')})`, ids);
+      await pool.query(
+        `UPDATE seguimiento SET recordatorioEnviado = 1 WHERE idSeguimiento IN (${ids.map(() => '?').join(',')})`,
+        ids
+      );
 
       console.log(`🔔 Recordatorios generados para ${pendientes.length} seguimiento(s)`);
     } catch (err) {
@@ -79,4 +90,3 @@ async function iniciarRecordatoriosSeguimiento() {
     }
   }, ms);
 }
-

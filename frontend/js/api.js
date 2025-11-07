@@ -332,6 +332,10 @@ const api = {
     return this.request(`/adopcion/adopciones/${id}`);
   },
 
+  async getAdopcionesPorAnimal(animalId) {
+    return this.request(`/adopcion/adopciones/animal/${animalId}`);
+  },
+
   async formalizarAdopcion(idSolicitud, contrato) {
     return this.request('/adopcion/formalizar', {
       method: 'POST',
@@ -356,6 +360,10 @@ const api = {
 
   async getSeguimientosPendientes() {
     return this.request('/seguimiento/pendientes');
+  },
+
+  async getMisSeguimientos() {
+    return this.request('/seguimiento/mios');
   },
 
   async getSeguimientosPorAnimal(animalId) {

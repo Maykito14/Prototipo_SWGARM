@@ -3,6 +3,9 @@ const router = express.Router();
 const seguimientoController = require('../controllers/seguimientoController');
 const { authMiddleware, adminMiddleware } = require('../middlewares/autMiddleware');
 
+// Rutas para usuarios autenticados
+router.get('/mios', authMiddleware, seguimientoController.listarMisSeguimientos);
+
 // Rutas protegidas para administradores
 router.get('/pendientes', authMiddleware, adminMiddleware, seguimientoController.listarPendientes);
 router.get('/animal/:animalId', authMiddleware, adminMiddleware, seguimientoController.listarPorAnimal);

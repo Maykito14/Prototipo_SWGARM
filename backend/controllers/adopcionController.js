@@ -413,6 +413,19 @@ exports.actualizarSolicitud = async (req, res) => {
 
     const actualizado = await Solicitud.update(req.params.id, datosActualizacion);
     
+    // Actualizar campo 'activa' en adopciones relacionadas
+    // Si la solicitud está "Aprobada", marcar adopciones como activas (1)
+    // Si cambió de "Aprobada" a "Pendiente" o "Rechazada", marcar como inactivas (0)
+    if (estado === 'Aprobada') {
+      // Si se aprueba, activar adopciones relacionadas a esta solicitud
+      await Adopcion.actualizarActivaPorSolicitud(req.params.id, true);
+      console.log(`[DEBUG] Adopciones relacionadas a solicitud ${req.params.id} marcadas como activas`);
+    } else if (estadoAnterior === 'Aprobada' && (estado === 'Pendiente' || estado === 'Rechazada')) {
+      // Si se revierte una aprobación, desactivar adopciones relacionadas
+      await Adopcion.actualizarActivaPorSolicitud(req.params.id, false);
+      console.log(`[DEBUG] Adopciones relacionadas a solicitud ${req.params.id} marcadas como inactivas`);
+    }
+    
     // Enviar notificación al adoptante si se aprueba o rechaza
     if (estado === 'Aprobada' || estado === 'Rechazada') {
       const adoptante = await Adoptante.getById(solicitudActual.idAdoptante);
@@ -499,6 +512,17 @@ exports.obtenerAdopcion = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al buscar adopción' });
+  }
+};
+
+// Obtener adopciones por animal
+exports.obtenerAdopcionesPorAnimal = async (req, res) => {
+  try {
+    const adopciones = await Adopcion.getByAnimalId(req.params.animalId);
+    res.json(adopciones);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener adopciones del animal' });
   }
 };
 

@@ -137,13 +137,15 @@ const Solicitud = {
 const Adopcion = {
   async getAll() {
     const [rows] = await pool.query(`
-      SELECT ad.*, s.idAnimal, s.idAdoptante, a.nombre AS nombreAdoptante, a.apellido AS apellidoAdoptante,
+      SELECT ad.*, s.idAnimal, s.idAdoptante, s.estado AS estadoSolicitud,
+             a.nombre AS nombreAdoptante, a.apellido AS apellidoAdoptante,
              an.nombre AS nombreAnimal, an.especie, u.email AS emailUsuario
       FROM adopcion ad
       JOIN solicitud s ON ad.idSolicitud = s.idSolicitud
       JOIN adoptante a ON s.idAdoptante = a.idAdoptante
       JOIN animal an ON s.idAnimal = an.idAnimal
       JOIN usuario u ON ad.idUsuario = u.idUsuario
+      WHERE ad.activa = 1
       ORDER BY ad.fecha DESC, ad.idAdopcion DESC
     `);
     return rows;
@@ -151,7 +153,8 @@ const Adopcion = {
 
   async getById(id) {
     const [rows] = await pool.query(`
-      SELECT ad.*, s.idAnimal, s.idAdoptante, a.nombre AS nombreAdoptante, a.apellido AS apellidoAdoptante,
+      SELECT ad.*, s.idAnimal, s.idAdoptante, s.estado AS estadoSolicitud,
+             a.nombre AS nombreAdoptante, a.apellido AS apellidoAdoptante,
              an.nombre AS nombreAnimal, an.especie, u.email AS emailUsuario
       FROM adopcion ad
       JOIN solicitud s ON ad.idSolicitud = s.idSolicitud
@@ -163,12 +166,42 @@ const Adopcion = {
     return rows[0];
   },
 
+  async getByAnimalId(animalId) {
+    const [rows] = await pool.query(`
+      SELECT ad.*, s.idAnimal, s.idAdoptante, s.estado AS estadoSolicitud,
+             a.nombre AS nombreAdoptante, a.apellido AS apellidoAdoptante,
+             an.nombre AS nombreAnimal, an.especie, u.email AS emailUsuario
+      FROM adopcion ad
+      JOIN solicitud s ON ad.idSolicitud = s.idSolicitud
+      JOIN adoptante a ON s.idAdoptante = a.idAdoptante
+      JOIN animal an ON s.idAnimal = an.idAnimal
+      JOIN usuario u ON ad.idUsuario = u.idUsuario
+      WHERE s.idAnimal = ? AND ad.activa = 1
+      ORDER BY ad.fecha DESC, ad.idAdopcion DESC
+    `, [animalId]);
+    return rows;
+  },
+
   async create({ idSolicitud, idUsuario, fecha, contrato }) {
     const [result] = await pool.query(
-      'INSERT INTO adopcion (idSolicitud, idUsuario, fecha, contrato) VALUES (?, ?, ?, ?)',
+      'INSERT INTO adopcion (idSolicitud, idUsuario, fecha, contrato, activa) VALUES (?, ?, ?, ?, 1)',
       [idSolicitud, idUsuario, fecha, contrato || null]
     );
-    return { idAdopcion: result.insertId, idSolicitud, idUsuario, fecha, contrato: contrato || null };
+    return { idAdopcion: result.insertId, idSolicitud, idUsuario, fecha, contrato: contrato || null, activa: 1 };
+  },
+
+  async actualizarActiva(idAdopcion, activa) {
+    await pool.query(
+      'UPDATE adopcion SET activa = ? WHERE idAdopcion = ?',
+      [activa ? 1 : 0, idAdopcion]
+    );
+  },
+
+  async actualizarActivaPorSolicitud(idSolicitud, activa) {
+    await pool.query(
+      'UPDATE adopcion SET activa = ? WHERE idSolicitud = ?',
+      [activa ? 1 : 0, idSolicitud]
+    );
   }
 };
 

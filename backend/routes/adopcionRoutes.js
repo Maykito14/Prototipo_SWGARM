@@ -22,6 +22,7 @@ router.delete('/solicitudes/:id', authMiddleware, adminMiddleware, adopcionContr
 // Adopciones formalizadas
 router.get('/adopciones', authMiddleware, adminMiddleware, adopcionController.listarAdopciones);
 router.get('/adopciones/:id', authMiddleware, adminMiddleware, adopcionController.obtenerAdopcion);
+router.get('/adopciones/animal/:animalId', authMiddleware, adminMiddleware, adopcionController.obtenerAdopcionesPorAnimal);
 router.post('/formalizar', authMiddleware, adminMiddleware, adopcionController.formalizarAdopcion);
 
 // Perfil de adoptante autenticado
