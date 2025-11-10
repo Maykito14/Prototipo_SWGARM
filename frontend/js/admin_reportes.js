@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnPDF = document.getElementById('btnPDF');
   const tablaAnimalesBody = document.querySelector('#tablaAnimales tbody');
   const tablaBody = document.querySelector('#tablaReporte tbody');
+  const paginacionAdopcionesEl = document.getElementById('paginacionAdopciones');
   const tablaRazasBody = document.querySelector('#tablaRazas tbody');
   const totalAdopEl = document.getElementById('totalAdop');
   const totalActivasEl = document.getElementById('totalActivas');
@@ -22,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const porEstadoAltasEl = document.getElementById('porEstadoAltas');
   let datosActuales = null;
   let datosAnimales = null;
+  let datosTablaAdopciones = [];
+  let paginaActualAdopciones = 1;
+  const registrosPorPaginaAdopciones = 4;
   let chartEspecie = null;
   let chartEvolucion = null;
   let chartAnimalesEspecie = null;
@@ -146,11 +150,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderTabla(rows) {
-    if (!rows || rows.length === 0) {
+    datosTablaAdopciones = Array.isArray(rows) ? rows : [];
+    paginaActualAdopciones = 1;
+    renderTablaAdopcionesPagina();
+  }
+
+  function renderTablaAdopcionesPagina() {
+    const totalRegistros = datosTablaAdopciones.length;
+    if (totalRegistros === 0) {
       tablaBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:12px;">Sin registros en el período</td></tr>';
+      actualizarPaginacionAdopciones(0, 0);
       return;
     }
-    tablaBody.innerHTML = rows.map(r => `
+
+    const totalPaginas = Math.max(Math.ceil(totalRegistros / registrosPorPaginaAdopciones), 1);
+    const inicio = (paginaActualAdopciones - 1) * registrosPorPaginaAdopciones;
+    const pagina = datosTablaAdopciones.slice(inicio, inicio + registrosPorPaginaAdopciones);
+
+    tablaBody.innerHTML = pagina.map(r => `
       <tr>
         <td>${r.idAdopcion}</td>
         <td>${formatearFecha(r.fecha)}</td>
@@ -162,7 +179,42 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${escapeHtml(r.contrato) || '-'}</td>
       </tr>
     `).join('');
+
+    actualizarPaginacionAdopciones(paginaActualAdopciones, totalPaginas, totalRegistros);
   }
+
+  function actualizarPaginacionAdopciones(pagina, totalPaginas, totalRegistros = datosTablaAdopciones.length) {
+    if (!paginacionAdopcionesEl) return;
+    if (totalRegistros === 0) {
+      paginacionAdopcionesEl.innerHTML = '';
+      return;
+    }
+
+    paginacionAdopcionesEl.innerHTML = `
+      <button class="btn btn-secondary" ${pagina <= 1 ? 'disabled' : ''} onclick="paginaAnteriorAdopciones()">«</button>
+      <span>Página ${pagina} de ${totalPaginas} (${totalRegistros} registros)</span>
+      <button class="btn btn-secondary" ${pagina >= totalPaginas ? 'disabled' : ''} onclick="paginaSiguienteAdopciones()">»</button>
+    `;
+  }
+
+  window.paginaAnteriorAdopciones = function () {
+    if (paginaActualAdopciones > 1) {
+      paginaActualAdopciones--;
+      renderTablaAdopcionesPagina();
+      const contenedorTabla = document.getElementById('tablaReporte')?.parentElement;
+      if (contenedorTabla) contenedorTabla.scrollTop = 0;
+    }
+  };
+
+  window.paginaSiguienteAdopciones = function () {
+    const totalPaginas = Math.ceil(datosTablaAdopciones.length / registrosPorPaginaAdopciones);
+    if (paginaActualAdopciones < totalPaginas) {
+      paginaActualAdopciones++;
+      renderTablaAdopcionesPagina();
+      const contenedorTabla = document.getElementById('tablaReporte')?.parentElement;
+      if (contenedorTabla) contenedorTabla.scrollTop = 0;
+    }
+  };
 
   function renderChartEspecie(porEspecie) {
     const especiesSet = new Set([

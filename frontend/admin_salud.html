@@ -18,11 +18,10 @@
         <form id="saludForm" class="salud-form">
           <div class="form-row">
             <div class="form-group">
-              <label for="idAnimal">Animal *</label>
-              <select id="idAnimal" name="idAnimal" required>
-                <option value="">Seleccionar animal</option>
-                <!-- Los animales se cargarán dinámicamente -->
-              </select>
+              <label for="animalBusqueda">Animal *</label>
+              <input type="text" id="animalBusqueda" placeholder="Escribe el nombre del animal" list="listaAnimales" autocomplete="off" required>
+              <datalist id="listaAnimales"></datalist>
+              <input type="hidden" id="idAnimal" name="idAnimal" />
               <span class="error-message" id="idAnimal-error"></span>
             </div>
             <div class="form-group">
@@ -71,37 +70,52 @@
 
       <!-- Historial de controles de salud -->
       <div class="historial-section">
-        <h3>Historial de Controles de Salud</h3>
-        
-        <!-- Filtro por animal -->
-        <div class="filter-section">
-          <label for="filtroAnimal">Filtrar por animal:</label>
-          <select id="filtroAnimal">
-            <option value="">Todos los animales</option>
-            <!-- Los animales se cargarán dinámicamente -->
-          </select>
-          <button id="btnFiltrar" class="btn btn-secondary">Filtrar</button>
+        <div class="table-header">
+          <h3>Historial de Controles de Salud</h3>
+          <div class="table-filters">
+            <div class="filter-group">
+              <label for="filtroTexto">Buscar</label>
+              <input type="text" id="filtroTexto" placeholder="Animal, veterinario, estado..." />
+            </div>
+            <div class="filter-group">
+              <label for="filtroEstado">Estado</label>
+              <select id="filtroEstado">
+                <option value="">Todos</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="En Tratamiento">En Tratamiento</option>
+                <option value="Realizado">Realizado</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filtroAnimal">Animal</label>
+              <input type="text" id="filtroAnimal" placeholder="Todos" list="listaAnimalesFiltro" autocomplete="off">
+              <datalist id="listaAnimalesFiltro"></datalist>
+            </div>
+          </div>
         </div>
 
-        <div class="table-container">
-          <table id="saludTable" class="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Animal</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Veterinario</th>
-                <th>Vacunas</th>
-                <th>Tratamientos</th>
-                <th>Observaciones</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Los datos se cargarán dinámicamente -->
-            </tbody>
-          </table>
+        <div class="table-container table-container-paginada">
+          <div class="table-scrollable">
+            <table id="tablaControles" class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Animal</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th>Veterinario</th>
+                  <th>Vacunas</th>
+                  <th>Tratamiento</th>
+                  <th>Observaciones</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Datos dinámicos -->
+              </tbody>
+            </table>
+          </div>
+          <div id="paginacionControles" class="paginacion"></div>
         </div>
       </div>
     </div>
@@ -115,6 +129,6 @@
   <script src="./js/api.js"></script>
   <script src="./js/header.js"></script>
   <script src="./js/auth.js"></script>
-  <script src="./js/admin_salud.js"></script>
+  <script src="./js/admin_salud.js?v=20251110"></script>
 </body>
 </html>

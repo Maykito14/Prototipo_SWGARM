@@ -59,7 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   }
 
-  // Vista previa de imagen
+  const filtroEstadoSelect = document.getElementById('filtroEstado');
+  const filtroEspecieSelect = document.getElementById('filtroEspecie');
+  const filtroGeneralInput = document.getElementById('filtroGeneral');
   const fotoInput = document.getElementById('foto');
   const fotoPreview = document.getElementById('foto-preview');
   const fotoPreviewList = document.getElementById('foto-preview-list');
@@ -360,25 +362,48 @@ document.addEventListener('DOMContentLoaded', () => {
   let todosLosAnimales = [];
   let animalesFiltrados = [];
   let paginaActual = 1;
-  const registrosPorPagina = 5;
+  const registrosPorPagina = 10;
+  let filtroEstado = '';
+  let filtroEspecie = '';
+  let filtroGeneral = '';
 
-  // Función para filtrar animales por estado
-  function filtrarAnimales(estado) {
+  function filtrarAnimalesPorEstado(estado) {
+    filtroEstado = estado;
+    aplicarFiltros();
+  }
+
+  function filtrarAnimalesPorEspecie(especie) {
+    filtroEspecie = especie;
+    aplicarFiltros();
+  }
+
+  function filtrarAnimalesPorTexto(texto) {
+    filtroGeneral = texto.toLowerCase();
+    aplicarFiltros();
+  }
+
+  function aplicarFiltros() {
     try {
-      // Verificar que todosLosAnimales esté definido
       if (!todosLosAnimales || !Array.isArray(todosLosAnimales)) {
         todosLosAnimales = [];
       }
-      
-      if (!estado || estado === '') {
-        animalesFiltrados = [...todosLosAnimales];
-      } else {
-        animalesFiltrados = todosLosAnimales.filter(animal => animal.estado === estado);
-      }
-      paginaActual = 1; // Resetear a la primera página
+
+      animalesFiltrados = todosLosAnimales.filter((animal) => {
+        const coincideEstado = !filtroEstado || animal.estado === filtroEstado;
+        const coincideEspecie = !filtroEspecie || animal.especie === filtroEspecie;
+        const coincideTexto =
+          !filtroGeneral ||
+          (animal.nombre || '').toLowerCase().includes(filtroGeneral) ||
+          (animal.especie || '').toLowerCase().includes(filtroGeneral) ||
+          (animal.raza || '').toLowerCase().includes(filtroGeneral) ||
+          String(animal.idAnimal || '').includes(filtroGeneral);
+        return coincideEstado && coincideEspecie && coincideTexto;
+      });
+
+      paginaActual = 1;
       mostrarAnimales();
     } catch (error) {
-      console.error('Error en filtrarAnimales:', error);
+      console.error('Error al aplicar filtros:', error);
     }
   }
 
@@ -400,53 +425,39 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!animalesFiltrados || !Array.isArray(animalesFiltrados)) {
         animalesFiltrados = [];
       }
-      
+
       if (animalesFiltrados.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No hay animales registrados que coincidan con el filtro</td></tr>';
+        actualizarPaginacion();
         return;
       }
 
-    // Calcular índices para la paginación
-    const inicio = (paginaActual - 1) * registrosPorPagina;
-    const fin = inicio + registrosPorPagina;
-    const animalesPagina = animalesFiltrados.slice(inicio, fin);
+      const inicio = (paginaActual - 1) * registrosPorPagina;
+      const fin = inicio + registrosPorPagina;
+      const animalesPagina = animalesFiltrados.slice(inicio, fin);
 
-    tbody.innerHTML = animalesPagina.map(animal => `
-      <tr>
-        <td>${animal.idAnimal}</td>
-        <td>${animal.nombre}</td>
-        <td>${animal.especie || '-'}</td>
-        <td>${animal.raza || '-'}</td>
-        <td>${animal.edad || '-'}</td>
-        <td><span class="status ${window.getStatusClass(animal.estado)}">${animal.estado || '-'}</span></td>
-        <td>${animal.puntajeMinimo !== null && animal.puntajeMinimo !== undefined ? animal.puntajeMinimo : 0}</td>
-        <td>${window.formatearFecha(animal.fechaIngreso)}</td>
-        <td>
-          <button class="btn-table ver" onclick="verAnimal(${animal.idAnimal})">👁️</button>
-          <button class="btn-table salud" onclick="verHistorialSalud(${animal.idAnimal})">🏥</button>
-          <button class="btn-table estado" onclick="cambiarEstadoAnimal(${animal.idAnimal})">🔄</button>
-          <button class="btn-table editar" onclick="editarAnimal(${animal.idAnimal})">✏️</button>
-          <button class="btn-table eliminar" onclick="eliminarAnimal(${animal.idAnimal})">🗑️</button>
-        </td>
-      </tr>
-    `).join('');
-
-    // Agregar controles de paginación si hay más de 5 registros
-    if (animalesFiltrados.length > registrosPorPagina) {
-      const totalPaginas = Math.ceil(animalesFiltrados.length / registrosPorPagina);
-      const paginacionHTML = `
+      tbody.innerHTML = animalesPagina.map(animal => `
         <tr>
-          <td colspan="9" style="text-align: center; padding: 15px; background-color: #f8f9fa; border-top: 2px solid #ddd;">
-            <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-              <button onclick="window.paginaAnterior()" ${paginaActual === 1 ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''} class="btn btn-secondary" style="padding: 5px 15px;">« Anterior</button>
-              <span style="font-weight: 500;">Página ${paginaActual} de ${totalPaginas} (${animalesFiltrados.length} registros)</span>
-              <button onclick="window.paginaSiguiente()" ${paginaActual === totalPaginas ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''} class="btn btn-secondary" style="padding: 5px 15px;">Siguiente »</button>
-            </div>
+          <td>${animal.idAnimal}</td>
+          <td>${animal.nombre}</td>
+          <td>${animal.especie || '-'}</td>
+          <td>${animal.raza || '-'}</td>
+          <td>${animal.edad || '-'}</td>
+          <td><span class="status ${window.getStatusClass(animal.estado)}">${animal.estado || '-'}</span></td>
+          <td>${animal.puntajeMinimo !== null && animal.puntajeMinimo !== undefined ? animal.puntajeMinimo : 0}</td>
+          <td>${window.formatearFecha(animal.fechaIngreso)}</td>
+          <td>
+            <button class="btn-table ver" onclick="verAnimal(${animal.idAnimal})">👁️</button>
+            <button class="btn-table salud" onclick="verHistorialSalud(${animal.idAnimal})">🏥</button>
+            <button class="btn-table estado" onclick="cambiarEstadoAnimal(${animal.idAnimal})">🔄</button>
+            <button class="btn-table editar" onclick="editarAnimal(${animal.idAnimal})">✏️</button>
+            <button class="btn-table eliminar" onclick="eliminarAnimal(${animal.idAnimal})">🗑️</button>
           </td>
         </tr>
-      `;
-      tbody.innerHTML += paginacionHTML;
-    }
+      `).join('');
+
+      actualizarPaginacion();
+
     } catch (error) {
       console.error('Error en mostrarAnimales:', error);
       const animalsTable = document.getElementById('animalsTable');
@@ -457,6 +468,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     }
+  }
+
+  function actualizarPaginacion() {
+    const contenedor = document.querySelector('.table-container-paginada');
+    if (!contenedor) return;
+
+    const paginacionExistente = contenedor.querySelector('.paginacion');
+    if (paginacionExistente) {
+      paginacionExistente.remove();
+    }
+
+    const totalRegistros = animalesFiltrados.length;
+    const totalPaginas = Math.max(Math.ceil(totalRegistros / registrosPorPagina), 1);
+
+    const paginacion = document.createElement('div');
+    paginacion.className = 'paginacion';
+    paginacion.innerHTML = `
+      <button class="btn btn-secondary" ${paginaActual === 1 ? 'disabled' : ''} onclick="paginaAnterior()">«</button>
+      <span>Página ${paginaActual} de ${totalPaginas} (${totalRegistros} registros)</span>
+      <button class="btn btn-secondary" ${paginaActual === totalPaginas ? 'disabled' : ''} onclick="paginaSiguiente()">»</button>
+    `;
+
+    contenedor.appendChild(paginacion);
   }
 
   // Función para cargar animales en la tabla (hacerla global)
@@ -472,9 +506,10 @@ document.addEventListener('DOMContentLoaded', () => {
       todosLosAnimales.sort((a, b) => (b.idAnimal || 0) - (a.idAnimal || 0));
       
       // Aplicar filtro actual si existe
-      const filtroEstado = document.getElementById('filtroEstado');
-      const estadoFiltro = filtroEstado ? filtroEstado.value : '';
-      filtrarAnimales(estadoFiltro);
+      filtroEstado = filtroEstadoSelect ? filtroEstadoSelect.value : '';
+      filtroEspecie = filtroEspecieSelect ? filtroEspecieSelect.value : '';
+      filtroGeneral = filtroGeneralInput ? filtroGeneralInput.value.toLowerCase() : '';
+      aplicarFiltros();
       
     } catch (error) {
       console.error('Error al cargar animales:', error);
@@ -502,8 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (paginaActual > 1) {
       paginaActual--;
       mostrarAnimales();
-      // Scroll al inicio de la tabla
-      const tableContainer = document.querySelector('.table-container');
+      const tableContainer = document.querySelector('.table-container-paginada');
       if (tableContainer) {
         tableContainer.scrollTop = 0;
       }
@@ -515,8 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (paginaActual < totalPaginas) {
       paginaActual++;
       mostrarAnimales();
-      // Scroll al inicio de la tabla
-      const tableContainer = document.querySelector('.table-container');
+      const tableContainer = document.querySelector('.table-container-paginada');
       if (tableContainer) {
         tableContainer.scrollTop = 0;
       }
@@ -524,11 +557,14 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Configurar filtro por estado
-  const filtroEstado = document.getElementById('filtroEstado');
-  if (filtroEstado) {
-    filtroEstado.addEventListener('change', (e) => {
-      filtrarAnimales(e.target.value);
-    });
+  if (filtroEstadoSelect) {
+    filtroEstadoSelect.addEventListener('change', (e) => filtrarAnimalesPorEstado(e.target.value));
+  }
+  if (filtroEspecieSelect) {
+    filtroEspecieSelect.addEventListener('change', (e) => filtrarAnimalesPorEspecie(e.target.value));
+  }
+  if (filtroGeneralInput) {
+    filtroGeneralInput.addEventListener('input', (e) => filtrarAnimalesPorTexto(e.target.value));
   }
 
   // Cargar animales al iniciar (después de definir las funciones)

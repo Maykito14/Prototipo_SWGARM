@@ -103,20 +103,35 @@
 
       <!-- Lista de animales registrados -->
       <div class="animals-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="margin: 0;">Animales Registrados</h3>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <label for="filtroEstado" style="font-weight: 500;">Filtrar por estado:</label>
-            <select id="filtroEstado" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-              <option value="">Todos los estados</option>
-              <option value="Disponible">Disponible</option>
-              <option value="En proceso">En proceso</option>
-              <option value="Adoptado">Adoptado</option>
-              <option value="En tratamiento">En tratamiento</option>
-            </select>
+        <div class="table-header">
+          <h3>Animales Registrados</h3>
+          <div class="table-filters">
+            <div class="filter-group">
+              <label for="filtroGeneral">Buscar</label>
+              <input type="text" id="filtroGeneral" placeholder="Nombre, especie, raza..." />
+            </div>
+            <div class="filter-group">
+              <label for="filtroEstado">Estado</label>
+              <select id="filtroEstado">
+                <option value="">Todos</option>
+                <option value="Disponible">Disponible</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Adoptado">Adoptado</option>
+                <option value="En tratamiento">En tratamiento</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filtroEspecie">Especie</label>
+              <select id="filtroEspecie">
+                <option value="">Todas</option>
+                <option value="Perro">Perro</option>
+                <option value="Gato">Gato</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
           </div>
         </div>
-        <div class="table-container" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
+        <div class="table-container table-container-paginada">
           <table id="animalsTable" class="admin-table">
             <thead>
               <tr>

@@ -1,405 +1,188 @@
-# Documentación: Sistema de Subida de Imágenes
+# Documentación: Sistema de Imágenes de Animales
 
 ## 📋 Resumen
 
-Se ha implementado un sistema completo para la subida y gestión de imágenes de animales en lugar de usar URLs. Los administradores ahora pueden subir imágenes directamente desde sus computadoras cuando registran o editan animales.
+El sistema permite a los administradores subir, administrar y visualizar **múltiples imágenes** para cada animal. Las fotos se almacenan localmente en el servidor y se registran en la tabla `animal_foto`, garantizando trazabilidad y control sobre los archivos.
 
 ---
 
 ## 🎯 Objetivo
 
-**Problema anterior:** Los administradores debían proporcionar una URL o ruta de archivo manualmente para las fotos de los animales.
-
-**Solución implementada:** Sistema completo de subida de archivos que permite:
-- Subir imágenes directamente desde la computadora del administrador
-- Almacenamiento automático en el servidor
-- Validación de tipo y tamaño de archivo
-- Vista previa antes de subir
-- Acceso automático desde todas las páginas del sistema
+- Reemplazar las URLs manuales por un proceso de subida guiado.
+- Asociar varias fotos a un mismo animal y definir una foto principal.
+- Facilitar la limpieza de imágenes huérfanas y mantener la base de datos consistente.
 
 ---
 
 ## 🏗️ Arquitectura
 
-### Estructura de Archivos
-
 ```
 backend/
-  ├── middlewares/
-  │   └── uploadMiddleware.js     # Middleware de Multer para subida de archivos
-  ├── controllers/
-  │   └── animalController.js     # Controlador actualizado para manejar archivos
-  ├── routes/
-  │   └── animalRoutes.js         # Rutas actualizadas con middleware de upload
-  ├── uploads/                    # Carpeta creada automáticamente
-  │   └── images/                 # Aquí se guardan las imágenes subidas
-  └── app.js                      # Configuración para servir archivos estáticos
+  middlewares/uploadMiddleware.js   # Configuración de Multer
+  controllers/animalController.js   # Alta/edición con múltiples imágenes
+  models/animal.js                  # Devuelve la galería completa
+  routes/animalRoutes.js            # Uso de upload.fields(...)
+  uploads/images/                   # Repositorio de archivos
+  scripts/validar_fotos.js          # Auditoría de archivos huérfanos
 
 frontend/
-  ├── admin_animales.html         # Formulario actualizado con input file
-  └── js/
-      ├── admin_animales.js       # Lógica de subida y vista previa
-      └── animales.js             # Actualizado para mostrar imágenes subidas
+  admin_animales.html               # Formulario con selección múltiple
+  js/admin_animales.js              # Vista previa + galería existente
+  js/animales.js                    # Modal público (galería)
 ```
 
 ---
 
-## 📦 Dependencias Agregadas
+## 📦 Dependencias
 
-### multer
-```json
-"multer": "^1.4.5-lts.1"
-```
+- `multer@^1.4.5-lts.1`
+- Dependencies ya existentes (`mysql2`, `dotenv`, etc.)
 
-**¿Qué es Multer?**
-Multer es un middleware de Node.js para manejar `multipart/form-data`, que se usa principalmente para la subida de archivos.
-
-**Instalación:**
+Instalación general:
 ```bash
-npm install multer@^1.4.5-lts.1
+npm install
 ```
 
 ---
 
-## 🔧 Componentes Implementados
+## 🔧 Componentes Clave
 
-### 1. Middleware de Upload (`backend/middlewares/uploadMiddleware.js`)
+### 1. Middleware (`uploadMiddleware.js`)
+- Crea `uploads/images` si no existe.
+- Valida MIME y tamaño (máx. 5MB).
+- Genera nombres únicos (`nombre-timestamp-random.ext`).
 
-**Funcionalidad:**
-- Crea automáticamente la carpeta `uploads/images` si no existe
-- Valida que solo se suban imágenes (JPG, PNG, GIF, WEBP)
-- Limita el tamaño máximo a 5MB
-- Genera nombres únicos para evitar colisiones de archivos
-- Guarda los archivos con formato: `nombre-original-timestamp-random.ext`
+### 2. Controlador (`animalController.js`)
+- Usa `upload.fields([{ name: 'foto' }, { name: 'fotos', maxCount: 10 }])`.
+- Procesa múltiples archivos en alta y edición.
+- Inserta registros en `animal_foto` y marca la primera como principal.
+- Devuelve el animal con la galería (`fotos` y `fotoPrincipal`).
 
-**Características:**
+### 3. Modelo (`animal.js`)
+- Adjunta automáticamente `fotos` (array) y `fotoPrincipal`.
+- Expone `foto` para compatibilidad con vistas existentes.
+
+### 4. Rutas (`animalRoutes.js`)
 ```javascript
-- Validación de tipo MIME
-- Validación de extensión
-- Límite de tamaño: 5MB
-- Nombres únicos: timestamp + random number
+const uploadFotos = upload.fields([
+  { name: 'foto', maxCount: 1 },
+  { name: 'fotos', maxCount: 10 }
+]);
+
+router.post('/', authMiddleware, adminMiddleware, uploadFotos, animalController.crearAnimal);
+router.put('/:id', authMiddleware, adminMiddleware, uploadFotos, animalController.actualizarAnimal);
 ```
 
-### 2. Actualización del Controlador (`backend/controllers/animalController.js`)
+### 5. Script de Validación (`scripts/validar_fotos.js`)
+- Ejecutar `npm run validar:fotos`.
+- Reporta archivos huérfanos (en disco sin referencia) y referencias inválidas en BD.
 
-**Cambios:**
-- Recibe el archivo desde `req.file` (proporcionado por multer)
-- Guarda la ruta relativa en la base de datos: `uploads/images/nombre-archivo.ext`
-- Si no se sube imagen, guarda `null` (se usará imagen genérica)
+### 6. Frontend Administración (`admin_animales.html` + `admin_animales.js`)
+- Input múltiple con vista previa en grilla.
+- Galería actual al editar (miniaturas).
+- Uso de `FormData` y token JWT.
 
-**Flujo:**
-1. Multer procesa el archivo y lo guarda en `uploads/images/`
-2. El controlador obtiene `req.file.filename`
-3. Construye la ruta: `uploads/images/${req.file.filename}`
-4. Guarda la ruta en la base de datos
-
-### 3. Configuración de Rutas (`backend/routes/animalRoutes.js`)
-
-**Cambios:**
-```javascript
-// ANTES
-router.post('/', authMiddleware, adminMiddleware, animalController.crearAnimal);
-
-// DESPUÉS
-router.post('/', authMiddleware, adminMiddleware, upload.single('foto'), animalController.crearAnimal);
-```
-
-**Explicación:**
-- `upload.single('foto')` procesa un único archivo del campo llamado 'foto'
-- Debe ir después de los middlewares de autenticación pero antes del controlador
-
-### 4. Servir Archivos Estáticos (`backend/app.js`)
-
-**Agregado:**
-```javascript
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-```
-
-**Resultado:**
-Las imágenes son accesibles desde: `http://localhost:3001/uploads/images/nombre-archivo.jpg`
-
-### 5. Formulario Frontend (`frontend/admin_animales.html`)
-
-**Cambios:**
-- Reemplazado input `type="text"` por `type="file"`
-- Agregado `accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"`
-- Agregada vista previa de imagen antes de subir
-- Botón para eliminar la selección
-
-### 6. JavaScript Frontend (`frontend/js/admin_animales.js`)
-
-**Funcionalidades agregadas:**
-1. **Vista Previa:**
-   - Lee el archivo seleccionado
-   - Muestra preview usando FileReader API
-   - Valida tamaño y tipo antes de mostrar
-
-2. **Validación Cliente:**
-   - Tamaño máximo: 5MB
-   - Tipos permitidos: JPG, PNG, GIF, WEBP
-   - Muestra errores si no cumple
-
-3. **Envío de Archivo:**
-   - Usa `FormData` para enviar el archivo
-   - Envía el token de autenticación en headers
-   - No usa `JSON.stringify` (FormData maneja multipart/form-data)
-
-### 7. Visualización de Imágenes (`frontend/js/animales.js`)
-
-**Lógica implementada:**
-```javascript
-if (animal.foto) {
-  // Si comienza con "uploads/", es una imagen subida
-  if (animal.foto.startsWith('uploads/')) {
-    imagenSrc = `/${animal.foto}`;  // /uploads/images/nombre.jpg
-  } else {
-    imagenSrc = animal.foto;  // images/nombre.jpg (rutas antiguas)
-  }
-}
-```
-
-**Compatibilidad:**
-- Funciona con imágenes nuevas (subidas) y antiguas (rutas en carpeta images/)
+### 7. Sitio Público (`animales.js`)
+- Construye una galería por animal.
+- Modal accesible (mouse/teclado) para ver todas las fotos.
 
 ---
 
 ## 🗄️ Base de Datos
 
-### Campo `foto` en tabla `animal`
+### `animal`
+- Información del animal (sin ruta de imagen).
 
-**Valores posibles:**
-- `NULL`: No hay imagen (se usa imagen genérica)
-- `images/bingo.jpg`: Ruta antigua (imágenes en carpeta frontend)
-- `uploads/images/nombre-1234567890.jpg`: Nueva ruta (imágenes subidas)
-
-**Tipo:** `VARCHAR(255)` (suficiente para rutas)
+### `animal_foto`
+```sql
+idFoto INT PK
+idAnimal INT FK -> animal.idAnimal
+ruta VARCHAR(255)
+esPrincipal TINYINT(1)
+fechaSubida TIMESTAMP
+```
+- Índice único `(idAnimal, ruta)` evita duplicados.
+- `esPrincipal` garantiza la foto destacada (una por animal).
 
 ---
 
 ## 📝 Uso del Sistema
 
-### Para Administradores
+1. Registrar o editar un animal en el panel admin.
+2. Seleccionar una o varias imágenes (input `multiple`).
+3. Revisar la vista previa (se puede limpiar la selección).
+4. Guardar; las imágenes se suben y quedan asociadas en `animal_foto`.
+5. En edición, revisar la galería actual y añadir nuevas fotos si es necesario.
 
-1. **Acceder a Gestión de Animales:**
-   - Panel Admin → Gestión Animales
-
-2. **Completar formulario:**
-   - Llenar todos los campos obligatorios
-   - En "Foto del Animal", hacer clic en "Elegir archivo"
-   - Seleccionar una imagen de la computadora
-
-3. **Vista previa:**
-   - Al seleccionar la imagen, aparecerá una vista previa
-   - Verificar que sea la imagen correcta
-   - Si no es correcta, hacer clic en "Eliminar" y seleccionar otra
-
-4. **Registrar:**
-   - Hacer clic en "Registrar Animal"
-   - La imagen se subirá automáticamente
-   - Aparecerá en todas las páginas del sistema
-
-### Formatos Soportados
-
-- **JPEG/JPG** (.jpg, .jpeg)
-- **PNG** (.png)
-- **GIF** (.gif)
-- **WEBP** (.webp)
-
-### Limitaciones
-
-- **Tamaño máximo:** 5MB por imagen
-- **Cantidad:** Una imagen por animal (para múltiples imágenes, se requeriría modificación)
+**Formatos permitidos:** JPG, JPEG, PNG, GIF, WEBP  
+**Tamaño máximo:** 5MB por imagen (configurable)  
+**Límite actual:** 10 archivos por operación (configurable)
 
 ---
 
-## 🔒 Seguridad
+## 🔒 Validaciones y Seguridad
 
-### Validaciones Implementadas
-
-1. **Autenticación:**
-   - Solo administradores pueden subir imágenes
-   - Requiere token JWT válido
-
-2. **Validación de Tipo:**
-   - Backend valida MIME type
-   - Frontend valida extensión
-   - Solo se aceptan imágenes
-
-3. **Validación de Tamaño:**
-   - Máximo 5MB (configurable en `uploadMiddleware.js`)
-   - Validación en cliente y servidor
-
-4. **Nombres Seguros:**
-   - Caracteres especiales eliminados del nombre original
-   - Nombres únicos evitan sobrescritura
-   - No se ejecuta código desde nombres de archivo
-
-### Mejoras Futuras Recomendadas
-
-- [ ] Escalado automático de imágenes grandes
-- [ ] Generación de thumbnails
-- [ ] Eliminación de imágenes antiguas al actualizar
-- [ ] Compresión de imágenes
-- [ ] Sanitización adicional de nombres de archivo
+1. **Autenticación**: sólo administradores autenticados pueden subir.
+2. **MIME / extensión**: validaciones en cliente y servidor.
+3. **Tamaño**: límite duro en Multer y validación en frontend.
+4. **Nombres seguros**: se sanitiza y se generan nombres únicos por archivo.
 
 ---
 
-## 🐛 Solución de Problemas
+## 🧹 Mantenimiento y Limpieza
 
-### Error: "Solo se permiten archivos de imagen"
-**Causa:** El archivo no es una imagen o tiene extensión incorrecta
-**Solución:** Verificar que el archivo sea JPG, PNG, GIF o WEBP
-
-### Error: "La imagen es demasiado grande"
-**Causa:** El archivo excede 5MB
-**Solución:** Reducir el tamaño de la imagen o usar un formato más comprimido
-
-### Error: "Error al registrar animal"
-**Causa:** Problema de permisos en la carpeta uploads
-**Solución:** 
-1. Verificar que la carpeta `backend/uploads/images` exista
-2. Verificar permisos de escritura
-
-### Las imágenes no se ven
-**Causa:** Ruta incorrecta o servidor no configurado
-**Solución:**
-1. Verificar que `app.js` tenga: `app.use('/uploads', express.static(...))`
-2. Verificar que las rutas en base de datos comiencen con `uploads/images/`
-3. Reiniciar el servidor
-
-### Error: "multer is not defined"
-**Causa:** Multer no está instalado
-**Solución:** Ejecutar `npm install`
+- Ejecutar `npm run validar:fotos` para detectar:
+  - Archivos presentes en disco pero sin referencia (`huérfanos`).
+  - Registros que apuntan a archivos inexistentes.
+- Los archivos reportados pueden eliminarse manualmente según corresponda.
 
 ---
 
-## 🔄 Flujo Completo
+## 🔄 Flujo Simplificado
 
 ```
-1. Administrador selecciona imagen
-   ↓
-2. JavaScript valida tamaño y tipo (cliente)
-   ↓
-3. Se muestra vista previa
-   ↓
-4. Administrador hace clic en "Registrar"
-   ↓
-5. FormData envía archivo al servidor
-   ↓
-6. Multer valida y guarda archivo en uploads/images/
-   ↓
-7. Controlador recibe req.file.filename
-   ↓
-8. Se guarda ruta "uploads/images/nombre.jpg" en BD
-   ↓
-9. Imagen accesible desde /uploads/images/nombre.jpg
-   ↓
-10. Todas las páginas muestran la imagen automáticamente
+1. Selección de imágenes en el formulario admin.
+2. Validación y vista previa en frontend.
+3. Envío mediante FormData (token JWT).
+4. Multer guarda en /uploads/images y devuelve req.files.
+5. Controlador registra rutas en animal_foto y marca principal.
+6. Modelo entrega animal con fotos[] y fotoPrincipal.
+7. Frontend público arma la galería y el modal.
 ```
 
 ---
 
-## 📊 Ejemplo de Uso
+## ✅ Checklist
 
-### Ruta en Base de Datos:
-```
-uploads/images/pedro-1704123456789-987654321.jpg
-```
-
-### URL Accesible:
-```
-http://localhost:3001/uploads/images/pedro-1704123456789-987654321.jpg
-```
-
-### En Frontend:
-```html
-<img src="/uploads/images/pedro-1704123456789-987654321.jpg" alt="Pedro">
-```
+- [x] Multer configurado y carpeta `uploads/images` creada.
+- [x] Servir `/uploads` como ruta estática.
+- [x] Validaciones de tipo y tamaño.
+- [x] Selección múltiple y vista previa.
+- [x] Galería pública funcionando.
+- [x] Script de validación de imágenes huérfanas.
+- [ ] Backup periódico de la carpeta `uploads/`.
+- [ ] Estrategia de compresión / thumbnails (pendiente).
 
 ---
 
-## 🎨 Mejoras Visuales
+## 📝 Notas
 
-### Vista Previa
-- Muestra la imagen seleccionada antes de subir
-- Botón para eliminar selección
-- Validación visual inmediata
-
-### Manejo de Errores
-- Mensajes claros en español
-- Errores específicos según el problema
-- No se pierde el formulario completo si falla la imagen
-
----
-
-## 📚 Referencias Técnicas
-
-### Multer Documentation
-- https://github.com/expressjs/multer
-
-### FormData API
-- https://developer.mozilla.org/en-US/docs/Web/API/FormData
-
-### FileReader API
-- https://developer.mozilla.org/en-US/docs/Web/API/FileReader
-
----
-
-## ✅ Checklist de Verificación
-
-Antes de usar en producción, verificar:
-
-- [x] Multer instalado
-- [x] Carpeta uploads/images existe y tiene permisos
-- [x] Express configurado para servir /uploads
-- [x] Validaciones funcionando (tipo y tamaño)
-- [x] Vista previa funcionando
-- [x] Imágenes se guardan correctamente
-- [x] Imágenes se muestran en todas las páginas
-- [ ] Backup de imágenes configurado
-- [ ] Límite de almacenamiento considerado
-- [ ] Proceso de limpieza de imágenes no usadas
+- Las imágenes se guardan localmente y están fuera de control de versiones (ver `.gitignore`).
+- Se recomienda monitorear el espacio en disco y realizar respaldos periódicos.
+- Para producción considerar almacenamiento externo (S3, CDN, etc.).
 
 ---
 
 ## 🚀 Próximos Pasos Recomendados
 
-1. **Edición de Animales:**
-   - Permitir cambiar imagen al editar
-   - Eliminar imagen antigua al actualizar
-
-2. **Optimización:**
-   - Compresión automática
-   - Generación de thumbnails
-   - Almacenamiento en CDN (futuro)
-
-3. **Múltiples Imágenes:**
-   - Permitir subir varias fotos por animal
-   - Galería de imágenes
-
-4. **Gestión:**
-   - Interfaz para ver todas las imágenes subidas
-   - Eliminación manual de imágenes no usadas
+- Compresión y redimensionamiento automático.
+- Eliminación automática de imágenes al borrar un animal.
+- Interfaz para reordenar o eliminar fotos existentes desde el panel admin.
 
 ---
 
-## 📝 Notas Importantes
-
-⚠️ **IMPORTANTE:**
-- Las imágenes se guardan localmente en el servidor
-- No están en Git (deben estar en .gitignore)
-- Hacer backup regular de la carpeta `uploads/`
-- Considerar migración a almacenamiento en la nube para producción
-
-🔧 **Mantenimiento:**
-- Revisar periódicamente el tamaño de la carpeta uploads
-- Implementar limpieza de imágenes huérfanas (sin referencia en BD)
-- Monitorear espacio en disco
-
----
-
-**Versión:** 1.0  
-**Fecha:** Enero 2025  
-**Autor:** Sistema SWGARM  
-**Estado:** ✅ Implementado y Funcional
+**Versión:** 2.0  
+**Fecha:** Noviembre 2025  
+**Autor:** Equipo SWGARM  
+**Estado:** ✅ En producción
 

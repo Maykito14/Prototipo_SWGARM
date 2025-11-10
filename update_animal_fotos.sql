@@ -6,21 +6,39 @@ CREATE TABLE IF NOT EXISTS `animal_foto` (
   `esPrincipal` TINYINT(1) NOT NULL DEFAULT 0,
   `fechaSubida` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`idFoto`),
+  UNIQUE KEY `animal_foto_unica` (`idAnimal`, `ruta`),
   KEY `idx_animal_foto_animal` (`idAnimal`),
   CONSTRAINT `fk_animal_foto_animal`
     FOREIGN KEY (`idAnimal`) REFERENCES `animal` (`idAnimal`)
     ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Migrar la foto principal existente a la nueva tabla (sólo si la columna antigua persiste)
+SET @schema := DATABASE();
+SET @col_foto_existe := (
+  SELECT COUNT(*)
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = @schema
+    AND TABLE_NAME = 'animal'
+    AND COLUMN_NAME = 'foto'
 );
 
--- Migrar la foto principal existente a la nueva tabla
-INSERT INTO `animal_foto` (`idAnimal`, `ruta`, `esPrincipal`)
-SELECT a.idAnimal, a.foto, 1
-FROM animal a
-WHERE a.foto IS NOT NULL AND a.foto <> ''
-  AND NOT EXISTS (
-    SELECT 1 FROM animal_foto af
-    WHERE af.idAnimal = a.idAnimal AND af.ruta = a.foto
-  );
+SET @sql_insert := IF(
+  @col_foto_existe > 0,
+  'INSERT INTO animal_foto (idAnimal, ruta, esPrincipal)
+     SELECT a.idAnimal, a.foto, 1
+     FROM animal a
+     WHERE a.foto IS NOT NULL AND a.foto <> \'\'
+       AND NOT EXISTS (
+         SELECT 1 FROM animal_foto af
+         WHERE af.idAnimal = a.idAnimal AND af.ruta = a.foto
+       )',
+  'SELECT 1'
+);
+
+PREPARE stmt FROM @sql_insert;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- Asegurar que cada animal tenga solo una foto principal
 UPDATE animal_foto f

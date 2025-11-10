@@ -4,10 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
   requireAdmin();
   
   const solicitudesTable = document.getElementById('solicitudesTable');
-  const filtroEstado = document.getElementById('filtroEstado');
-  const filtroAnimal = document.getElementById('filtroAnimal');
-  const btnFiltrar = document.getElementById('btnFiltrar');
-  const btnLimpiar = document.getElementById('btnLimpiar');
+  const filtroEstadoSelect = document.getElementById('filtroEstado');
+  const filtroAnimalSelect = document.getElementById('filtroAnimal');
+  const filtroTextoInput = document.getElementById('filtroTexto');
   const evaluacionModal = document.getElementById('evaluacionModal');
   const evaluacionForm = document.getElementById('evaluacionForm');
   const nuevoEstado = document.getElementById('nuevoEstado');
@@ -15,9 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let solicitudes = [];
   let animales = [];
-  // Hacer solicitudActual global para que las funciones fuera del scope puedan accederla
   window.solicitudActual = null;
-  let solicitudActual = window.solicitudActual; // Referencia local también
+  let solicitudesFiltradas = [];
+  let paginaActual = 1;
+  const registrosPorPagina = 10;
+  let filtroEstado = '';
+  let filtroAnimal = '';
+  let filtroTexto = '';
 
   // Cargar datos iniciales
   cargarSolicitudes();
@@ -32,14 +35,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Manejar filtros
-  btnFiltrar.addEventListener('click', () => {
-    aplicarFiltros();
-  });
+  if (filtroEstadoSelect) {
+    filtroEstadoSelect.addEventListener('change', (e) => {
+      filtroEstado = e.target.value;
+      aplicarFiltros();
+    });
+  }
 
-  btnLimpiar.addEventListener('click', () => {
-    limpiarFiltros();
-  });
+  if (filtroAnimalSelect) {
+    filtroAnimalSelect.addEventListener('change', (e) => {
+      filtroAnimal = e.target.value;
+      aplicarFiltros();
+    });
+  }
+
+  if (filtroTextoInput) {
+    filtroTextoInput.addEventListener('input', (e) => {
+      filtroTexto = e.target.value.toLowerCase();
+      aplicarFiltros();
+    });
+  }
 
   // Manejar envío del formulario de evaluación
   evaluacionForm.addEventListener('submit', async (e) => {
@@ -102,7 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
         solicitudes = [];
       }
       
-      mostrarSolicitudesEnTabla(solicitudes);
+      solicitudesFiltradas = [...solicitudes];
+      aplicarFiltros();
       actualizarEstadisticas(solicitudes);
     } catch (error) {
       console.error('Error al cargar solicitudes:', error);
@@ -136,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Función para mostrar solicitudes en la tabla
-  async function mostrarSolicitudesEnTabla(solicitudes) {
+  async function mostrarSolicitudesEnTabla() {
     const tbody = solicitudesTable.querySelector('tbody');
     
     if (!tbody) {
@@ -144,20 +160,24 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     
-    if (!solicitudes || !Array.isArray(solicitudes)) {
-      console.error('Las solicitudes no son un array válido:', solicitudes);
+    if (!solicitudesFiltradas || !Array.isArray(solicitudesFiltradas)) {
+      console.error('Las solicitudes no son un array válido:', solicitudesFiltradas);
       tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #e74c3c;">Error: Datos inválidos recibidos</td></tr>';
       return;
     }
     
-    if (solicitudes.length === 0) {
+    if (solicitudesFiltradas.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No hay solicitudes registradas</td></tr>';
+      actualizarPaginacion();
       return;
     }
 
-    // Cargar información de los animales para obtener puntajes mínimos
+    const inicio = (paginaActual - 1) * registrosPorPagina;
+    const fin = inicio + registrosPorPagina;
+    const pagina = solicitudesFiltradas.slice(inicio, fin);
+
     const animalesInfo = {};
-    for (const solicitud of solicitudes) {
+    for (const solicitud of pagina) {
       if (!animalesInfo[solicitud.idAnimal]) {
         try {
           const animal = await api.getAnimal(solicitud.idAnimal);
@@ -170,25 +190,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      tbody.innerHTML = solicitudes.map(solicitud => {
-        // Validar que la solicitud tenga los datos necesarios
+      tbody.innerHTML = pagina.map(solicitud => {
         if (!solicitud || !solicitud.idSolicitud) {
           console.warn('Solicitud inválida:', solicitud);
           return '';
         }
-        
+
         const animal = animalesInfo[solicitud.idAnimal] || { puntajeMinimo: 0 };
         const puntaje = solicitud.puntajeEvaluacion || 0;
         const puntajeMinimo = animal.puntajeMinimo || 0;
         const cumpleRequisito = puntaje >= puntajeMinimo;
-        
-        // Clase CSS basada en si cumple o no el requisito
+
         const clasePuntaje = cumpleRequisito ? 'puntaje-cumple' : 'puntaje-no-cumple';
-        
+
         return `
         <tr>
           <td>${solicitud.idSolicitud}</td>
-          <td>${solicitud.nombreAdoptante || 'N/A'} ${solicitud.apellidoAdoptante || ''}</td>
+          <td>${silenciarUndefined(solicitud.nombreAdoptante)} ${silenciarUndefined(solicitud.apellidoAdoptante)}</td>
           <td>${solicitud.nombreAnimal || 'N/A'} (${solicitud.especie || 'N/A'})</td>
           <td>${formatearFecha(solicitud.fecha)}</td>
           <td><span class="status ${getStatusClass(solicitud.estado || 'Pendiente')}">${solicitud.estado || 'Pendiente'}</span></td>
@@ -212,6 +230,35 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error al renderizar solicitudes:', error);
       tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #e74c3c;">Error al mostrar las solicitudes</td></tr>';
     }
+
+    actualizarPaginacion();
+  }
+
+  function silenciarUndefined(valor) {
+    return valor || '';
+  }
+
+  function actualizarPaginacion() {
+    const contenedor = document.querySelector('.table-container-paginada');
+    if (!contenedor) return;
+
+    const paginacionExistente = contenedor.querySelector('.paginacion');
+    if (paginacionExistente) {
+      paginacionExistente.remove();
+    }
+
+    const totalRegistros = solicitudesFiltradas.length;
+    const totalPaginas = Math.max(Math.ceil(totalRegistros / registrosPorPagina), 1);
+
+    const paginacion = document.createElement('div');
+    paginacion.className = 'paginacion';
+    paginacion.innerHTML = `
+      <button class="btn btn-secondary" ${paginaActual === 1 ? 'disabled' : ''} onclick="paginaAnteriorSolicitudes()">«</button>
+      <span>Página ${paginaActual} de ${totalPaginas} (${totalRegistros} registros)</span>
+      <button class="btn btn-secondary" ${paginaActual === totalPaginas ? 'disabled' : ''} onclick="paginaSiguienteSolicitudes()">»</button>
+    `;
+
+    contenedor.appendChild(paginacion);
   }
 
   // Función para actualizar estadísticas
@@ -229,27 +276,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Función para aplicar filtros
   function aplicarFiltros() {
-    let solicitudesFiltradas = [...solicitudes];
+    solicitudesFiltradas = solicitudes.filter((solicitud) => {
+      const coincideEstado = !filtroEstado || solicitud.estado === filtroEstado;
+      const coincideAnimal = !filtroAnimal || String(solicitud.idAnimal) === String(filtroAnimal);
+      const coincideTexto =
+        !filtroTexto ||
+        (solicitud.nombreAdoptante || '').toLowerCase().includes(filtroTexto) ||
+        (solicitud.apellidoAdoptante || '').toLowerCase().includes(filtroTexto) ||
+        (solicitud.nombreAnimal || '').toLowerCase().includes(filtroTexto) ||
+        (solicitud.estado || '').toLowerCase().includes(filtroTexto) ||
+        String(solicitud.idSolicitud || '').includes(filtroTexto);
 
-    const estadoFiltro = filtroEstado.value;
-    const animalFiltro = filtroAnimal.value;
+      return coincideEstado && coincideAnimal && coincideTexto;
+    });
 
-    if (estadoFiltro) {
-      solicitudesFiltradas = solicitudesFiltradas.filter(s => s.estado === estadoFiltro);
-    }
-
-    if (animalFiltro) {
-      solicitudesFiltradas = solicitudesFiltradas.filter(s => s.idAnimal == animalFiltro);
-    }
-
-    mostrarSolicitudesEnTabla(solicitudesFiltradas);
+    paginaActual = 1;
+    mostrarSolicitudesEnTabla();
   }
 
   // Función para limpiar filtros
   function limpiarFiltros() {
-    filtroEstado.value = '';
-    filtroAnimal.value = '';
-    mostrarSolicitudesEnTabla(solicitudes);
+    filtroEstado = '';
+    filtroAnimal = '';
+    filtroTexto = '';
+
+    if (filtroEstadoSelect) filtroEstadoSelect.value = '';
+    if (filtroAnimalSelect) filtroAnimalSelect.value = '';
+    if (filtroTextoInput) filtroTextoInput.value = '';
+
+    solicitudesFiltradas = [...solicitudes];
+    paginaActual = 1;
+    mostrarSolicitudesEnTabla();
   }
 
   // Función para obtener clase CSS del estado
@@ -452,3 +509,22 @@ async function formalizarSolicitud(idSolicitud) {
     alert(error.message || 'Error al formalizar adopción');
   }
 }
+
+  window.paginaAnteriorSolicitudes = function() {
+    if (paginaActual > 1) {
+      paginaActual--;
+      mostrarSolicitudesEnTabla();
+      const contenedor = document.querySelector('.table-container-paginada');
+      if (contenedor) contenedor.scrollTop = 0;
+    }
+  };
+
+  window.paginaSiguienteSolicitudes = function() {
+    const totalPaginas = Math.ceil(solicitudesFiltradas.length / registrosPorPagina);
+    if (paginaActual < totalPaginas) {
+      paginaActual++;
+      mostrarSolicitudesEnTabla();
+      const contenedor = document.querySelector('.table-container-paginada');
+      if (contenedor) contenedor.scrollTop = 0;
+    }
+  };

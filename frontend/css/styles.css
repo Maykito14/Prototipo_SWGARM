@@ -899,6 +899,94 @@ body {
   padding: 15px;
   text-align: center;
 }
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.table-header h3 {
+  margin: 0;
+}
+
+.table-header .table-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.table-header .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.table-header label {
+  font-weight: 500;
+  font-size: 13px;
+  color: #444;
+}
+
+.table-header input,
+.table-header select {
+  padding: 8px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  min-width: 200px;
+}
+
+.table-header input:focus,
+.table-header select:focus {
+  border-color: #4f46e5;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+}
+
+.table-container-paginada {
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.table-scrollable {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.table-scrollable table {
+  margin: 0;
+  width: 100%;
+}
+
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-top: 1px solid #d0d7de;
+}
+
+.paginacion button {
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.paginacion span {
+  font-size: 13px;
+  color: #475569;
+}
 .animal-img {
   width: 100%;
   display: block;

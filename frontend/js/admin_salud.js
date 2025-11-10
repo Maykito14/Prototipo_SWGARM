@@ -4,14 +4,27 @@ document.addEventListener('DOMContentLoaded', () => {
   requireAdmin();
   
   const form = document.getElementById('saludForm');
-  const saludTable = document.getElementById('saludTable');
+  const saludTable = document.getElementById('tablaControles');
   const successMessage = document.getElementById('success-message');
   const errorMessage = document.getElementById('error-message');
-  const filtroAnimal = document.getElementById('filtroAnimal');
-  const btnFiltrar = document.getElementById('btnFiltrar');
+  // Filtros configurados más abajo
+  const filtroEstadoSelect = document.getElementById('filtroEstado');
+  const filtroTextoInput = document.getElementById('filtroTexto');
+  const animalBusquedaInput = document.getElementById('animalBusqueda');
+  const listaAnimalesForm = document.getElementById('listaAnimales');
+  const listaAnimalesFiltro = document.getElementById('listaAnimalesFiltro');
+  const filtroAnimalInput = document.getElementById('filtroAnimal');
+  const idAnimalHidden = document.getElementById('idAnimal');
+  const mapaAnimalesPorValor = new Map();
 
   let animales = [];
   let controlesSalud = [];
+  let controlesSaludFiltrados = [];
+  let paginaActual = 1;
+  const registrosPorPagina = 5;
+  let filtroAnimal = '';
+  let filtroEstado = '';
+  let filtroTexto = '';
 
   // Cargar datos iniciales
   cargarAnimales();
@@ -72,76 +85,120 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Manejar filtro
-  btnFiltrar.addEventListener('click', () => {
-    const animalId = filtroAnimal.value;
-    if (animalId) {
-      cargarHistorialAnimal(animalId);
-    } else {
-      cargarControlesSalud();
-    }
-  });
+  if (animalBusquedaInput) {
+    animalBusquedaInput.addEventListener('input', () => {
+      const id = obtenerIdDesdeValor(animalBusquedaInput.value);
+      if (idAnimalHidden) {
+        idAnimalHidden.value = id || '';
+      }
+    });
+  }
+
+  if (filtroAnimalInput) {
+    filtroAnimalInput.addEventListener('input', (e) => {
+      filtroAnimal = obtenerIdDesdeValor(e.target.value) || '';
+      aplicarFiltros();
+    });
+  }
+
+  if (filtroEstadoSelect) {
+    filtroEstadoSelect.addEventListener('change', (e) => {
+      filtroEstado = e.target.value;
+      aplicarFiltros();
+    });
+  }
+
+  if (filtroTextoInput) {
+    filtroTextoInput.addEventListener('input', (e) => {
+      filtroTexto = e.target.value.toLowerCase();
+      aplicarFiltros();
+    });
+  }
 
   // Función para cargar animales
   async function cargarAnimales() {
     try {
-      animales = await api.getAnimales();
+      const resultado = await api.getAnimales();
+      animales = Array.isArray(resultado) ? resultado : [];
+      mapaAnimalesPorValor.clear();
       
-      // Llenar select de animales en el formulario
+      if (listaAnimalesForm) {
+        listaAnimalesForm.innerHTML = '';
+      }
+      if (listaAnimalesFiltro) {
+        listaAnimalesFiltro.innerHTML = '';
+      }
       const selectAnimal = document.getElementById('idAnimal');
-      const selectFiltro = document.getElementById('filtroAnimal');
-      
-      selectAnimal.innerHTML = '<option value="">Seleccionar animal</option>';
-      selectFiltro.innerHTML = '<option value="">Todos los animales</option>';
+      if (selectAnimal) {
+        selectAnimal.value = '';
+      }
+      if (filtroAnimalInput) {
+        filtroAnimalInput.value = '';
+      }
       
       animales.forEach(animal => {
-        const option1 = new Option(`${animal.nombre} (${animal.especie})`, animal.idAnimal);
-        const option2 = new Option(`${animal.nombre} (${animal.especie})`, animal.idAnimal);
-        selectAnimal.add(option1);
-        selectFiltro.add(option2);
+        const valor = `${animal.idAnimal} - ${animal.nombre} (${animal.especie})`;
+        mapaAnimalesPorValor.set(valor.toLowerCase(), animal.idAnimal);
+
+        if (listaAnimalesForm) {
+          const option = document.createElement('option');
+          option.value = valor;
+          listaAnimalesForm.appendChild(option);
+        }
+        if (listaAnimalesFiltro) {
+          const option = document.createElement('option');
+          option.value = valor;
+          listaAnimalesFiltro.appendChild(option);
+        }
       });
     } catch (error) {
       console.error('Error al cargar animales:', error);
-      mostrarError('Error al cargar la lista de animales');
+      mostrarError(`Error al cargar la lista de animales: ${error.message || 'Error desconocido'}`);
     }
   }
 
   // Función para cargar controles de salud
   async function cargarControlesSalud() {
     try {
-      controlesSalud = await api.getControlesSalud();
-      mostrarControlesEnTabla(controlesSalud);
+      const resultado = await api.getControlesSalud();
+      if (Array.isArray(resultado)) {
+        controlesSalud = resultado;
+      } else if (Array.isArray(resultado?.controles)) {
+        controlesSalud = resultado.controles;
+      } else {
+        controlesSalud = [];
+      }
+      controlesSaludFiltrados = [...controlesSalud];
+      aplicarFiltros();
     } catch (error) {
       console.error('Error al cargar controles de salud:', error);
       mostrarError('Error al cargar el historial de controles de salud');
     }
   }
 
-  // Función para cargar historial de un animal específico
-  async function cargarHistorialAnimal(animalId) {
-    try {
-      const historial = await api.getHistorialSalud(animalId);
-      mostrarControlesEnTabla(historial);
-    } catch (error) {
-      console.error('Error al cargar historial del animal:', error);
-      mostrarError('Error al cargar el historial del animal');
+  // Función para mostrar controles en la tabla con paginación
+  function mostrarControlesEnTabla() {
+    if (!saludTable) {
+      console.warn('Tabla de controles de salud no encontrada');
+      return;
     }
-  }
-
-  // Función para mostrar controles en la tabla
-  function mostrarControlesEnTabla(controles) {
     const tbody = saludTable.querySelector('tbody');
-    
-    if (controles.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No hay controles de salud registrados</td></tr>';
+
+    if (!controlesSaludFiltrados || controlesSaludFiltrados.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No se encontraron controles de salud</td></tr>';
+      actualizarPaginacion();
       return;
     }
 
-    tbody.innerHTML = controles.map(control => {
+    const inicio = (paginaActual - 1) * registrosPorPagina;
+    const fin = inicio + registrosPorPagina;
+    const pagina = controlesSaludFiltrados.slice(inicio, fin);
+
+    tbody.innerHTML = pagina.map(control => {
       const estado = control.estado || calcularEstadoControl(control);
       const estadoClass = getEstadoClass(estado);
       const fechaMostrar = control.fechaProgramada || control.fechaControl;
-      
+
       return `
       <tr>
         <td>${control.idSalud}</td>
@@ -162,6 +219,8 @@ document.addEventListener('DOMContentLoaded', () => {
       </tr>
     `;
     }).join('');
+
+    actualizarPaginacion();
   }
 
   // Función para calcular estado del control
@@ -202,13 +261,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const input = document.getElementById(campo);
       const errorSpan = document.getElementById(`${campo}-error`);
       
-      if (!input.value.trim()) {
-        mostrarErrorCampo(campo, 'Este campo es obligatorio');
+      if (!input || !input.value.trim()) {
+        if (campo === 'idAnimal') {
+          mostrarErrorCampo(campo, 'Selecciona un animal de la lista');
+        } else {
+          mostrarErrorCampo(campo, 'Este campo es obligatorio');
+        }
         esValido = false;
       } else {
         limpiarErrorCampo(campo);
       }
     });
+
+    if (idAnimalHidden && !idAnimalHidden.value) {
+      mostrarErrorCampo('idAnimal', 'Selecciona un animal válido de la lista sugerida');
+      if (animalBusquedaInput) {
+        animalBusquedaInput.focus();
+      }
+      esValido = false;
+    }
 
     // Validar que al menos un campo de salud esté presente
     const veterinario = document.getElementById('veterinario').value.trim();
@@ -268,6 +339,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const campos = ['idAnimal', 'fechaControl'];
     campos.forEach(campo => limpiarErrorCampo(campo));
   }
+
+  function aplicarFiltros() {
+    controlesSaludFiltrados = controlesSalud.filter((control) => {
+      const estadoActual = control.estado || calcularEstadoControl(control);
+      const coincideEstado = !filtroEstado || estadoActual === filtroEstado;
+      const coincideAnimal = !filtroAnimal || String(control.idAnimal) === String(filtroAnimal);
+      const texto = filtroTexto;
+      const coincideTexto =
+        !texto ||
+        (control.nombreAnimal || '').toLowerCase().includes(texto) ||
+        (control.especie || '').toLowerCase().includes(texto) ||
+        (control.veterinario || '').toLowerCase().includes(texto) ||
+        (control.vacunas || '').toLowerCase().includes(texto) ||
+        (control.tratamientos || '').toLowerCase().includes(texto) ||
+        (estadoActual || '').toLowerCase().includes(texto) ||
+        String(control.idSalud || '').includes(texto);
+
+      return coincideEstado && coincideAnimal && coincideTexto;
+    });
+
+    paginaActual = 1;
+    mostrarControlesEnTabla();
+  }
+
+  function actualizarPaginacion() {
+    const contenedor = document.getElementById('paginacionControles');
+    if (!contenedor) return;
+
+    const totalRegistros = controlesSaludFiltrados.length;
+    const totalPaginas = Math.max(Math.ceil(totalRegistros / registrosPorPagina), 1);
+
+    contenedor.innerHTML = totalRegistros === 0 ? '' : `
+      <button class="btn btn-secondary" ${paginaActual === 1 ? 'disabled' : ''} onclick="paginaAnteriorControles()">«</button>
+      <span>Página ${paginaActual} de ${totalPaginas} (${totalRegistros} registros)</span>
+      <button class="btn btn-secondary" ${paginaActual === totalPaginas ? 'disabled' : ''} onclick="paginaSiguienteControles()">»</button>
+    `;
+  }
+
+  window.paginaAnteriorControles = function() {
+    if (paginaActual > 1) {
+      paginaActual--;
+      mostrarControlesEnTabla();
+      const contenedorTabla = document.querySelector('.table-container-paginada .table-scrollable');
+      if (contenedorTabla) contenedorTabla.scrollTop = 0;
+    }
+  };
+
+  window.paginaSiguienteControles = function() {
+    const totalPaginas = Math.ceil(controlesSaludFiltrados.length / registrosPorPagina);
+    if (paginaActual < totalPaginas) {
+      paginaActual++;
+      mostrarControlesEnTabla();
+      const contenedorTabla = document.querySelector('.table-container-paginada .table-scrollable');
+      if (contenedorTabla) contenedorTabla.scrollTop = 0;
+    }
+  };
 });
 
 // Función helper para convertir fecha ISO a formato YYYY-MM-DD (formato MySQL DATE)
@@ -429,3 +556,16 @@ async function eliminarControlSalud(id) {
     alert('Error al eliminar el control de salud');
   }
 }
+
+  function obtenerIdDesdeValor(valor) {
+    if (!valor) return '';
+    const match = valor.trim().match(/^\s*(\d+)\s*-/);
+    if (match) {
+      return match[1];
+    }
+    const normalizado = valor.trim().toLowerCase();
+    if (mapaAnimalesPorValor.has(normalizado)) {
+      return mapaAnimalesPorValor.get(normalizado);
+    }
+    return '';
+  }

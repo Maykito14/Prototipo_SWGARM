@@ -18,11 +18,10 @@
         <form id="estadoForm" class="estado-form">
           <div class="form-row">
             <div class="form-group">
-              <label for="idAnimal">Animal *</label>
-              <select id="idAnimal" name="idAnimal" required>
-                <option value="">Seleccionar animal</option>
-                <!-- Los animales se cargarán dinámicamente -->
-              </select>
+              <label for="animalBusqueda">Animal *</label>
+              <input type="text" id="animalBusqueda" placeholder="Escribe el nombre del animal" list="listaAnimalesEstados" autocomplete="off" required>
+              <datalist id="listaAnimalesEstados"></datalist>
+              <input type="hidden" id="idAnimal" name="idAnimal" />
               <span class="error-message" id="idAnimal-error"></span>
             </div>
             <div class="form-group">
@@ -58,35 +57,51 @@
 
       <!-- Historial de cambios de estado -->
       <div class="historial-section">
-        <h3>Historial de Cambios de Estado</h3>
-        
-        <!-- Filtro por animal -->
-        <div class="filter-section">
-          <label for="filtroAnimal">Filtrar por animal:</label>
-          <select id="filtroAnimal">
-            <option value="">Todos los animales</option>
-            <!-- Los animales se cargarán dinámicamente -->
-          </select>
-          <button id="btnFiltrar" class="btn btn-secondary">Filtrar</button>
+        <div class="table-header">
+          <h3>Historial de Cambios de Estado</h3>
+          <div class="table-filters">
+            <div class="filter-group">
+              <label for="filtroTexto">Buscar</label>
+              <input type="text" id="filtroTexto" placeholder="Animal, estado, motivo..." />
+            </div>
+            <div class="filter-group">
+              <label for="filtroEstado">Estado nuevo</label>
+              <select id="filtroEstado">
+                <option value="">Todos</option>
+                <option value="Disponible">Disponible</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Adoptado">Adoptado</option>
+                <option value="En tratamiento">En tratamiento</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filtroAnimal">Animal</label>
+              <input type="text" id="filtroAnimal" placeholder="Todos" list="listaAnimalesEstadosFiltro" autocomplete="off">
+              <datalist id="listaAnimalesEstadosFiltro"></datalist>
+            </div>
+          </div>
         </div>
 
-        <div class="table-container">
-          <table id="estadosTable" class="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Animal</th>
-                <th>Estado Anterior</th>
-                <th>Estado Nuevo</th>
-                <th>Fecha Cambio</th>
-                <th>Motivo</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Los datos se cargarán dinámicamente -->
-            </tbody>
-          </table>
+        <div class="table-container table-container-paginada">
+          <div class="table-scrollable">
+            <table id="estadosTable" class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Animal</th>
+                  <th>Estado Anterior</th>
+                  <th>Estado Nuevo</th>
+                  <th>Fecha Cambio</th>
+                  <th>Motivo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Los datos se cargarán dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+          <div id="paginacionEstados" class="paginacion"></div>
         </div>
       </div>
     </div>
@@ -100,6 +115,6 @@
   <script src="./js/api.js"></script>
   <script src="./js/header.js"></script>
   <script src="./js/auth.js"></script>
-  <script src="./js/admin_estados.js"></script>
+  <script src="./js/admin_estados.js?v=20251110"></script>
 </body>
 </html>

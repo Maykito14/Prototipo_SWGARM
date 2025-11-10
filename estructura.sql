@@ -36,7 +36,7 @@
 -- CREAR BASE DE DATOS
 -- ============================================================================
 DROP DATABASE IF EXISTS `swgarm`;
-CREATE DATABASE `swgarm` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE `swgarm` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE `swgarm`;
 
 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT;

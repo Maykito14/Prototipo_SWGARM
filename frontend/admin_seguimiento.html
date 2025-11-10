@@ -22,8 +22,10 @@
         <h3>Programar Seguimiento</h3>
         <form id="formSeguimiento" class="form-grid">
           <div class="form-group">
-            <label for="selectAnimal">Animal adoptado *</label>
-            <select id="selectAnimal" required></select>
+            <label for="animalBusqueda">Animal adoptado *</label>
+            <input type="text" id="animalBusqueda" placeholder="Escribe el nombre del animal" list="listaAnimalesSeguimiento" autocomplete="off" required>
+            <datalist id="listaAnimalesSeguimiento"></datalist>
+            <input type="hidden" id="idAnimal" />
           </div>
           <div class="form-group">
             <label for="selectAdopcion">Adopción *</label>
@@ -64,12 +66,29 @@
       </div>
 
       <div class="section-card">
-        <h3>Historial por Animal</h3>
-        <div class="form-group" style="max-width: 320px;">
-          <label for="filtroAnimal">Seleccionar animal</label>
-          <select id="filtroAnimal"></select>
+        <div class="table-header">
+          <h3>Historial de Seguimientos</h3>
+          <div class="table-filters">
+            <div class="filter-group">
+              <label for="filtroTexto">Buscar</label>
+              <input type="text" id="filtroTexto" placeholder="Animal, adoptante, observaciones..." />
+            </div>
+            <div class="filter-group">
+              <label for="filtroEstado">Estado</label>
+              <select id="filtroEstado">
+                <option value="">Todos</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Completado">Completado</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filtroAnimal">Animal</label>
+              <input type="text" id="filtroAnimal" placeholder="Todos" list="listaAnimalesSeguimientoFiltro" autocomplete="off">
+              <datalist id="listaAnimalesSeguimientoFiltro"></datalist>
+            </div>
+          </div>
         </div>
-        <div class="table-container">
+        <div class="table-container table-container-paginada">
           <table class="admin-table" id="tablaHistorial">
             <thead>
               <tr>

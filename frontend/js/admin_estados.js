@@ -7,27 +7,66 @@ document.addEventListener('DOMContentLoaded', () => {
   const estadosTable = document.getElementById('estadosTable');
   const successMessage = document.getElementById('success-message');
   const errorMessage = document.getElementById('error-message');
-  const filtroAnimal = document.getElementById('filtroAnimal');
-  const btnFiltrar = document.getElementById('btnFiltrar');
+  const animalBusquedaInput = document.getElementById('animalBusqueda');
+  const listaAnimalesForm = document.getElementById('listaAnimalesEstados');
+  const listaAnimalesFiltro = document.getElementById('listaAnimalesEstadosFiltro');
+  const filtroTextoInput = document.getElementById('filtroTexto');
+  const filtroEstadoSelect = document.getElementById('filtroEstado');
+  const filtroAnimalInput = document.getElementById('filtroAnimal');
   const estadoActual = document.getElementById('estadoActual');
   const nuevoEstado = document.getElementById('nuevoEstado');
+  const idAnimalHidden = document.getElementById('idAnimal');
 
   let animales = [];
   let cambiosEstado = [];
+  let cambiosEstadoFiltrados = [];
+  const mapaAnimalesPorValor = new Map();
+  const mapaEtiquetasPorId = new Map();
+  let paginaActual = 1;
+  const registrosPorPagina = 5;
+  let filtroAnimal = '';
+  let filtroEstado = '';
+  let filtroTexto = '';
 
   // Cargar datos iniciales
   cargarAnimales();
   cargarCambiosEstado();
 
-  // Manejar cambio de animal seleccionado
-  document.getElementById('idAnimal').addEventListener('change', async (e) => {
-    const animalId = e.target.value;
-    if (animalId) {
-      await cargarEstadosDisponibles(animalId);
-    } else {
-      limpiarFormularioEstado();
-    }
-  });
+  if (animalBusquedaInput) {
+    animalBusquedaInput.addEventListener('input', async () => {
+      const valor = animalBusquedaInput.value;
+      const id = obtenerIdDesdeValor(valor);
+      if (idAnimalHidden) {
+        idAnimalHidden.value = id || '';
+      }
+      if (id) {
+        await cargarEstadosDisponibles(Number(id));
+      } else {
+        limpiarFormularioEstado();
+      }
+    });
+  }
+
+  if (filtroAnimalInput) {
+    filtroAnimalInput.addEventListener('input', (e) => {
+      filtroAnimal = obtenerIdDesdeValor(e.target.value) || '';
+      aplicarFiltros();
+    });
+  }
+
+  if (filtroEstadoSelect) {
+    filtroEstadoSelect.addEventListener('change', (e) => {
+      filtroEstado = e.target.value;
+      aplicarFiltros();
+    });
+  }
+
+  if (filtroTextoInput) {
+    filtroTextoInput.addEventListener('input', (e) => {
+      filtroTexto = e.target.value.toLowerCase();
+      aplicarFiltros();
+    });
+  }
 
   // Manejar envío del formulario
   form.addEventListener('submit', async (e) => {
@@ -82,33 +121,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Manejar filtro
-  btnFiltrar.addEventListener('click', () => {
-    const animalId = filtroAnimal.value;
-    if (animalId) {
-      cargarHistorialAnimal(animalId);
-    } else {
-      cargarCambiosEstado();
-    }
-  });
-
   // Función para cargar animales
   async function cargarAnimales() {
     try {
-      animales = await api.getAnimales();
-      
-      // Llenar select de animales en el formulario
-      const selectAnimal = document.getElementById('idAnimal');
-      const selectFiltro = document.getElementById('filtroAnimal');
-      
-      selectAnimal.innerHTML = '<option value="">Seleccionar animal</option>';
-      selectFiltro.innerHTML = '<option value="">Todos los animales</option>';
-      
+      const resultado = await api.getAnimales();
+      animales = Array.isArray(resultado) ? resultado : [];
+      mapaAnimalesPorValor.clear();
+
+      if (listaAnimalesForm) listaAnimalesForm.innerHTML = '';
+      if (listaAnimalesFiltro) listaAnimalesFiltro.innerHTML = '';
+      if (animalBusquedaInput) animalBusquedaInput.value = '';
+      if (idAnimalHidden) idAnimalHidden.value = '';
+      if (filtroAnimalInput) filtroAnimalInput.value = '';
+
       animales.forEach(animal => {
-        const option1 = new Option(`${animal.nombre} (${animal.especie}) - ${animal.estado}`, animal.idAnimal);
-        const option2 = new Option(`${animal.nombre} (${animal.especie}) - ${animal.estado}`, animal.idAnimal);
-        selectAnimal.add(option1);
-        selectFiltro.add(option2);
+        const valor = `${animal.idAnimal} - ${animal.nombre} (${animal.especie}) - ${animal.estado}`;
+        mapaAnimalesPorValor.set(valor.toLowerCase(), animal.idAnimal);
+        mapaEtiquetasPorId.set(String(animal.idAnimal), valor);
+
+        if (listaAnimalesForm) {
+          const option = document.createElement('option');
+          option.value = valor;
+          listaAnimalesForm.appendChild(option);
+        }
+        if (listaAnimalesFiltro) {
+          const option = document.createElement('option');
+          option.value = valor;
+          listaAnimalesFiltro.appendChild(option);
+        }
       });
     } catch (error) {
       console.error('Error al cargar animales:', error);
@@ -120,6 +160,13 @@ document.addEventListener('DOMContentLoaded', () => {
   async function cargarEstadosDisponibles(animalId) {
     try {
       const response = await api.getEstadosDisponibles(animalId);
+
+      if (animalBusquedaInput && mapaEtiquetasPorId.has(String(animalId))) {
+        animalBusquedaInput.value = mapaEtiquetasPorId.get(String(animalId));
+      }
+      if (idAnimalHidden) {
+        idAnimalHidden.value = animalId;
+      }
       
       // Mostrar estado actual
       estadoActual.value = response.estadoActual;
@@ -146,35 +193,30 @@ document.addEventListener('DOMContentLoaded', () => {
   // Función para cargar cambios de estado
   async function cargarCambiosEstado() {
     try {
-      cambiosEstado = await api.getCambiosEstado();
-      mostrarCambiosEnTabla(cambiosEstado);
+      const resultado = await api.getCambiosEstado();
+      cambiosEstado = Array.isArray(resultado) ? resultado : [];
+      aplicarFiltros();
     } catch (error) {
       console.error('Error al cargar cambios de estado:', error);
       mostrarError('Error al cargar el historial de cambios de estado');
     }
   }
 
-  // Función para cargar historial de un animal específico
-  async function cargarHistorialAnimal(animalId) {
-    try {
-      const historial = await api.getHistorialEstados(animalId);
-      mostrarCambiosEnTabla(historial);
-    } catch (error) {
-      console.error('Error al cargar historial del animal:', error);
-      mostrarError('Error al cargar el historial del animal');
-    }
-  }
-
-  // Función para mostrar cambios en la tabla
-  function mostrarCambiosEnTabla(cambios) {
+  // Función para mostrar cambios en la tabla con paginación
+  function mostrarCambiosEnTabla() {
     const tbody = estadosTable.querySelector('tbody');
     
-    if (cambios.length === 0) {
+    if (!cambiosEstadoFiltrados || cambiosEstadoFiltrados.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No hay cambios de estado registrados</td></tr>';
+      actualizarPaginacion();
       return;
     }
 
-    tbody.innerHTML = cambios.map(cambio => `
+    const inicio = (paginaActual - 1) * registrosPorPagina;
+    const fin = inicio + registrosPorPagina;
+    const pagina = cambiosEstadoFiltrados.slice(inicio, fin);
+
+    tbody.innerHTML = pagina.map(cambio => `
       <tr>
         <td>${cambio.idEstado}</td>
         <td>${cambio.nombreAnimal} (${cambio.especie})</td>
@@ -189,6 +231,8 @@ document.addEventListener('DOMContentLoaded', () => {
         </td>
       </tr>
     `).join('');
+
+    actualizarPaginacion();
   }
 
   // Función para obtener clase CSS del estado
@@ -210,9 +254,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Función para limpiar formulario de estado
   function limpiarFormularioEstado() {
-    estadoActual.value = '';
-    nuevoEstado.innerHTML = '<option value="">Seleccionar nuevo estado</option>';
-    nuevoEstado.disabled = true;
+    if (estadoActual) estadoActual.value = '';
+    if (animalBusquedaInput) animalBusquedaInput.value = '';
+    if (idAnimalHidden) idAnimalHidden.value = '';
+    if (nuevoEstado) {
+      nuevoEstado.innerHTML = '<option value="">Seleccionar nuevo estado</option>';
+      nuevoEstado.disabled = true;
+    }
   }
 
   // Función para validar formulario
@@ -270,6 +318,72 @@ document.addEventListener('DOMContentLoaded', () => {
     const campos = ['idAnimal', 'nuevoEstado'];
     campos.forEach(campo => limpiarErrorCampo(campo));
   }
+
+  function obtenerIdDesdeValor(valor) {
+    if (!valor) return '';
+    const match = valor.trim().match(/^\s*(\d+)\s*-/);
+    if (match) {
+      return match[1];
+    }
+    const normalizado = valor.trim().toLowerCase();
+    if (mapaAnimalesPorValor.has(normalizado)) {
+      return mapaAnimalesPorValor.get(normalizado);
+    }
+    return '';
+  }
+
+  function aplicarFiltros() {
+    cambiosEstadoFiltrados = cambiosEstado.filter((cambio) => {
+      const idAnimal = String(cambio.idAnimal || '');
+      const coincideAnimal = !filtroAnimal || idAnimal === String(filtroAnimal);
+      const coincideEstado = !filtroEstado || (cambio.estadoNuevo || '').toLowerCase() === filtroEstado.toLowerCase();
+      const texto = filtroTexto;
+      const coincideTexto =
+        !texto ||
+        (cambio.nombreAnimal || '').toLowerCase().includes(texto) ||
+        (cambio.estadoAnterior || '').toLowerCase().includes(texto) ||
+        (cambio.estadoNuevo || '').toLowerCase().includes(texto) ||
+        (cambio.motivo || '').toLowerCase().includes(texto) ||
+        String(cambio.idEstado || '').includes(texto);
+
+      return coincideAnimal && coincideEstado && coincideTexto;
+    });
+
+    paginaActual = 1;
+    mostrarCambiosEnTabla();
+  }
+
+  function actualizarPaginacion() {
+    const contenedor = document.getElementById('paginacionEstados');
+    if (!contenedor) return;
+
+    const totalRegistros = cambiosEstadoFiltrados.length;
+    const totalPaginas = Math.max(Math.ceil(totalRegistros / registrosPorPagina), 1);
+    contenedor.innerHTML = `
+      <button class="btn btn-secondary" ${paginaActual === 1 ? 'disabled' : ''} onclick="paginaAnteriorEstados()">«</button>
+      <span>Página ${paginaActual} de ${totalPaginas} (${totalRegistros} registros)</span>
+      <button class="btn btn-secondary" ${paginaActual === totalPaginas ? 'disabled' : ''} onclick="paginaSiguienteEstados()">»</button>
+    `;
+  }
+
+  window.paginaAnteriorEstados = function() {
+    if (paginaActual > 1) {
+      paginaActual--;
+      mostrarCambiosEnTabla();
+      const contenedorTabla = document.querySelector('.table-container-paginada');
+      if (contenedorTabla) contenedorTabla.scrollTop = 0;
+    }
+  };
+
+  window.paginaSiguienteEstados = function() {
+    const totalPaginas = Math.ceil(cambiosEstadoFiltrados.length / registrosPorPagina);
+    if (paginaActual < totalPaginas) {
+      paginaActual++;
+      mostrarCambiosEnTabla();
+      const contenedorTabla = document.querySelector('.table-container-paginada');
+      if (contenedorTabla) contenedorTabla.scrollTop = 0;
+    }
+  };
 });
 
 // Funciones globales para acciones de la tabla

@@ -130,7 +130,7 @@
       <div class="section-card">
         <h3>Detalle de adopciones</h3>
         <div class="table-container">
-          <table class="admin-table" id="tablaReporte">
+          <table id="tablaReporte" class="admin-table">
             <thead>
               <tr>
                 <th>ID</th>
@@ -139,12 +139,15 @@
                 <th>Animal</th>
                 <th>Especie</th>
                 <th>Raza</th>
-                <th>Estado adopción</th>
+                <th>Estado</th>
                 <th>Contrato</th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+              <!-- Datos dinámicos -->
+            </tbody>
           </table>
+          <div id="paginacionAdopciones" class="paginacion"></div>
         </div>
       </div>
     </div>

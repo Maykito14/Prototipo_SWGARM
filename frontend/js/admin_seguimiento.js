@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
   requireAdmin();
 
-  const selectAnimal = document.getElementById('selectAnimal');
+  const animalBusquedaInput = document.getElementById('animalBusqueda');
+  const listaAnimalesForm = document.getElementById('listaAnimalesSeguimiento');
+  const listaAnimalesFiltro = document.getElementById('listaAnimalesSeguimientoFiltro');
+  const idAnimalHidden = document.getElementById('idAnimal');
   const selectAdopcion = document.getElementById('selectAdopcion');
   const fechaProgramada = document.getElementById('fechaProgramada');
   const observacionesNueva = document.getElementById('observacionesNueva');
@@ -9,9 +12,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const tablaPendientes = document.getElementById('tablaPendientes').querySelector('tbody');
   const tablaHistorial = document.getElementById('tablaHistorial').querySelector('tbody');
-  const filtroAnimal = document.getElementById('filtroAnimal');
+  const filtroAnimalInput = document.getElementById('filtroAnimal');
+  const filtroEstadoSelect = document.getElementById('filtroEstado');
+  const filtroTextoInput = document.getElementById('filtroTexto');
+
+  const mapaAnimalesPorValor = new Map();
+  const mapaEtiquetasPorId = new Map();
 
   let animalesAdoptados = [];
+  let historialCompleto = [];
+  let historialFiltrado = [];
+  let paginaHistorial = 1;
+  const registrosPorPaginaHistorial = 10;
+  let filtroAnimal = '';
+  let filtroEstado = '';
+  let filtroTexto = '';
 
   const hoyStr = new Date().toISOString().split('T')[0];
   if (fechaProgramada) {
@@ -23,37 +38,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   selectAdopcion.innerHTML = '<option value="">Seleccione primero un animal</option>';
 
   await cargarAnimalesAdoptados();
-  
-  // Verificar si hay un animal seleccionado por defecto y cargar sus adopciones
-  if (selectAnimal.value) {
-    await cargarAdopcionesPorAnimal(selectAnimal.value);
-    if (selectAdopcion.options.length > 0 && selectAdopcion.options[0].value !== '') {
-      selectAdopcion.disabled = false;
-    }
-  }
-  
   await cargarPendientes();
   await cargarHistorial();
 
   // Cuando se selecciona un animal, cargar sus adopciones
-  selectAnimal.addEventListener('change', async () => {
-    const idAnimal = selectAnimal.value;
-    if (idAnimal) {
-      await cargarAdopcionesPorAnimal(idAnimal);
+  if (animalBusquedaInput) {
+    animalBusquedaInput.addEventListener('input', async () => {
+      const valor = animalBusquedaInput.value;
+      const id = obtenerIdDesdeValor(valor);
+      if (idAnimalHidden) {
+        idAnimalHidden.value = id || '';
+      }
+
+      if (!id) {
+        selectAdopcion.disabled = true;
+        selectAdopcion.innerHTML = '<option value="">Seleccione primero un animal</option>';
+        return;
+      }
+
+      await cargarAdopcionesPorAnimal(id);
       if (selectAdopcion.options.length > 0 && selectAdopcion.options[0].value !== '') {
         selectAdopcion.disabled = false;
       }
-    } else {
-      selectAdopcion.disabled = true;
-      selectAdopcion.innerHTML = '<option value="">Seleccione primero un animal</option>';
-    }
-  });
+    });
+  }
 
   // Programar seguimiento
   formSeguimiento.addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
-      const idAnimal = Number(selectAnimal.value);
+      const idAnimal = Number(idAnimalHidden ? idAnimalHidden.value : 0);
       const idAdopcion = Number(selectAdopcion.value);
       const fecha = fechaProgramada.value;
       const obs = observacionesNueva.value || null;
@@ -72,6 +86,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       await api.crearSeguimiento({ idAdopcion, idAnimal, fechaProgramada: fecha, observaciones: obs });
       alert('Seguimiento programado');
       formSeguimiento.reset();
+      if (animalBusquedaInput) animalBusquedaInput.value = '';
+      if (idAnimalHidden) idAnimalHidden.value = '';
       selectAdopcion.disabled = true;
       selectAdopcion.innerHTML = '<option value="">Seleccione primero un animal</option>';
       await cargarPendientes();
@@ -81,22 +97,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  filtroAnimal.addEventListener('change', async () => {
-    await cargarHistorial();
-  });
+  if (filtroAnimalInput) {
+    filtroAnimalInput.addEventListener('input', (e) => {
+      filtroAnimal = obtenerIdDesdeValor(e.target.value) || '';
+      aplicarFiltrosHistorial();
+    });
+  }
+
+  if (filtroEstadoSelect) {
+    filtroEstadoSelect.addEventListener('change', (e) => {
+      filtroEstado = e.target.value;
+      aplicarFiltrosHistorial();
+    });
+  }
+
+  if (filtroTextoInput) {
+    filtroTextoInput.addEventListener('input', (e) => {
+      filtroTexto = e.target.value.toLowerCase();
+      aplicarFiltrosHistorial();
+    });
+  }
 
   async function cargarAnimalesAdoptados() {
     try {
       const todos = await api.getAnimales();
       animalesAdoptados = (todos || []).filter(a => a.estado === 'Adoptado');
-      selectAnimal.innerHTML = '<option value="">Seleccione un animal</option>';
-      filtroAnimal.innerHTML = '<option value="">Todos</option>';
+      mapaAnimalesPorValor.clear();
+
+      if (listaAnimalesForm) listaAnimalesForm.innerHTML = '';
+      if (listaAnimalesFiltro) listaAnimalesFiltro.innerHTML = '';
+      if (animalBusquedaInput) animalBusquedaInput.value = '';
+      if (idAnimalHidden) idAnimalHidden.value = '';
+      if (filtroAnimalInput) filtroAnimalInput.value = '';
+
       animalesAdoptados.forEach(a => {
-        selectAnimal.add(new Option(`${a.nombre} (${a.especie})`, a.idAnimal));
-        filtroAnimal.add(new Option(`${a.nombre} (${a.especie})`, a.idAnimal));
+        const valor = `${a.idAnimal} - ${a.nombre} (${a.especie})`;
+        mapaAnimalesPorValor.set(valor.toLowerCase(), a.idAnimal);
+        mapaEtiquetasPorId.set(String(a.idAnimal), valor);
+
+        if (listaAnimalesForm) {
+          const option = document.createElement('option');
+          option.value = valor;
+          listaAnimalesForm.appendChild(option);
+        }
+        if (listaAnimalesFiltro) {
+          const option = document.createElement('option');
+          option.value = valor;
+          listaAnimalesFiltro.appendChild(option);
+        }
       });
-      // Asegurar que no haya selección por defecto
-      selectAnimal.value = '';
     } catch (e) {
       console.error(e);
     }
@@ -104,6 +153,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function cargarAdopcionesPorAnimal(animalId) {
     try {
+      if (animalBusquedaInput && mapaEtiquetasPorId.has(String(animalId))) {
+        animalBusquedaInput.value = mapaEtiquetasPorId.get(String(animalId));
+      }
+      if (idAnimalHidden) {
+        idAnimalHidden.value = animalId;
+      }
+
       const lista = await api.getAdopcionesPorAnimal(animalId);
       selectAdopcion.innerHTML = '';
       if (!lista || lista.length === 0) {
@@ -112,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         lista.forEach(ad => {
           const adoptanteNombre = `${ad.nombreAdoptante || ''} ${ad.apellidoAdoptante || ''}`.trim();
-          const label = adoptanteNombre 
+          const label = adoptanteNombre
             ? `Adopción #${ad.idAdopcion} - ${adoptanteNombre}`
             : `Adopción #${ad.idAdopcion}`;
           selectAdopcion.add(new Option(label, ad.idAdopcion));
@@ -156,32 +212,105 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function cargarHistorial() {
     try {
-      const filtro = filtroAnimal.value;
-      let historial = [];
-      if (filtro) {
-        historial = await api.getSeguimientosPorAnimal(filtro);
-      } else {
-        // Si no hay filtro, juntar historial de todos los animales adoptados
-        const arrs = await Promise.all(animalesAdoptados.map(a => api.getSeguimientosPorAnimal(a.idAnimal)));
-        historial = arrs.flat();
-      }
-      if (!historial || historial.length === 0) {
-        tablaHistorial.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 16px;">Sin historial</td></tr>';
+      if (!animalesAdoptados || animalesAdoptados.length === 0) {
+        historialCompleto = [];
+        aplicarFiltrosHistorial();
         return;
       }
-      tablaHistorial.innerHTML = historial.map(h => `
-        <tr>
-          <td>${h.idSeguimiento}</td>
-          <td>${formatearFecha(h.fechaProgramada)}</td>
-          <td>${h.fechaRealizada ? formatearFecha(h.fechaRealizada) : '-'}</td>
-          <td>${escapeHtml(h.observaciones) || '-'}</td>
-          <td>${h.estado}</td>
-        </tr>
-      `).join('');
+
+      const arrs = await Promise.all(animalesAdoptados.map(a => api.getSeguimientosPorAnimal(a.idAnimal)));
+      historialCompleto = arrs.flat();
+      aplicarFiltrosHistorial();
     } catch (e) {
       console.error(e);
     }
   }
+
+  function aplicarFiltrosHistorial() {
+    historialFiltrado = historialCompleto.filter((item) => {
+      const coincideAnimal = !filtroAnimal || String(item.idAnimal) === String(filtroAnimal);
+      const coincideEstado = !filtroEstado || (item.estado || '').toLowerCase() === filtroEstado.toLowerCase();
+      const texto = filtroTexto;
+      const coincideTexto =
+        !texto ||
+        (item.nombreAnimal || '').toLowerCase().includes(texto) ||
+        (item.observaciones || '').toLowerCase().includes(texto) ||
+        (item.nombreAdoptante || '').toLowerCase().includes(texto) ||
+        (item.apellidoAdoptante || '').toLowerCase().includes(texto) ||
+        String(item.idSeguimiento || '').includes(texto);
+
+      return coincideAnimal && coincideEstado && coincideTexto;
+    });
+
+    paginaHistorial = 1;
+    mostrarHistorial();
+  }
+
+  function mostrarHistorial() {
+    if (!tablaHistorial) return;
+
+    if (!historialFiltrado || historialFiltrado.length === 0) {
+      tablaHistorial.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 16px;">Sin historial</td></tr>';
+      actualizarPaginacionHistorial();
+      return;
+    }
+
+    const inicio = (paginaHistorial - 1) * registrosPorPaginaHistorial;
+    const fin = inicio + registrosPorPaginaHistorial;
+    const pagina = historialFiltrado.slice(inicio, fin);
+
+    tablaHistorial.innerHTML = pagina.map(h => `
+      <tr>
+        <td>${h.idSeguimiento}</td>
+        <td>${formatearFecha(h.fechaProgramada)}</td>
+        <td>${h.fechaRealizada ? formatearFecha(h.fechaRealizada) : '-'}</td>
+        <td>${escapeHtml(h.observaciones) || '-'}</td>
+        <td>${h.estado}</td>
+      </tr>
+    `).join('');
+
+    actualizarPaginacionHistorial();
+  }
+
+  function actualizarPaginacionHistorial() {
+    const contenedor = document.querySelector('#tablaHistorial').closest('.table-container-paginada');
+    if (!contenedor) return;
+
+    const existente = contenedor.querySelector('.paginacion');
+    if (existente) existente.remove();
+
+    const totalRegistros = historialFiltrado.length;
+    const totalPaginas = Math.max(Math.ceil(totalRegistros / registrosPorPaginaHistorial), 1);
+
+    const paginacion = document.createElement('div');
+    paginacion.className = 'paginacion';
+    paginacion.innerHTML = `
+      <button class="btn btn-secondary" ${paginaHistorial === 1 ? 'disabled' : ''} onclick="paginaAnteriorHistorial()">«</button>
+      <span>Página ${paginaHistorial} de ${totalPaginas} (${totalRegistros} registros)</span>
+      <button class="btn btn-secondary" ${paginaHistorial === totalPaginas ? 'disabled' : ''} onclick="paginaSiguienteHistorial()">»</button>
+    `;
+
+    contenedor.appendChild(paginacion);
+  }
+
+  window.paginaAnteriorHistorial = function() {
+    if (paginaHistorial > 1) {
+      paginaHistorial--;
+      mostrarHistorial();
+      const contenedor = document.querySelector('#tablaHistorial').closest('.table-container-paginada');
+      if (contenedor) contenedor.scrollTop = 0;
+    }
+  };
+
+  window.paginaSiguienteHistorial = function() {
+    const totalPaginas = Math.ceil(historialFiltrado.length / registrosPorPaginaHistorial);
+    if (paginaHistorial < totalPaginas) {
+      paginaHistorial++;
+      mostrarHistorial();
+      const contenedor = document.querySelector('#tablaHistorial').closest('.table-container-paginada');
+      if (contenedor) contenedor.scrollTop = 0;
+    }
+  };
 });
 
 async function completarSeg(idSeguimiento) {
@@ -211,6 +340,19 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function obtenerIdDesdeValor(valor) {
+  if (!valor) return '';
+  const match = valor.trim().match(/^\s*(\d+)\s*-/);
+  if (match) {
+    return match[1];
+  }
+  const normalizado = valor.trim().toLowerCase();
+  if (mapaAnimalesPorValor.has(normalizado)) {
+    return mapaAnimalesPorValor.get(normalizado);
+  }
+  return '';
 }
 
 
