@@ -232,6 +232,10 @@ const api = {
     return this.request(`/adopcion/solicitudes/adoptante/${adoptanteId}`);
   },
 
+  async getMisSolicitudes() {
+    return this.request('/adopcion/mis-solicitudes');
+  },
+
   async getSolicitudesPorAnimal(animalId) {
     return this.request(`/adopcion/solicitudes/animal/${animalId}`);
   },

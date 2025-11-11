@@ -1141,6 +1141,79 @@ body {
   color: #000;
 }
 
+.info-message,
+.error-message,
+.success-message {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin: 0;
+}
+
+.info-message {
+  background: #eef5ff;
+  color: #0b468a;
+  border: 1px solid #bcd4ff;
+}
+
+.success-message {
+  background: #e6f6ec;
+  color: #186a3b;
+  border: 1px solid #9fd4af;
+}
+
+.error-message {
+  background: #fdecea;
+  color: #b03a2e;
+  border: 1px solid #f5b7b1;
+}
+
+.mis-solicitudes-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.solicitudes-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.solicitudes-resumen .resumen-item {
+  background: #f7f9fc;
+  border: 1px solid #dbe4f3;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.solicitudes-resumen .resumen-item .valor {
+  font-weight: 700;
+}
+
+.solicitudes-resumen .resumen-pendientes {
+  border-color: #f7d794;
+  background: #fff8e6;
+}
+
+.solicitudes-resumen .resumen-aprobadas {
+  border-color: #a3e4b3;
+  background: #eefaf1;
+}
+
+.solicitudes-resumen .resumen-rechazadas {
+  border-color: #f5b7b1;
+  background: #fdecea;
+}
+
 /* Tabla solicitudes */
 .admin-table {
   width: 100%;

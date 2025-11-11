@@ -138,6 +138,27 @@ exports.obtenerSolicitudesPorAdoptante = async (req, res) => {
   }
 };
 
+exports.obtenerMisSolicitudes = async (req, res) => {
+  try {
+    const usuario = await User.findById(req.user.id);
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const adoptante = await Adoptante.getByEmail(usuario.email);
+    if (!adoptante || !adoptante.idAdoptante) {
+      // No hay adoptante asociado aún: devolver lista vacía
+      return res.json([]);
+    }
+
+    const solicitudes = await Solicitud.getByAdoptanteId(adoptante.idAdoptante);
+    res.json(solicitudes);
+  } catch (error) {
+    console.error('Error al obtener mis solicitudes:', error);
+    res.status(500).json({ error: 'Error al obtener tus solicitudes' });
+  }
+};
+
 exports.obtenerSolicitudesPorAnimal = async (req, res) => {
   try {
     const solicitudes = await Solicitud.getByAnimalId(req.params.animalId);

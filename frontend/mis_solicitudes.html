@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Solicitudes - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body data-page-title="Mis Solicitudes">
+  <main class="main">
+    <div class="admin-panel">
+      <h2>Mis Solicitudes</h2>
+      <p class="panel-description">
+        Aquí encontrarás todas las solicitudes de adopción que realizaste. Revisa el estado de cada una y sus detalles asociados.
+      </p>
+
+      <div class="mis-solicitudes-header">
+        <div id="estadoSolicitudes" class="info-message">Cargando solicitudes...</div>
+        <div class="solicitudes-resumen" id="resumenEstados" aria-live="polite"></div>
+      </div>
+
+      <div class="table-container table-container-paginada">
+        <div class="table-scrollable">
+          <table class="admin-table" id="tablaMisSolicitudes">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Animal</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Motivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 20px;">Cargando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="paginacionMisSolicitudes" class="paginacion"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/header.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/mis_solicitudes.js"></script>
+</body>
+</html>
+
