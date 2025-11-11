@@ -236,6 +236,10 @@ const api = {
     return this.request('/adopcion/mis-solicitudes');
   },
 
+  async getMisSeguimientos() {
+    return this.request('/adopcion/mis-seguimientos');
+  },
+
   async getSolicitudesPorAnimal(animalId) {
     return this.request(`/adopcion/solicitudes/animal/${animalId}`);
   },

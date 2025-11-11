@@ -205,4 +205,29 @@ const Adopcion = {
   }
 };
 
-module.exports = { Adoptante, Solicitud, Adopcion };
+const Seguimiento = {
+  async getByAdoptanteId(idAdoptante) {
+    const [rows] = await pool.query(`
+      SELECT 
+        seg.*,
+        sol.idAdoptante,
+        sol.estado AS estadoSolicitud,
+        an.nombre AS nombreAnimal,
+        an.especie,
+        an.raza,
+        adop.nombre AS nombreAdoptante,
+        adop.apellido AS apellidoAdoptante,
+        adop.telefono
+      FROM seguimiento seg
+      INNER JOIN adopcion ado ON seg.idAdopcion = ado.idAdopcion
+      INNER JOIN solicitud sol ON ado.idSolicitud = sol.idSolicitud
+      INNER JOIN adoptante adop ON sol.idAdoptante = adop.idAdoptante
+      INNER JOIN animal an ON seg.idAnimal = an.idAnimal
+      WHERE sol.idAdoptante = ?
+      ORDER BY seg.fechaProgramada DESC, seg.idSeguimiento DESC
+    `, [idAdoptante]);
+    return rows;
+  }
+};
+
+module.exports = { Adoptante, Solicitud, Adopcion, Seguimiento };

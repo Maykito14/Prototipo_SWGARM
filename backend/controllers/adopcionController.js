@@ -1,4 +1,4 @@
-const { Adoptante, Solicitud, Adopcion } = require('../models/adopcion');
+const { Adoptante, Solicitud, Adopcion, Seguimiento } = require('../models/adopcion');
 const EstadoAnimal = require('../models/estadoAnimal');
 const User = require('../models/User');
 const Notificacion = require('../models/notificacion');
@@ -156,6 +156,26 @@ exports.obtenerMisSolicitudes = async (req, res) => {
   } catch (error) {
     console.error('Error al obtener mis solicitudes:', error);
     res.status(500).json({ error: 'Error al obtener tus solicitudes' });
+  }
+};
+
+exports.obtenerMisSeguimientos = async (req, res) => {
+  try {
+    const usuario = await User.findById(req.user.id);
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const adoptante = await Adoptante.getByEmail(usuario.email);
+    if (!adoptante || !adoptante.idAdoptante) {
+      return res.json([]);
+    }
+
+    const seguimientos = await Seguimiento.getByAdoptanteId(adoptante.idAdoptante);
+    res.json(seguimientos);
+  } catch (error) {
+    console.error('Error al obtener mis seguimientos:', error);
+    res.status(500).json({ error: 'Error al obtener tus seguimientos' });
   }
 };
 

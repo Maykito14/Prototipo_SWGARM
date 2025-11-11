@@ -1141,6 +1141,14 @@ body {
   color: #000;
 }
 
+.section-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
 .info-message,
 .error-message,
 .success-message {

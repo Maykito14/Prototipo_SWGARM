@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Seguimientos - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body data-page-title="Mis Seguimientos">
+  <main class="main">
+    <div class="admin-panel">
+      <h2>Seguimientos de mis adopciones</h2>
+      <p class="panel-description">
+        Consulta los seguimientos programados por el equipo y revisa el historial de visitas realizadas para tus adopciones.
+      </p>
+
+      <div class="mis-solicitudes-header">
+        <div id="estadoSeguimientos" class="info-message" role="status" aria-live="polite">
+          Cargando seguimientos...
+        </div>
+        <div id="resumenSeguimientos" class="solicitudes-resumen"></div>
+      </div>
+
+      <section class="section-card">
+        <h3>Seguimientos pendientes</h3>
+        <div class="table-container table-container-paginada">
+          <div class="table-scrollable">
+            <table class="admin-table" id="tablaSeguimientosPendientes">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Animal</th>
+                  <th>Fecha Programada</th>
+                  <th>Estado</th>
+                  <th>Observaciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="5" style="text-align:center; padding: 20px;">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <h3>Historial de seguimientos</h3>
+        <div class="table-container table-container-paginada">
+          <div class="table-scrollable">
+            <table class="admin-table" id="tablaHistorialSeguimientos">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Animal</th>
+                  <th>Fecha Programada</th>
+                  <th>Fecha Realizada</th>
+                  <th>Observaciones</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6" style="text-align:center; padding: 20px;">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="paginacionHistorialSeguimientos" class="paginacion"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/header.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/mi_seguimiento.js"></script>
+</body>
+</html>
+

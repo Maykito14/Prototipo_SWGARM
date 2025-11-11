@@ -12,6 +12,7 @@ router.get('/solicitudes/adoptante/:adoptanteId', adopcionController.obtenerSoli
 router.get('/solicitudes/animal/:animalId', adopcionController.obtenerSolicitudesPorAnimal);
 
 router.get('/mis-solicitudes', authMiddleware, adopcionController.obtenerMisSolicitudes);
+router.get('/mis-seguimientos', authMiddleware, adopcionController.obtenerMisSeguimientos);
 
 // Rutas públicas para formulario de adopción
 router.post('/solicitar', adopcionController.crearSolicitudAdopcion);
