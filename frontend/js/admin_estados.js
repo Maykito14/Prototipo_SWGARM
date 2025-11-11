@@ -9,22 +9,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorMessage = document.getElementById('error-message');
   const animalBusquedaInput = document.getElementById('animalBusqueda');
   const listaAnimalesForm = document.getElementById('listaAnimalesEstados');
-  const listaAnimalesFiltro = document.getElementById('listaAnimalesEstadosFiltro');
   const filtroTextoInput = document.getElementById('filtroTexto');
   const filtroEstadoSelect = document.getElementById('filtroEstado');
-  const filtroAnimalInput = document.getElementById('filtroAnimal');
   const estadoActual = document.getElementById('estadoActual');
   const nuevoEstado = document.getElementById('nuevoEstado');
   const idAnimalHidden = document.getElementById('idAnimal');
-
+  const mapaAnimalesPorValor = new Map();
+  const mapaEtiquetasPorId = new Map();
   let animales = [];
   let cambiosEstado = [];
   let cambiosEstadoFiltrados = [];
-  const mapaAnimalesPorValor = new Map();
-  const mapaEtiquetasPorId = new Map();
   let paginaActual = 1;
   const registrosPorPagina = 5;
-  let filtroAnimal = '';
   let filtroEstado = '';
   let filtroTexto = '';
 
@@ -33,24 +29,19 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarCambiosEstado();
 
   if (animalBusquedaInput) {
-    animalBusquedaInput.addEventListener('input', async () => {
-      const valor = animalBusquedaInput.value;
-      const id = obtenerIdDesdeValor(valor);
+    animalBusquedaInput.addEventListener('input', () => {
+      const id = obtenerIdDesdeValor(animalBusquedaInput.value);
       if (idAnimalHidden) {
         idAnimalHidden.value = id || '';
       }
+    });
+    animalBusquedaInput.addEventListener('change', async () => {
+      const id = obtenerIdDesdeValor(animalBusquedaInput.value);
       if (id) {
         await cargarEstadosDisponibles(Number(id));
       } else {
         limpiarFormularioEstado();
       }
-    });
-  }
-
-  if (filtroAnimalInput) {
-    filtroAnimalInput.addEventListener('input', (e) => {
-      filtroAnimal = obtenerIdDesdeValor(e.target.value) || '';
-      aplicarFiltros();
     });
   }
 
@@ -127,15 +118,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const resultado = await api.getAnimales();
       animales = Array.isArray(resultado) ? resultado : [];
       mapaAnimalesPorValor.clear();
+      mapaEtiquetasPorId.clear();
 
       if (listaAnimalesForm) listaAnimalesForm.innerHTML = '';
-      if (listaAnimalesFiltro) listaAnimalesFiltro.innerHTML = '';
       if (animalBusquedaInput) animalBusquedaInput.value = '';
       if (idAnimalHidden) idAnimalHidden.value = '';
-      if (filtroAnimalInput) filtroAnimalInput.value = '';
 
       animales.forEach(animal => {
-        const valor = `${animal.idAnimal} - ${animal.nombre} (${animal.especie}) - ${animal.estado}`;
+        const valor = `${animal.idAnimal} - ${animal.nombre} (${animal.especie})`;
         mapaAnimalesPorValor.set(valor.toLowerCase(), animal.idAnimal);
         mapaEtiquetasPorId.set(String(animal.idAnimal), valor);
 
@@ -143,11 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const option = document.createElement('option');
           option.value = valor;
           listaAnimalesForm.appendChild(option);
-        }
-        if (listaAnimalesFiltro) {
-          const option = document.createElement('option');
-          option.value = valor;
-          listaAnimalesFiltro.appendChild(option);
         }
       });
     } catch (error) {
@@ -161,8 +146,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const response = await api.getEstadosDisponibles(animalId);
 
-      if (animalBusquedaInput && mapaEtiquetasPorId.has(String(animalId))) {
-        animalBusquedaInput.value = mapaEtiquetasPorId.get(String(animalId));
+      if (animalBusquedaInput) {
+        const etiqueta = mapaEtiquetasPorId.get(String(animalId));
+        if (etiqueta) {
+          animalBusquedaInput.value = etiqueta;
+        }
       }
       if (idAnimalHidden) {
         idAnimalHidden.value = animalId;
@@ -319,6 +307,16 @@ document.addEventListener('DOMContentLoaded', () => {
     campos.forEach(campo => limpiarErrorCampo(campo));
   }
 
+  function limpiarFiltros() {
+    filtroEstado = '';
+    filtroTexto = '';
+
+    if (filtroEstadoSelect) filtroEstadoSelect.value = '';
+    if (filtroTextoInput) filtroTextoInput.value = '';
+
+    aplicarFiltros();
+  }
+
   function obtenerIdDesdeValor(valor) {
     if (!valor) return '';
     const match = valor.trim().match(/^\s*(\d+)\s*-/);
@@ -334,8 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function aplicarFiltros() {
     cambiosEstadoFiltrados = cambiosEstado.filter((cambio) => {
-      const idAnimal = String(cambio.idAnimal || '');
-      const coincideAnimal = !filtroAnimal || idAnimal === String(filtroAnimal);
       const coincideEstado = !filtroEstado || (cambio.estadoNuevo || '').toLowerCase() === filtroEstado.toLowerCase();
       const texto = filtroTexto;
       const coincideTexto =
@@ -346,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (cambio.motivo || '').toLowerCase().includes(texto) ||
         String(cambio.idEstado || '').includes(texto);
 
-      return coincideAnimal && coincideEstado && coincideTexto;
+      return coincideEstado && coincideTexto;
     });
 
     paginaActual = 1;
@@ -370,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (paginaActual > 1) {
       paginaActual--;
       mostrarCambiosEnTabla();
-      const contenedorTabla = document.querySelector('.table-container-paginada');
+      const contenedorTabla = document.querySelector('.table-container-paginada .table-scrollable');
       if (contenedorTabla) contenedorTabla.scrollTop = 0;
     }
   };
@@ -380,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (paginaActual < totalPaginas) {
       paginaActual++;
       mostrarCambiosEnTabla();
-      const contenedorTabla = document.querySelector('.table-container-paginada');
+      const contenedorTabla = document.querySelector('.table-container-paginada .table-scrollable');
       if (contenedorTabla) contenedorTabla.scrollTop = 0;
     }
   };

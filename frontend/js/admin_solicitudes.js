@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const solicitudesTable = document.getElementById('solicitudesTable');
   const filtroEstadoSelect = document.getElementById('filtroEstado');
-  const filtroAnimalSelect = document.getElementById('filtroAnimal');
   const filtroTextoInput = document.getElementById('filtroTexto');
   const evaluacionModal = document.getElementById('evaluacionModal');
   const evaluacionForm = document.getElementById('evaluacionForm');
@@ -13,18 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const motivoRechazoGroup = document.getElementById('motivoRechazoGroup');
 
   let solicitudes = [];
-  let animales = [];
   window.solicitudActual = null;
   let solicitudesFiltradas = [];
   let paginaActual = 1;
-  const registrosPorPagina = 10;
+  const registrosPorPagina = 5;
   let filtroEstado = '';
-  let filtroAnimal = '';
   let filtroTexto = '';
 
   // Cargar datos iniciales
   cargarSolicitudes();
-  cargarAnimales();
 
   // Manejar cambio de estado en el formulario
   nuevoEstado.addEventListener('change', (e) => {
@@ -38,13 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (filtroEstadoSelect) {
     filtroEstadoSelect.addEventListener('change', (e) => {
       filtroEstado = e.target.value;
-      aplicarFiltros();
-    });
-  }
-
-  if (filtroAnimalSelect) {
-    filtroAnimalSelect.addEventListener('change', (e) => {
-      filtroAnimal = e.target.value;
       aplicarFiltros();
     });
   }
@@ -130,24 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tbody) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #e74c3c;">Error al cargar las solicitudes. Por favor, recarga la página.</td></tr>';
       }
-    }
-  }
-
-  // Función para cargar animales
-  async function cargarAnimales() {
-    try {
-      animales = await api.getAnimales();
-      
-      // Llenar select de filtro de animales
-      const selectAnimal = document.getElementById('filtroAnimal');
-      selectAnimal.innerHTML = '<option value="">Todos los animales</option>';
-      
-      animales.forEach(animal => {
-        const option = new Option(`${animal.nombre} (${animal.especie})`, animal.idAnimal);
-        selectAnimal.add(option);
-      });
-    } catch (error) {
-      console.error('Error al cargar animales:', error);
     }
   }
 
@@ -239,26 +210,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function actualizarPaginacion() {
-    const contenedor = document.querySelector('.table-container-paginada');
+    const contenedor = document.getElementById('paginacionSolicitudes');
     if (!contenedor) return;
-
-    const paginacionExistente = contenedor.querySelector('.paginacion');
-    if (paginacionExistente) {
-      paginacionExistente.remove();
-    }
 
     const totalRegistros = solicitudesFiltradas.length;
     const totalPaginas = Math.max(Math.ceil(totalRegistros / registrosPorPagina), 1);
 
-    const paginacion = document.createElement('div');
-    paginacion.className = 'paginacion';
-    paginacion.innerHTML = `
+    contenedor.innerHTML = totalRegistros === 0 ? '' : `
       <button class="btn btn-secondary" ${paginaActual === 1 ? 'disabled' : ''} onclick="paginaAnteriorSolicitudes()">«</button>
       <span>Página ${paginaActual} de ${totalPaginas} (${totalRegistros} registros)</span>
       <button class="btn btn-secondary" ${paginaActual === totalPaginas ? 'disabled' : ''} onclick="paginaSiguienteSolicitudes()">»</button>
     `;
-
-    contenedor.appendChild(paginacion);
   }
 
   // Función para actualizar estadísticas
@@ -278,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function aplicarFiltros() {
     solicitudesFiltradas = solicitudes.filter((solicitud) => {
       const coincideEstado = !filtroEstado || solicitud.estado === filtroEstado;
-      const coincideAnimal = !filtroAnimal || String(solicitud.idAnimal) === String(filtroAnimal);
       const coincideTexto =
         !filtroTexto ||
         (solicitud.nombreAdoptante || '').toLowerCase().includes(filtroTexto) ||
@@ -287,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (solicitud.estado || '').toLowerCase().includes(filtroTexto) ||
         String(solicitud.idSolicitud || '').includes(filtroTexto);
 
-      return coincideEstado && coincideAnimal && coincideTexto;
+      return coincideEstado && coincideTexto;
     });
 
     paginaActual = 1;
@@ -297,11 +258,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Función para limpiar filtros
   function limpiarFiltros() {
     filtroEstado = '';
-    filtroAnimal = '';
     filtroTexto = '';
 
     if (filtroEstadoSelect) filtroEstadoSelect.value = '';
-    if (filtroAnimalSelect) filtroAnimalSelect.value = '';
     if (filtroTextoInput) filtroTextoInput.value = '';
 
     solicitudesFiltradas = [...solicitudes];
@@ -514,8 +473,8 @@ async function formalizarSolicitud(idSolicitud) {
     if (paginaActual > 1) {
       paginaActual--;
       mostrarSolicitudesEnTabla();
-      const contenedor = document.querySelector('.table-container-paginada');
-      if (contenedor) contenedor.scrollTop = 0;
+      const contenedorTabla = document.querySelector('.table-container-paginada .table-scrollable');
+      if (contenedorTabla) contenedorTabla.scrollTop = 0;
     }
   };
 
@@ -524,7 +483,7 @@ async function formalizarSolicitud(idSolicitud) {
     if (paginaActual < totalPaginas) {
       paginaActual++;
       mostrarSolicitudesEnTabla();
-      const contenedor = document.querySelector('.table-container-paginada');
-      if (contenedor) contenedor.scrollTop = 0;
+      const contenedorTabla = document.querySelector('.table-container-paginada .table-scrollable');
+      if (contenedorTabla) contenedorTabla.scrollTop = 0;
     }
   };

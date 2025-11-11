@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const animalBusquedaInput = document.getElementById('animalBusqueda');
   const listaAnimalesForm = document.getElementById('listaAnimalesSeguimiento');
-  const listaAnimalesFiltro = document.getElementById('listaAnimalesSeguimientoFiltro');
   const idAnimalHidden = document.getElementById('idAnimal');
   const selectAdopcion = document.getElementById('selectAdopcion');
   const fechaProgramada = document.getElementById('fechaProgramada');
@@ -12,7 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const tablaPendientes = document.getElementById('tablaPendientes').querySelector('tbody');
   const tablaHistorial = document.getElementById('tablaHistorial').querySelector('tbody');
-  const filtroAnimalInput = document.getElementById('filtroAnimal');
   const filtroEstadoSelect = document.getElementById('filtroEstado');
   const filtroTextoInput = document.getElementById('filtroTexto');
 
@@ -24,7 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   let historialFiltrado = [];
   let paginaHistorial = 1;
   const registrosPorPaginaHistorial = 10;
-  let filtroAnimal = '';
   let filtroEstado = '';
   let filtroTexto = '';
 
@@ -97,13 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  if (filtroAnimalInput) {
-    filtroAnimalInput.addEventListener('input', (e) => {
-      filtroAnimal = obtenerIdDesdeValor(e.target.value) || '';
-      aplicarFiltrosHistorial();
-    });
-  }
-
   if (filtroEstadoSelect) {
     filtroEstadoSelect.addEventListener('change', (e) => {
       filtroEstado = e.target.value;
@@ -125,10 +115,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       mapaAnimalesPorValor.clear();
 
       if (listaAnimalesForm) listaAnimalesForm.innerHTML = '';
-      if (listaAnimalesFiltro) listaAnimalesFiltro.innerHTML = '';
       if (animalBusquedaInput) animalBusquedaInput.value = '';
       if (idAnimalHidden) idAnimalHidden.value = '';
-      if (filtroAnimalInput) filtroAnimalInput.value = '';
 
       animalesAdoptados.forEach(a => {
         const valor = `${a.idAnimal} - ${a.nombre} (${a.especie})`;
@@ -139,11 +127,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           const option = document.createElement('option');
           option.value = valor;
           listaAnimalesForm.appendChild(option);
-        }
-        if (listaAnimalesFiltro) {
-          const option = document.createElement('option');
-          option.value = valor;
-          listaAnimalesFiltro.appendChild(option);
         }
       });
     } catch (e) {
@@ -228,7 +211,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function aplicarFiltrosHistorial() {
     historialFiltrado = historialCompleto.filter((item) => {
-      const coincideAnimal = !filtroAnimal || String(item.idAnimal) === String(filtroAnimal);
       const coincideEstado = !filtroEstado || (item.estado || '').toLowerCase() === filtroEstado.toLowerCase();
       const texto = filtroTexto;
       const coincideTexto =
@@ -239,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         (item.apellidoAdoptante || '').toLowerCase().includes(texto) ||
         String(item.idSeguimiento || '').includes(texto);
 
-      return coincideAnimal && coincideEstado && coincideTexto;
+      return coincideEstado && coincideTexto;
     });
 
     paginaHistorial = 1;

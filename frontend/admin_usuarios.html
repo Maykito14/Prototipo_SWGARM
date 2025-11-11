@@ -81,52 +81,55 @@
 
       <div class="section-card" style="background:#fff; border-radius:8px; padding:16px; margin:16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
         <h3>Lista de Usuarios</h3>
-        <div class="table-container">
-          <table class="admin-table" id="tablaUsuarios">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Email</th>
-                <th>Nombre</th>
-                <th>Apellido</th>
-                <th>Teléfono</th>
-                <th>Dirección</th>
-                <th>Rol Actual</th>
-                <th>Acciones</th>
-              </tr>
-              <tr class="filter-row">
-                <th></th>
-                <th>
-                  <input type="text" class="filter-input" id="filterEmail" placeholder="Buscar email..." onkeyup="filtrarUsuarios()">
-                </th>
-                <th>
-                  <input type="text" class="filter-input" id="filterNombre" placeholder="Buscar nombre..." onkeyup="filtrarUsuarios()">
-                </th>
-                <th>
-                  <input type="text" class="filter-input" id="filterApellido" placeholder="Buscar apellido..." onkeyup="filtrarUsuarios()">
-                </th>
-                <th>
-                  <input type="text" class="filter-input" id="filterTelefono" placeholder="Buscar teléfono..." onkeyup="filtrarUsuarios()">
-                </th>
-                <th>
-                  <input type="text" class="filter-input" id="filterDireccion" placeholder="Buscar dirección..." onkeyup="filtrarUsuarios()">
-                </th>
-                <th>
-                  <select class="filter-select" id="filterRol" onchange="filtrarUsuarios()">
-                    <option value="">Todos los roles</option>
-                    <option value="administrador">Administrador</option>
-                    <option value="adoptante">Adoptante</option>
-                  </select>
-                </th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colspan="8" style="text-align:center; padding:20px;">Cargando usuarios...</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="table-container table-container-paginada">
+          <div class="table-scrollable">
+            <table class="admin-table" id="tablaUsuarios">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Email</th>
+                  <th>Nombre</th>
+                  <th>Apellido</th>
+                  <th>Teléfono</th>
+                  <th>Dirección</th>
+                  <th>Rol Actual</th>
+                  <th>Acciones</th>
+                </tr>
+                <tr class="filter-row">
+                  <th></th>
+                  <th>
+                    <input type="text" class="filter-input" id="filterEmail" placeholder="Buscar email..." onkeyup="filtrarUsuarios()">
+                  </th>
+                  <th>
+                    <input type="text" class="filter-input" id="filterNombre" placeholder="Buscar nombre..." onkeyup="filtrarUsuarios()">
+                  </th>
+                  <th>
+                    <input type="text" class="filter-input" id="filterApellido" placeholder="Buscar apellido..." onkeyup="filtrarUsuarios()">
+                  </th>
+                  <th>
+                    <input type="text" class="filter-input" id="filterTelefono" placeholder="Buscar teléfono..." onkeyup="filtrarUsuarios()">
+                  </th>
+                  <th>
+                    <input type="text" class="filter-input" id="filterDireccion" placeholder="Buscar dirección..." onkeyup="filtrarUsuarios()">
+                  </th>
+                  <th>
+                    <select class="filter-select" id="filterRol" onchange="filtrarUsuarios()">
+                      <option value="">Todos los roles</option>
+                      <option value="administrador">Administrador</option>
+                      <option value="adoptante">Adoptante</option>
+                    </select>
+                  </th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="8" style="text-align:center; padding:20px;">Cargando usuarios...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="paginacionUsuarios" class="paginacion"></div>
         </div>
       </div>
     </div>

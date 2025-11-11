@@ -12,8 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const filtroTextoInput = document.getElementById('filtroTexto');
   const animalBusquedaInput = document.getElementById('animalBusqueda');
   const listaAnimalesForm = document.getElementById('listaAnimales');
-  const listaAnimalesFiltro = document.getElementById('listaAnimalesFiltro');
-  const filtroAnimalInput = document.getElementById('filtroAnimal');
   const idAnimalHidden = document.getElementById('idAnimal');
   const mapaAnimalesPorValor = new Map();
 
@@ -22,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let controlesSaludFiltrados = [];
   let paginaActual = 1;
   const registrosPorPagina = 5;
-  let filtroAnimal = '';
   let filtroEstado = '';
   let filtroTexto = '';
 
@@ -94,13 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (filtroAnimalInput) {
-    filtroAnimalInput.addEventListener('input', (e) => {
-      filtroAnimal = obtenerIdDesdeValor(e.target.value) || '';
-      aplicarFiltros();
-    });
-  }
-
   if (filtroEstadoSelect) {
     filtroEstadoSelect.addEventListener('change', (e) => {
       filtroEstado = e.target.value;
@@ -125,31 +115,22 @@ document.addEventListener('DOMContentLoaded', () => {
       if (listaAnimalesForm) {
         listaAnimalesForm.innerHTML = '';
       }
-      if (listaAnimalesFiltro) {
-        listaAnimalesFiltro.innerHTML = '';
-      }
+      
       const selectAnimal = document.getElementById('idAnimal');
       if (selectAnimal) {
         selectAnimal.value = '';
       }
-      if (filtroAnimalInput) {
-        filtroAnimalInput.value = '';
+      if (animalBusquedaInput) {
+        animalBusquedaInput.value = '';
       }
       
       animales.forEach(animal => {
         const valor = `${animal.idAnimal} - ${animal.nombre} (${animal.especie})`;
         mapaAnimalesPorValor.set(valor.toLowerCase(), animal.idAnimal);
 
-        if (listaAnimalesForm) {
-          const option = document.createElement('option');
-          option.value = valor;
-          listaAnimalesForm.appendChild(option);
-        }
-        if (listaAnimalesFiltro) {
-          const option = document.createElement('option');
-          option.value = valor;
-          listaAnimalesFiltro.appendChild(option);
-        }
+        const option = document.createElement('option');
+        option.value = valor;
+        listaAnimalesForm.appendChild(option);
       });
     } catch (error) {
       console.error('Error al cargar animales:', error);
@@ -344,7 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
     controlesSaludFiltrados = controlesSalud.filter((control) => {
       const estadoActual = control.estado || calcularEstadoControl(control);
       const coincideEstado = !filtroEstado || estadoActual === filtroEstado;
-      const coincideAnimal = !filtroAnimal || String(control.idAnimal) === String(filtroAnimal);
       const texto = filtroTexto;
       const coincideTexto =
         !texto ||
@@ -356,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (estadoActual || '').toLowerCase().includes(texto) ||
         String(control.idSalud || '').includes(texto);
 
-      return coincideEstado && coincideAnimal && coincideTexto;
+      return coincideEstado && coincideTexto;
     });
 
     paginaActual = 1;

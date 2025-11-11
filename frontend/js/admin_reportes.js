@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnPDF = document.getElementById('btnPDF');
   const tablaAnimalesBody = document.querySelector('#tablaAnimales tbody');
   const tablaBody = document.querySelector('#tablaReporte tbody');
+  const paginacionAnimalesEl = document.getElementById('paginacionAnimales');
   const paginacionAdopcionesEl = document.getElementById('paginacionAdopciones');
   const tablaRazasBody = document.querySelector('#tablaRazas tbody');
   const totalAdopEl = document.getElementById('totalAdop');
@@ -23,13 +24,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const porEstadoAltasEl = document.getElementById('porEstadoAltas');
   let datosActuales = null;
   let datosAnimales = null;
-  let datosTablaAdopciones = [];
-  let paginaActualAdopciones = 1;
-  const registrosPorPaginaAdopciones = 4;
   let chartEspecie = null;
   let chartEvolucion = null;
   let chartAnimalesEspecie = null;
   let chartAnimalesEvolucion = null;
+  let datosTablaAnimales = [];
+  let datosTablaAdopciones = [];
+  let paginaActualAnimales = 1;
+  let paginaActualAdopciones = 1;
+  const registrosPorPaginaAnimales = 10;
+  const registrosPorPaginaAdopciones = 10;
 
   // Rango por defecto: último mes
   const hoy = new Date();
@@ -91,9 +95,32 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderTablaAnimales(rows) {
     if (!rows || rows.length === 0) {
       tablaAnimalesBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:12px;">Sin registros en el período</td></tr>';
+      datosTablaAnimales = [];
+      actualizarPaginacionAnimales(0, 0, 0);
       return;
     }
-    tablaAnimalesBody.innerHTML = rows.map(r => `
+    datosTablaAnimales = [...rows].sort((a, b) => {
+      const fechaA = new Date(a.fechaIngreso || a.fechaAlta || 0);
+      const fechaB = new Date(b.fechaIngreso || b.fechaAlta || 0);
+      return fechaB - fechaA;
+    });
+    paginaActualAnimales = 1;
+    renderTablaAnimalesPagina();
+  }
+
+  function renderTablaAnimalesPagina() {
+    if (datosTablaAnimales.length === 0) {
+      tablaAnimalesBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:12px;">Sin registros en el período</td></tr>';
+      actualizarPaginacionAnimales(0, 0, 0);
+      return;
+    }
+
+    const totalRegistros = datosTablaAnimales.length;
+    const totalPaginas = Math.max(Math.ceil(totalRegistros / registrosPorPaginaAnimales), 1);
+    const inicio = (paginaActualAnimales - 1) * registrosPorPaginaAnimales;
+    const pagina = datosTablaAnimales.slice(inicio, inicio + registrosPorPaginaAnimales);
+
+    tablaAnimalesBody.innerHTML = pagina.map(r => `
       <tr>
         <td>${r.idAnimal}</td>
         <td>${formatearFecha(r.fechaIngreso)}</td>
@@ -103,6 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${escapeHtml(r.estado) || '-'}</td>
       </tr>
     `).join('');
+
+    actualizarPaginacionAnimales(paginaActualAnimales, totalPaginas, totalRegistros);
   }
 
   function renderResumen(res) {
@@ -150,7 +179,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderTabla(rows) {
-    datosTablaAdopciones = Array.isArray(rows) ? rows : [];
+    if (!rows || rows.length === 0) {
+      tablaBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:12px;">Sin registros en el período</td></tr>';
+      datosTablaAdopciones = [];
+      actualizarPaginacionAdopciones(0, 0, 0);
+      return;
+    }
+    datosTablaAdopciones = [...rows].sort((a, b) => {
+      const fechaA = new Date(a.fecha || a.fechaAdopcion || 0);
+      const fechaB = new Date(b.fecha || b.fechaAdopcion || 0);
+      return fechaB - fechaA;
+    });
     paginaActualAdopciones = 1;
     renderTablaAdopcionesPagina();
   }
@@ -183,9 +222,23 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarPaginacionAdopciones(paginaActualAdopciones, totalPaginas, totalRegistros);
   }
 
+  function actualizarPaginacionAnimales(pagina, totalPaginas, totalRegistros = datosTablaAnimales.length) {
+    if (!paginacionAnimalesEl) return;
+    if (totalRegistros === 0 || totalPaginas === 0) {
+      paginacionAnimalesEl.innerHTML = '';
+      return;
+    }
+
+    paginacionAnimalesEl.innerHTML = `
+      <button class="btn btn-secondary" ${pagina <= 1 ? 'disabled' : ''} onclick="paginaAnteriorAnimales()">«</button>
+      <span>Página ${pagina} de ${totalPaginas} (${totalRegistros} registros)</span>
+      <button class="btn btn-secondary" ${pagina >= totalPaginas ? 'disabled' : ''} onclick="paginaSiguienteAnimales()">»</button>
+    `;
+  }
+
   function actualizarPaginacionAdopciones(pagina, totalPaginas, totalRegistros = datosTablaAdopciones.length) {
     if (!paginacionAdopcionesEl) return;
-    if (totalRegistros === 0) {
+    if (totalRegistros === 0 || totalPaginas === 0) {
       paginacionAdopcionesEl.innerHTML = '';
       return;
     }
@@ -197,11 +250,30 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  window.paginaAnteriorAnimales = function () {
+    if (paginaActualAnimales > 1) {
+      paginaActualAnimales--;
+      renderTablaAnimalesPagina();
+      const contenedorTabla = document.getElementById('tablaAnimales')?.closest('.table-container-paginada')?.querySelector('.table-scrollable');
+      if (contenedorTabla) contenedorTabla.scrollTop = 0;
+    }
+  };
+
+  window.paginaSiguienteAnimales = function () {
+    const totalPaginas = Math.ceil(datosTablaAnimales.length / registrosPorPaginaAnimales);
+    if (paginaActualAnimales < totalPaginas) {
+      paginaActualAnimales++;
+      renderTablaAnimalesPagina();
+      const contenedorTabla = document.getElementById('tablaAnimales')?.closest('.table-container-paginada')?.querySelector('.table-scrollable');
+      if (contenedorTabla) contenedorTabla.scrollTop = 0;
+    }
+  };
+
   window.paginaAnteriorAdopciones = function () {
     if (paginaActualAdopciones > 1) {
       paginaActualAdopciones--;
       renderTablaAdopcionesPagina();
-      const contenedorTabla = document.getElementById('tablaReporte')?.parentElement;
+      const contenedorTabla = document.getElementById('tablaReporte')?.closest('.table-container-paginada')?.querySelector('.table-scrollable');
       if (contenedorTabla) contenedorTabla.scrollTop = 0;
     }
   };
@@ -211,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (paginaActualAdopciones < totalPaginas) {
       paginaActualAdopciones++;
       renderTablaAdopcionesPagina();
-      const contenedorTabla = document.getElementById('tablaReporte')?.parentElement;
+      const contenedorTabla = document.getElementById('tablaReporte')?.closest('.table-container-paginada')?.querySelector('.table-scrollable');
       if (contenedorTabla) contenedorTabla.scrollTop = 0;
     }
   };

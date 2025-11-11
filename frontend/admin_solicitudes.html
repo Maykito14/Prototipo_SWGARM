@@ -30,13 +30,6 @@
               <option value="Rechazada">Rechazada</option>
             </select>
           </div>
-          <div class="filter-group">
-            <label for="filtroAnimal">Animal</label>
-            <select id="filtroAnimal">
-              <option value="">Todos</option>
-              <!-- Los animales se cargarán dinámicamente -->
-            </select>
-          </div>
         </div>
       </div>
 
@@ -63,22 +56,25 @@
       <!-- Tabla de solicitudes -->
       <div class="table-section">
         <div class="table-container table-container-paginada">
-          <table id="solicitudesTable" class="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Adoptante</th>
-                <th>Animal</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Puntaje</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Los datos se cargarán dinámicamente -->
-            </tbody>
-          </table>
+          <div class="table-scrollable">
+            <table id="solicitudesTable" class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Adoptante</th>
+                  <th>Animal</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th>Puntaje</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Los datos se cargarán dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+          <div id="paginacionSolicitudes" class="paginacion"></div>
         </div>
       </div>
     </div>
@@ -136,6 +132,6 @@
   <script src="./js/api.js"></script>
   <script src="./js/header.js"></script>
   <script src="./js/auth.js"></script>
-  <script src="./js/admin_solicitudes.js"></script>
+  <script src="./js/admin_solicitudes.js?v=20251110"></script>
 </body>
 </html>

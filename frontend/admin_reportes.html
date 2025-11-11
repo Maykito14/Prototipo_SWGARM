@@ -58,20 +58,23 @@
 
       <div class="section-card">
         <h3>Detalle de altas</h3>
-        <div class="table-container">
-          <table class="admin-table" id="tablaAnimales">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Fecha ingreso</th>
-                <th>Nombre</th>
-                <th>Especie</th>
-                <th>Raza</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        <div class="table-container table-container-paginada">
+          <div class="table-scrollable">
+            <table class="admin-table" id="tablaAnimales">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Fecha ingreso</th>
+                  <th>Nombre</th>
+                  <th>Especie</th>
+                  <th>Raza</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div id="paginacionAnimales" class="paginacion"></div>
         </div>
       </div>
 
@@ -129,24 +132,26 @@
 
       <div class="section-card">
         <h3>Detalle de adopciones</h3>
-        <div class="table-container">
-          <table id="tablaReporte" class="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Fecha</th>
-                <th>Adoptante</th>
-                <th>Animal</th>
-                <th>Especie</th>
-                <th>Raza</th>
-                <th>Estado</th>
-                <th>Contrato</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Datos dinámicos -->
-            </tbody>
-          </table>
+        <div class="table-container table-container-paginada">
+          <div class="table-scrollable">
+            <table id="tablaReporte" class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Fecha</th>
+                  <th>Adoptante</th>
+                  <th>Animal</th>
+                  <th>Especie</th>
+                  <th>Raza</th>
+                  <th>Estado</th>
+                  <th>Contrato</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Datos dinámicos -->
+              </tbody>
+            </table>
+          </div>
           <div id="paginacionAdopciones" class="paginacion"></div>
         </div>
       </div>

@@ -2,11 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
   requireAdmin();
 
   const tablaUsuarios = document.getElementById('tablaUsuarios');
+  const paginacionUsuariosEl = document.getElementById('paginacionUsuarios');
   const modalRol = document.getElementById('modalRol');
   const formCambiarRol = document.getElementById('formCambiarRol');
   const nuevoRolSelect = document.getElementById('nuevoRol');
   let usuarioActual = null;
   let todosLosUsuarios = []; // Almacenar todos los usuarios para filtrar
+  let usuariosFiltrados = [];
+  let paginaActual = 1;
+  const registrosPorPagina = 10;
 
   cargarUsuarios();
 
@@ -32,7 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
   async function cargarUsuarios() {
     try {
       todosLosUsuarios = await api.getUsuarios();
-      mostrarUsuarios(todosLosUsuarios);
+      usuariosFiltrados = [...todosLosUsuarios];
+      paginaActual = 1;
+      mostrarUsuarios();
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
       const tbody = tablaUsuarios.querySelector('tbody');
@@ -40,15 +46,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function mostrarUsuarios(usuarios) {
+  function mostrarUsuarios() {
     const tbody = tablaUsuarios.querySelector('tbody');
-    
-    if (!usuarios || usuarios.length === 0) {
+    if (!usuariosFiltrados || usuariosFiltrados.length === 0) {
       tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">No hay usuarios que coincidan con los filtros</td></tr>';
+      actualizarPaginacion();
       return;
     }
 
-    tbody.innerHTML = usuarios.map(u => {
+    const totalRegistros = usuariosFiltrados.length;
+    const totalPaginas = Math.max(Math.ceil(totalRegistros / registrosPorPagina), 1);
+    if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+    const inicio = (paginaActual - 1) * registrosPorPagina;
+    const pagina = usuariosFiltrados.slice(inicio, inicio + registrosPorPagina);
+
+    tbody.innerHTML = pagina.map(u => {
       const estaBloqueado = u.bloqueoPermanente || (u.cuentaBloqueada && !u.bloqueoPermanente);
       const estadoBloqueo = u.bloqueoPermanente ? 'Permanente' : (u.cuentaBloqueada ? 'Temporal' : '');
       
@@ -75,6 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
       </tr>
     `;
     }).join('');
+
+    actualizarPaginacion();
   }
 
   // Función global para filtrar usuarios
@@ -86,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterDireccion = document.getElementById('filterDireccion').value.toLowerCase().trim();
     const filterRol = document.getElementById('filterRol').value.toLowerCase().trim();
 
-    const usuariosFiltrados = todosLosUsuarios.filter(u => {
+    usuariosFiltrados = todosLosUsuarios.filter(u => {
       const email = (u.email || '').toLowerCase();
       const nombre = (u.nombre || '').toLowerCase();
       const apellido = (u.apellido || '').toLowerCase();
@@ -104,7 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return coincideEmail && coincideNombre && coincideApellido && coincideTelefono && coincideDireccion && coincideRol;
     });
 
-    mostrarUsuarios(usuariosFiltrados);
+    paginaActual = 1;
+    mostrarUsuarios();
   };
 
   window.abrirModalRol = async function(idUsuario) {
@@ -199,6 +214,42 @@ document.addEventListener('DOMContentLoaded', () => {
       cargarUsuarios();
     } catch (error) {
       alert('Error al desbloquear cuenta: ' + (error.message || 'Error desconocido'));
+    }
+  };
+
+  function actualizarPaginacion() {
+    if (!paginacionUsuariosEl) return;
+    const totalRegistros = usuariosFiltrados.length;
+    const totalPaginas = Math.max(Math.ceil(totalRegistros / registrosPorPagina), 1);
+
+    if (totalRegistros === 0) {
+      paginacionUsuariosEl.innerHTML = '';
+      return;
+    }
+
+    paginacionUsuariosEl.innerHTML = `
+      <button class="btn btn-secondary" ${paginaActual <= 1 ? 'disabled' : ''} onclick="paginaAnteriorUsuarios()">«</button>
+      <span>Página ${paginaActual} de ${totalPaginas} (${totalRegistros} registros)</span>
+      <button class="btn btn-secondary" ${paginaActual >= totalPaginas ? 'disabled' : ''} onclick="paginaSiguienteUsuarios()">»</button>
+    `;
+  }
+
+  window.paginaAnteriorUsuarios = function() {
+    if (paginaActual > 1) {
+      paginaActual--;
+      mostrarUsuarios();
+      const contenedor = tablaUsuarios.closest('.table-container-paginada')?.querySelector('.table-scrollable');
+      if (contenedor) contenedor.scrollTop = 0;
+    }
+  };
+
+  window.paginaSiguienteUsuarios = function() {
+    const totalPaginas = Math.ceil(usuariosFiltrados.length / registrosPorPagina);
+    if (paginaActual < totalPaginas) {
+      paginaActual++;
+      mostrarUsuarios();
+      const contenedor = tablaUsuarios.closest('.table-container-paginada')?.querySelector('.table-scrollable');
+      if (contenedor) contenedor.scrollTop = 0;
     }
   };
 });
