@@ -145,6 +145,16 @@ const User = {
     );
     return await this.findById(idUsuario);
   },
+
+  async actualizarPasswordPorEmail(email, hashedPassword) {
+    await pool.query(
+      `UPDATE usuario
+       SET password = ?, intentosFallidos = 0, cuentaBloqueada = 0, fechaBloqueo = NULL
+       WHERE email = ?`,
+      [hashedPassword, email]
+    );
+    return await this.findByEmail(email);
+  },
 };
 
 module.exports = User;

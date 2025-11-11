@@ -35,8 +35,25 @@
     }
     .notificacion-card .fecha {
       font-size: 12px;
-      color: #999;
+      color: #666;
       margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .notificacion-card .fecha span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .notificacion-card .fecha-dia::before {
+      content: '📅';
+      font-size: 12px;
+    }
+    .notificacion-card .fecha-hora::before {
+      content: '⏰';
+      font-size: 12px;
     }
     .badge-no-leida {
       background: #e74c3c;
@@ -68,25 +85,25 @@
       <div class="preferencias-section">
         <h3>Preferencias de Notificación</h3>
         <form id="preferenciasForm" class="animal-form">
-          <div class="form-group">
+          <div class="form-group" data-roles="adoptante">
             <label style="display: flex; align-items: center; gap: 8px;">
               <input type="checkbox" id="notificarSolicitudAprobada" name="notificarSolicitudAprobada">
               <span>Notificar cuando se apruebe mi solicitud</span>
             </label>
           </div>
-          <div class="form-group">
+          <div class="form-group" data-roles="adoptante">
             <label style="display: flex; align-items: center; gap: 8px;">
               <input type="checkbox" id="notificarSolicitudRechazada" name="notificarSolicitudRechazada">
               <span>Notificar cuando se rechace mi solicitud</span>
             </label>
           </div>
-          <div class="form-group">
+          <div class="form-group" data-roles="administrador,adoptante">
             <label style="display: flex; align-items: center; gap: 8px;">
               <input type="checkbox" id="notificarRecordatorioSeguimiento" name="notificarRecordatorioSeguimiento">
               <span>Notificar recordatorios de seguimiento</span>
             </label>
           </div>
-          <div class="form-group">
+          <div class="form-group" data-roles="administrador,adoptante">
             <label style="display: flex; align-items: center; gap: 8px;">
               <input type="checkbox" id="notificarEnSistema" name="notificarEnSistema">
               <span>Recibir notificaciones en el sistema</span>

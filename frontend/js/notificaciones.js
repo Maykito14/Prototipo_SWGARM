@@ -10,6 +10,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const successMessage = document.getElementById('success-message');
   const errorMessage = document.getElementById('error-message');
 
+  const session = getSession();
+  const rolUsuario = session.user?.rol?.toLowerCase() || 'adoptante';
+  const camposVisibles = inicializarCamposPorRol(rolUsuario);
+
+  let preferenciasActuales = {
+    notificarSolicitudAprobada: true,
+    notificarSolicitudRechazada: true,
+    notificarRecordatorioSeguimiento: true,
+    notificarPorEmail: true,
+    notificarEnSistema: true,
+  };
+
   cargarPreferencias();
   cargarNotificaciones();
 
@@ -17,16 +29,20 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     
     try {
-      const preferencias = {
-        notificarSolicitudAprobada: document.getElementById('notificarSolicitudAprobada').checked,
-        notificarSolicitudRechazada: document.getElementById('notificarSolicitudRechazada').checked,
-        notificarRecordatorioSeguimiento: document.getElementById('notificarRecordatorioSeguimiento').checked,
-        notificarPorEmail: true, // Por ahora siempre true
-        notificarEnSistema: document.getElementById('notificarEnSistema').checked
-      };
+      const preferencias = { ...preferenciasActuales };
+
+      camposVisibles.forEach((campoId) => {
+        const input = document.getElementById(campoId);
+        if (input) {
+          preferencias[campoId] = input.checked;
+        }
+      });
+
+      preferencias.notificarPorEmail = true; // Mientras no exista toggle visual
 
       await api.actualizarMisPreferenciasNotificacion(preferencias);
       mostrarExito('Preferencias guardadas exitosamente');
+      preferenciasActuales = preferencias;
     } catch (error) {
       mostrarError(error.message || 'Error al guardar preferencias');
     }
@@ -45,10 +61,20 @@ document.addEventListener('DOMContentLoaded', () => {
   async function cargarPreferencias() {
     try {
       const preferencias = await api.getMisPreferenciasNotificacion();
-      document.getElementById('notificarSolicitudAprobada').checked = preferencias.notificarSolicitudAprobada;
-      document.getElementById('notificarSolicitudRechazada').checked = preferencias.notificarSolicitudRechazada;
-      document.getElementById('notificarRecordatorioSeguimiento').checked = preferencias.notificarRecordatorioSeguimiento;
-      document.getElementById('notificarEnSistema').checked = preferencias.notificarEnSistema;
+      preferenciasActuales = {
+        notificarSolicitudAprobada: preferencias?.notificarSolicitudAprobada ?? true,
+        notificarSolicitudRechazada: preferencias?.notificarSolicitudRechazada ?? true,
+        notificarRecordatorioSeguimiento: preferencias?.notificarRecordatorioSeguimiento ?? true,
+        notificarPorEmail: preferencias?.notificarPorEmail ?? true,
+        notificarEnSistema: preferencias?.notificarEnSistema ?? true,
+      };
+
+      camposVisibles.forEach((campoId) => {
+        const input = document.getElementById(campoId);
+        if (input && preferenciasActuales[campoId] !== undefined) {
+          input.checked = preferenciasActuales[campoId];
+        }
+      });
     } catch (error) {
       console.error('Error al cargar preferencias:', error);
     }
@@ -68,7 +94,24 @@ document.addEventListener('DOMContentLoaded', () => {
       btnMarcarTodasLeidas.style.display = noLeidas.length > 0 ? '' : 'none';
 
       listaNotificaciones.innerHTML = notificaciones.map(notif => {
-        const fecha = new Date(notif.fechaEnvio).toLocaleString('es-ES');
+        const fechaEnvio = notif.fechaEnvio ? new Date(notif.fechaEnvio) : null;
+        const fechaFormateada = fechaEnvio
+          ? fechaEnvio.toLocaleDateString('es-AR', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              timeZone: 'America/Argentina/Buenos_Aires',
+            })
+          : '—';
+        const horaFormateada = fechaEnvio
+          ? fechaEnvio.toLocaleTimeString('es-AR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false,
+              timeZone: 'America/Argentina/Buenos_Aires',
+            })
+          : '';
         const claseLeida = notif.leido ? 'leida' : '';
         const badgeNoLeida = !notif.leido ? '<span class="badge-no-leida">Nueva</span>' : '';
         
@@ -77,7 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="contenido">
               <div class="tipo">${escapeHtml(notif.tipo)} ${badgeNoLeida}</div>
               <div>${escapeHtml(notif.mensaje)}</div>
-              <div class="fecha">${fecha}</div>
+              <div class="fecha">
+                <span class="fecha-dia">${fechaFormateada}</span>
+                ${horaFormateada ? `<span class="fecha-hora">${horaFormateada}</span>` : ''}
+              </div>
             </div>
             <div style="display: flex; gap: 8px;">
               ${!notif.leido ? `<button class="btn-table ver" onclick="marcarComoLeida(${notif.idNotificacion})" title="Marcar como leída">✓</button>` : ''}
@@ -136,6 +182,35 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  function inicializarCamposPorRol(rol) {
+    const visibles = new Set();
+    const grupos = document.querySelectorAll('[data-roles]');
+
+    grupos.forEach((grupo) => {
+      const rolesAttr = grupo.getAttribute('data-roles') || '';
+      const rolesPermitidos = rolesAttr.split(',').map(r => r.trim().toLowerCase()).filter(Boolean);
+      const esVisible = rolesPermitidos.length === 0 || rolesPermitidos.includes('todos') || rolesPermitidos.includes(rol);
+
+      if (!esVisible) {
+        grupo.classList.add('hidden');
+        grupo.setAttribute('aria-hidden', 'true');
+        const input = grupo.querySelector('input[type="checkbox"]');
+        if (input) {
+          input.checked = false;
+        }
+      } else {
+        grupo.classList.remove('hidden');
+        grupo.removeAttribute('aria-hidden');
+        const input = grupo.querySelector('input[type="checkbox"]');
+        if (input && input.id) {
+          visibles.add(input.id);
+        }
+      }
+    });
+
+    return visibles;
   }
 });
 

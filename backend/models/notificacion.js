@@ -3,12 +3,11 @@ const pool = require('../config/db');
 const Notificacion = {
   async create(data) {
     const { idUsuario, tipo, mensaje, idSolicitud = null, idSeguimiento = null } = data;
-    const fechaEnvio = new Date();
     
     const [result] = await pool.query(
-      `INSERT INTO notificacion (idUsuario, tipo, mensaje, fechaEnvio, idSolicitud, idSeguimiento) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [idUsuario, tipo, mensaje, fechaEnvio, idSolicitud, idSeguimiento]
+      `INSERT INTO notificacion (idUsuario, tipo, mensaje, idSolicitud, idSeguimiento) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [idUsuario, tipo, mensaje, idSolicitud, idSeguimiento]
     );
     
     return await this.getById(result.insertId);

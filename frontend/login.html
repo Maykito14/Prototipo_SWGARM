@@ -33,9 +33,57 @@
 
     <!-- Links -->
     <div class="login-links">
-      <a href="#">¿Olvidaste tu contraseña?</a> |
+      <button type="button" class="link-button" id="forgotPasswordLink">¿Olvidaste tu contraseña?</button> |
       <a href="register.html">Registrarse</a>
     </div>
+
+    <!-- Recuperar contraseña -->
+    <section class="login-recovery hidden" id="recoverySection">
+      <h2>Recuperar contraseña</h2>
+      <p class="recovery-description">
+        Ingrese su correo para solicitar un código de recuperación y utilícelo para crear una nueva contraseña.
+      </p>
+
+      <div id="recovery-message" class="recovery-message" role="alert" aria-live="polite"></div>
+
+      <form class="recovery-form" id="requestResetForm">
+        <h3>Solicitar código</h3>
+        <div class="form-group">
+          <label for="resetEmail">Correo electrónico</label>
+          <input type="email" id="resetEmail" placeholder="correo@ejemplo.com" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar código</button>
+      </form>
+
+      <div class="recovery-separator">
+        <span>¿Ya tienes un código?</span>
+      </div>
+
+      <form class="recovery-form" id="resetPasswordForm">
+        <h3>Restablecer contraseña</h3>
+        <div class="form-group">
+          <label for="resetEmailConfirm">Correo electrónico</label>
+          <input type="email" id="resetEmailConfirm" placeholder="correo@ejemplo.com" required>
+        </div>
+        <div class="form-group">
+          <label for="resetToken">Código de recuperación</label>
+          <input type="text" id="resetToken" placeholder="Ingrese el código recibido" required>
+        </div>
+        <div class="form-group">
+          <label for="resetPassword">Nueva contraseña</label>
+          <input type="password" id="resetPassword" placeholder="Ingrese la nueva contraseña" required>
+        </div>
+        <div class="form-group">
+          <label for="resetPasswordConfirm">Confirmar nueva contraseña</label>
+          <input type="password" id="resetPasswordConfirm" placeholder="Repita la nueva contraseña" required>
+        </div>
+        <button type="submit" class="btn btn-login">Restablecer contraseña</button>
+      </form>
+
+      <button type="button" class="link-button back-to-login" id="backToLogin">
+        Volver al inicio de sesión
+      </button>
+    </section>
   </div>
 
   <script src="./js/api.js"></script>

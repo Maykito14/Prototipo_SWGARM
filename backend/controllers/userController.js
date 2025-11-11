@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
+const PasswordResetToken = require('../models/PasswordResetToken');
 
 exports.register = async (req, res) => {
   try {
@@ -247,5 +249,90 @@ exports.desbloquearPermanentemente = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al desbloquear cuenta' });
+  }
+};
+
+exports.solicitarRecuperacionPassword = async (req, res) => {
+  try {
+    const emailRaw = (req.body.email || '').trim();
+    if (!emailRaw) {
+      return res.status(400).json({ error: 'Debe proporcionar un correo electrónico' });
+    }
+
+    const email = emailRaw.toLowerCase();
+    const respuestaGenerica = {
+      message: 'Si el correo está registrado, enviaremos un código de recuperación válido por 1 hora.',
+      expiresInMinutes: 60,
+    };
+
+    const usuario = await User.findByEmail(email);
+    if (!usuario) {
+      // Respuesta genérica para no revelar existencia del usuario
+      return res.json(respuestaGenerica);
+    }
+
+    await PasswordResetToken.invalidateTokensByEmail(email);
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expiracion = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+    await PasswordResetToken.create(email, tokenHash, expiracion);
+
+    const respuesta = { ...respuestaGenerica };
+    if ((process.env.NODE_ENV || 'development') !== 'production') {
+      respuesta.debugToken = token;
+    }
+
+    console.info(`[RecuperacionPassword] Token generado para ${email}. Expira en ${expiracion.toISOString()}`);
+
+    res.json(respuesta);
+  } catch (error) {
+    console.error('Error al solicitar recuperación de contraseña:', error);
+    res.status(500).json({ error: 'Error al solicitar recuperación de contraseña' });
+  }
+};
+
+exports.restablecerPassword = async (req, res) => {
+  try {
+    const emailRaw = (req.body.email || '').trim();
+    const tokenRaw = (req.body.token || '').trim();
+    const nuevaPassword = (req.body.nuevaPassword || '').trim();
+    const confirmarPassword = (req.body.confirmarPassword || '').trim();
+
+    if (!emailRaw || !tokenRaw || !nuevaPassword || !confirmarPassword) {
+      return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    }
+
+    if (nuevaPassword !== confirmarPassword) {
+      return res.status(400).json({ error: 'La nueva contraseña y su confirmación no coinciden' });
+    }
+
+    if (nuevaPassword.length < 6) {
+      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
+    }
+
+    const email = emailRaw.toLowerCase();
+    const usuario = await User.findByEmail(email);
+
+    if (!usuario) {
+      return res.status(400).json({ error: 'Token inválido o expirado' });
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(tokenRaw).digest('hex');
+    const registro = await PasswordResetToken.findValidByEmailAndHash(email, tokenHash);
+
+    if (!registro) {
+      return res.status(400).json({ error: 'Token inválido o expirado' });
+    }
+
+    const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
+    await User.actualizarPasswordPorEmail(email, hashedPassword);
+    await PasswordResetToken.markAsUsed(registro.idToken);
+
+    res.json({ message: 'Contraseña restablecida correctamente. Ya puede iniciar sesión.' });
+  } catch (error) {
+    console.error('Error al restablecer contraseña:', error);
+    res.status(500).json({ error: 'Error al restablecer la contraseña' });
   }
 };

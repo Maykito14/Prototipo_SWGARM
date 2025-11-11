@@ -22,6 +22,7 @@
 -- - Tabla `adopcion`: campo booleano `activa` para distinguir adopciones vigentes
 -- - Tabla `seguimiento`: registra `idUsuarioCreador`, observaciones extensas y bandera de recordatorio
 -- - Tabla `notificacion`: fecha de envío con timestamp y mensajes de longitud variable
+-- - Tabla `password_reset_token`: gestiona códigos temporales para recuperación de contraseña
 -- 
 -- NOTA: Este archivo ya incluye todas las actualizaciones de las migraciones:
 --   - migracion_puntaje_minimo.sql
@@ -65,6 +66,23 @@ CREATE TABLE `usuario` (
   `bloqueoPermanente` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`idUsuario`),
   UNIQUE KEY `usuario_email_unique` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ============================================================================
+-- TABLA: password_reset_token
+-- ============================================================================
+DROP TABLE IF EXISTS `password_reset_token`;
+CREATE TABLE `password_reset_token` (
+  `idToken` int NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) NOT NULL,
+  `tokenHash` varchar(255) NOT NULL,
+  `expiracion` datetime NOT NULL,
+  `usado` tinyint(1) NOT NULL DEFAULT 0,
+  `fechaUso` datetime DEFAULT NULL,
+  PRIMARY KEY (`idToken`),
+  KEY `password_reset_email_idx` (`email`),
+  KEY `password_reset_expiracion_idx` (`expiracion`),
+  CONSTRAINT `password_reset_usuario_fk` FOREIGN KEY (`email`) REFERENCES `usuario` (`email`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ============================================================================

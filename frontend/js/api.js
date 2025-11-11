@@ -44,6 +44,20 @@ const api = {
     });
   },
 
+  async solicitarRecuperacionPassword(email) {
+    return this.request('/usuarios/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async restablecerPassword(payload) {
+    return this.request('/usuarios/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
   async register(email, password, rol = 'adoptante') {
     return this.request('/usuarios/register', {
       method: 'POST',

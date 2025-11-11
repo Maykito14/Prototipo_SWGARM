@@ -6,6 +6,8 @@ const { authMiddleware, adminMiddleware } = require('../middlewares/autMiddlewar
 // Rutas públicas
 router.post('/register', userController.register);
 router.post('/login', userController.login);
+router.post('/forgot-password', userController.solicitarRecuperacionPassword);
+router.post('/reset-password', userController.restablecerPassword);
 
 // Rutas protegidas para administradores
 router.get('/usuarios', authMiddleware, adminMiddleware, userController.listarUsuarios);
