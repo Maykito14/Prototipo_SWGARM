@@ -6,17 +6,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const form = document.getElementById('perfilForm');
+  const passwordForm = document.getElementById('passwordForm');
   const successMessage = document.getElementById('success-message');
   const errorMessage = document.getElementById('error-message');
   const emailInput = document.getElementById('email');
-  const tablaSeguimientosBody = document.getElementById('tablaMisSeguimientos').querySelector('tbody');
-  const listaNotificaciones = document.getElementById('listaNotificaciones');
-  const btnMarcarTodasLeidas = document.getElementById('btnMarcarTodasLeidas');
 
   // Cargar perfil al iniciar
   cargarPerfil();
-  cargarSeguimientos();
-  cargarNotificaciones();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -42,40 +38,45 @@ document.addEventListener('DOMContentLoaded', () => {
       
       mostrarExito(response.message || 'Perfil actualizado exitosamente');
       cargarPerfil(); // Recargar para mostrar datos actualizados
-      cargarSeguimientos();
     } catch (error) {
       mostrarError(error.message || 'Error al actualizar el perfil');
     }
   });
 
-  listaNotificaciones.addEventListener('click', async (event) => {
-    const action = event.target.dataset.action;
-    const id = event.target.dataset.id;
+  if (passwordForm) {
+    passwordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    if (!action || !id) return;
+      limpiarMensajes();
 
-    try {
-      if (action === 'marcar') {
-        await api.marcarNotificacionComoLeida(id);
-      } else if (action === 'eliminar') {
-        await api.eliminarNotificacion(id);
+      const passwordActual = document.getElementById('passwordActual').value.trim();
+      const passwordNueva = document.getElementById('passwordNueva').value.trim();
+      const passwordConfirmacion = document.getElementById('passwordConfirmacion').value.trim();
+
+      if (!passwordActual || !passwordNueva || !passwordConfirmacion) {
+        mostrarError('Debe completar todos los campos de contraseña');
+        return;
       }
-      await cargarNotificaciones();
-    } catch (error) {
-      console.error('Error al actualizar notificación:', error);
-      mostrarError('No se pudo actualizar la notificación');
-    }
-  });
 
-  btnMarcarTodasLeidas.addEventListener('click', async () => {
-    try {
-      await api.marcarTodasNotificacionesComoLeidas();
-      await cargarNotificaciones();
-    } catch (error) {
-      console.error('Error al marcar notificaciones:', error);
-      mostrarError('No se pudieron marcar las notificaciones');
-    }
-  });
+      if (passwordNueva.length < 6) {
+        mostrarError('La nueva contraseña debe tener al menos 6 caracteres');
+        return;
+      }
+
+      if (passwordNueva !== passwordConfirmacion) {
+        mostrarError('La confirmación no coincide con la nueva contraseña');
+        return;
+      }
+
+      try {
+        const response = await api.cambiarMiPassword({ passwordActual, passwordNueva });
+        mostrarExito(response.message || 'Contraseña actualizada correctamente');
+        passwordForm.reset();
+      } catch (error) {
+        mostrarError(error.message || 'Error al actualizar la contraseña');
+      }
+    });
+  }
 
   async function cargarPerfil() {
     try {
@@ -163,88 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function limpiarErrores() {
     const campos = ['nombre', 'apellido', 'telefono'];
     campos.forEach(campo => limpiarErrorCampo(campo));
-  }
-
-  async function cargarSeguimientos() {
-    try {
-      const seguimientos = await api.getMisSeguimientos();
-      if (!seguimientos || seguimientos.length === 0) {
-        tablaSeguimientosBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 16px;">No tienes seguimientos registrados</td></tr>';
-        return;
-      }
-
-      tablaSeguimientosBody.innerHTML = seguimientos.map(seg => `
-        <tr>
-          <td>${seg.idSeguimiento}</td>
-          <td>${escapeHtml(seg.nombreAnimal || '')}</td>
-          <td>${formatearFecha(seg.fechaProgramada)}</td>
-          <td>${formatearFecha(seg.fechaRealizada)}</td>
-          <td>${seg.estado}</td>
-          <td>${seg.observaciones ? escapeHtml(seg.observaciones) : '-'}</td>
-        </tr>
-      `).join('');
-    } catch (error) {
-      console.error('Error al cargar seguimientos:', error);
-      tablaSeguimientosBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 16px; color: #d32f2f;">Error al cargar tus seguimientos</td></tr>';
-    }
-  }
-
-  async function cargarNotificaciones() {
-    try {
-      const notificaciones = await api.getMisNotificaciones();
-
-      if (!notificaciones || notificaciones.length === 0) {
-        listaNotificaciones.innerHTML = '<div style="text-align:center; padding: 12px; color:#666;">No tienes notificaciones</div>';
-        return;
-      }
-
-      listaNotificaciones.innerHTML = notificaciones.map((notif) => {
-        const fecha = formatearFecha(notif.fechaEnvio);
-        const estadoBadge = notif.leido
-          ? '<span class="badge" style="background:#4caf50;">Leída</span>'
-          : '<span class="badge" style="background:#ff9800;">Pendiente</span>';
-        const acciones = notif.leido
-          ? ''
-          : `<button class="btn btn-sm btn-primary" data-action="marcar" data-id="${notif.idNotificacion}">Marcar como leída</button>`;
-
-        return `
-          <div class="notification-item" data-id="${notif.idNotificacion}" style="border:1px solid #e0e0e0; border-radius:8px; padding:12px; background:#fff;">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-              <strong>${escapeHtml(notif.tipo || 'Notificación')}</strong>
-              <div style="display:flex; gap:8px; align-items:center;">
-                ${estadoBadge}
-                <small style="color:#666;">${fecha}</small>
-              </div>
-            </div>
-            <p style="margin:8px 0; color:#333;">${escapeHtml(notif.mensaje || '')}</p>
-            <div style="display:flex; gap:8px;">
-              ${acciones}
-              <button class="btn btn-sm btn-secondary" data-action="eliminar" data-id="${notif.idNotificacion}">Eliminar</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    } catch (error) {
-      console.error('Error al cargar notificaciones:', error);
-      listaNotificaciones.innerHTML = '<div style="text-align:center; padding: 12px; color:#d32f2f;">Error al cargar tus notificaciones</div>';
-    }
-  }
-
-  function formatearFecha(fecha) {
-    if (!fecha) return '-';
-    const date = new Date(fecha);
-    if (Number.isNaN(date.getTime())) return fecha;
-    return date.toLocaleDateString('es-AR', { year: 'numeric', month: '2-digit', day: '2-digit' });
-  }
-
-  function escapeHtml(texto) {
-    if (!texto) return '';
-    return texto
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
   }
 });
 

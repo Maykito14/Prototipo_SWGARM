@@ -51,7 +51,10 @@ const api = {
     });
   },
 
-  // Gestión de usuarios (solo administradores)
+  async getDashboardStats() {
+    return this.request('/dashboard/stats');
+  },
+
   async getUsuarios() {
     return this.request('/usuarios/usuarios');
   },
@@ -228,13 +231,20 @@ const api = {
 
   // Perfil de adoptante autenticado
   async obtenerMiPerfil() {
-    return this.request('/adopcion/mi-perfil');
+    return this.request('/perfil');
   },
 
   async actualizarMiPerfil(datos) {
-    return this.request('/adopcion/mi-perfil', {
+    return this.request('/perfil', {
       method: 'PUT',
       body: JSON.stringify(datos),
+    });
+  },
+
+  async cambiarMiPassword(payload) {
+    return this.request('/perfil/password', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
     });
   },
 

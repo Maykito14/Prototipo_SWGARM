@@ -11,6 +11,8 @@ const seguimientoRoutes = require('./routes/seguimientoRoutes');
 const reportesRoutes = require('./routes/reportesRoutes');
 const notificacionRoutes = require('./routes/notificacionRoutes');
 const campanaRoutes = require('./routes/campanaRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 
 const app = express();
 
@@ -35,6 +37,8 @@ app.use('/api/seguimiento', seguimientoRoutes);
 app.use('/api/reportes', reportesRoutes);
 app.use('/api/notificaciones', notificacionRoutes);
 app.use('/api/campanas', campanaRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/perfil', profileRoutes);
 
 // Ruta base
 app.get('/', (req, res) => res.send('API SWGARM funcionando correctamente 🚀'));
