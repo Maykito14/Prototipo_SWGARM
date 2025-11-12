@@ -1,8 +1,12 @@
 /* Página de Bienvenida - Corazón de Trapo */
 
 /* Header simplificado */
+:root {
+  --brand-yellow: #f1c40f;
+}
+
 .welcome-header {
-  background-color: #f1c40f;
+  background-color: var(--brand-yellow);
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   position: sticky;
   top: 0;
@@ -35,7 +39,7 @@
   height: 70vh;
   min-height: 500px;
   overflow: hidden;
-  background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+  background: linear-gradient(135deg, var(--brand-yellow) 0%, rgba(241, 196, 15, 0.85) 100%);
 }
 
 .slideshow-container {
@@ -50,48 +54,58 @@
   width: 100%;
   height: 100%;
   animation: fadeIn 1s ease-in-out;
+  gap: 30px;
 }
 
 .slide.active {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
 }
 
 .slide-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  opacity: 0.8;
+  object-fit: contain;
+}
+
+.slide-image-wrapper {
+  flex: 0 0 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 .slide-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: white;
-  background: rgba(0,0,0,0.6);
-  padding: 40px;
-  border-radius: 15px;
-  backdrop-filter: blur(10px);
-  max-width: 600px;
-  width: 90%;
+  flex: 0 0 60%;
+  text-align: left;
+  color: #1f2933;
+  background: var(--brand-yellow);
+  padding: 60px 70px;
+  border-radius: 0;
+  box-shadow: none;
+  max-width: 620px;
+  width: 100%;
+  border: none;
 }
 
 .slide-content h2 {
   font-family: 'Montserrat', sans-serif;
-  font-size: 3rem;
+  font-size: 3.4rem;
   font-weight: bold;
   margin-bottom: 20px;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  color: #0b1f33;
 }
 
 .slide-content p {
   font-size: 1.3rem;
   margin-bottom: 0;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  color: #1f2933;
 }
 
 /* Indicadores de slides */
@@ -276,6 +290,21 @@
 
 .footer-bottom {
   text-align: center;
+.footer-links a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer-links a:visited,
+.footer-links a:focus,
+.footer-links a:active {
+  color: inherit;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
   padding-top: 20px;
   border-top: 1px solid #5d6d7e;
   color: #95a5a6;

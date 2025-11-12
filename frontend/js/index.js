@@ -1,7 +1,15 @@
 // Página Principal - Corazón de Trapo
+const metricasPublicas = {
+    'vidas-salvo': 0,
+    'familias-felices': 0,
+    'solicitudes-recibidas': 0,
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     initSlideshow();
-    initStatsAnimation();
+    loadPublicMetrics().finally(() => {
+        initStatsAnimation();
+    });
 });
 
 // Funcionalidad del slideshow
@@ -69,7 +77,7 @@ function initStatsAnimation() {
 }
 
 function animateStat(element) {
-    const finalValue = getFinalValue(element.id);
+    const finalValue = metricasPublicas[element.id] ?? 0;
     const duration = 2000; // 2 segundos
     const increment = finalValue / (duration / 16); // 60 FPS
     let current = 0;
@@ -86,14 +94,19 @@ function animateStat(element) {
     }, 16);
 }
 
-function getFinalValue(elementId) {
-    const values = {
-        'animales-rescatados': 150,
-        'adopciones-exitosas': 120,
-        'familias-felices': 95,
-        'anos-experiencia': 8
-    };
-    return values[elementId] || 0;
+async function loadPublicMetrics() {
+    try {
+        const response = await fetch(`${window.location.origin}/api/dashboard/public-metrics`);
+        if (!response.ok) {
+            throw new Error('No se pudieron obtener las métricas públicas');
+        }
+        const data = await response.json();
+        metricasPublicas['vidas-salvo'] = data.animalesRegistrados ?? 0;
+        metricasPublicas['familias-felices'] = data.adopcionesActivas ?? 0;
+        metricasPublicas['solicitudes-recibidas'] = data.solicitudesTotales ?? 0;
+    } catch (error) {
+        console.error('Error al cargar métricas públicas:', error);
+    }
 }
 
 // Efectos de hover para botones

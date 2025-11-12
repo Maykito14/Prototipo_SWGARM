@@ -40,4 +40,27 @@ exports.obtenerEstadisticas = async (req, res) => {
   }
 };
 
+exports.obtenerMetricasPublicas = async (req, res) => {
+  try {
+    const [
+      [totalAnimalesRow],
+      [adopcionesActivasRow],
+      [solicitudesTotalesRow],
+    ] = await Promise.all([
+      pool.query('SELECT COUNT(*) AS total FROM animal'),
+      pool.query('SELECT COUNT(*) AS total FROM adopcion WHERE activa = 1'),
+      pool.query('SELECT COUNT(*) AS total FROM solicitud'),
+    ]);
+
+    res.json({
+      animalesRegistrados: totalAnimalesRow[0]?.total || 0,
+      adopcionesActivas: adopcionesActivasRow[0]?.total || 0,
+      solicitudesTotales: solicitudesTotalesRow[0]?.total || 0,
+    });
+  } catch (error) {
+    console.error('Error al obtener métricas públicas:', error);
+    res.status(500).json({ error: 'Error al obtener métricas públicas' });
+  }
+};
+
 
