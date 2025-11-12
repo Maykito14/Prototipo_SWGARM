@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { Adopcion } = require('./adopcion');
 
 const EstadoAnimal = {
   async getAll() {
@@ -221,6 +222,22 @@ const EstadoAnimal = {
       motivo: motivo || 'Cambio de estado',
       usuario
     });
+
+    // Si el animal deja de estar adoptado, asegurarse de que no quede ninguna adopción activa
+    if (nuevoEstado !== 'Adoptado') {
+      try {
+        await Adopcion.desactivarActivasPorAnimal(animalId);
+      } catch (error) {
+        console.error(`Error al desactivar adopciones activas para el animal ${animalId}:`, error.message);
+      }
+    } else {
+      // En estados adoptados, normalizar para garantizar una única adopción activa
+      try {
+        await Adopcion.normalizarActivaPorAnimal(animalId);
+      } catch (error) {
+        console.error(`Error al normalizar adopciones activas para el animal ${animalId}:`, error.message);
+      }
+    }
 
     return {
       animal: { idAnimal: animalId, estadoAnterior, estadoNuevo: nuevoEstado },

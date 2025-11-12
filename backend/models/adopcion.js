@@ -202,6 +202,40 @@ const Adopcion = {
       'UPDATE adopcion SET activa = ? WHERE idSolicitud = ?',
       [activa ? 1 : 0, idSolicitud]
     );
+  },
+
+  async desactivarActivasPorAnimal(animalId) {
+    await pool.query(`
+      UPDATE adopcion ad
+      JOIN solicitud s ON ad.idSolicitud = s.idSolicitud
+      SET ad.activa = 0
+      WHERE s.idAnimal = ?
+    `, [animalId]);
+  },
+
+  async normalizarActivaPorAnimal(animalId) {
+    const [ultimoRegistro] = await pool.query(`
+      SELECT ad.idAdopcion
+      FROM adopcion ad
+      JOIN solicitud s ON ad.idSolicitud = s.idSolicitud
+      WHERE s.idAnimal = ?
+      ORDER BY ad.fecha DESC, ad.idAdopcion DESC
+      LIMIT 1
+    `, [animalId]);
+
+    const idAdopcionActiva = ultimoRegistro[0]?.idAdopcion;
+
+    if (!idAdopcionActiva) {
+      // Si no hay adopciones registradas, no hay nada que normalizar
+      return;
+    }
+
+    await pool.query(`
+      UPDATE adopcion ad
+      JOIN solicitud s ON ad.idSolicitud = s.idSolicitud
+      SET ad.activa = CASE WHEN ad.idAdopcion = ? THEN 1 ELSE 0 END
+      WHERE s.idAnimal = ?
+    `, [idAdopcionActiva, animalId]);
   }
 };
 

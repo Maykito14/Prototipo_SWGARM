@@ -144,12 +144,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       const lista = await api.getAdopcionesPorAnimal(animalId);
+      const activas = (lista || []).filter(ad => Number(ad.activa) === 1);
       selectAdopcion.innerHTML = '';
-      if (!lista || lista.length === 0) {
+      if (!activas || activas.length === 0) {
         selectAdopcion.add(new Option('No hay adopciones activas para este animal', ''));
         selectAdopcion.disabled = true;
       } else {
-        lista.forEach(ad => {
+        activas.forEach(ad => {
           const adoptanteNombre = `${ad.nombreAdoptante || ''} ${ad.apellidoAdoptante || ''}`.trim();
           const label = adoptanteNombre
             ? `Adopción #${ad.idAdopcion} - ${adoptanteNombre}`

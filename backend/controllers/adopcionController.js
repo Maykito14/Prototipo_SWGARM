@@ -559,7 +559,11 @@ exports.obtenerAdopcion = async (req, res) => {
 // Obtener adopciones por animal
 exports.obtenerAdopcionesPorAnimal = async (req, res) => {
   try {
-    const adopciones = await Adopcion.getByAnimalId(req.params.animalId);
+    const { animalId } = req.params;
+
+    await Adopcion.normalizarActivaPorAnimal(animalId);
+
+    const adopciones = await Adopcion.getByAnimalId(animalId);
     res.json(adopciones);
   } catch (error) {
     console.error(error);
@@ -598,9 +602,15 @@ exports.formalizarAdopcion = async (req, res) => {
       return res.status(409).json({ error: 'El animal ya está adoptado' });
     }
 
+    // Asegurarnos de que cualquier adopción previa quede inactiva
+    await Adopcion.desactivarActivasPorAnimal(solicitud.idAnimal);
+
     // Crear registro de adopción
     const fecha = new Date().toISOString().split('T')[0];
     const nuevaAdopcion = await Adopcion.create({ idSolicitud, idUsuario, fecha, contrato });
+
+    // Normalizar: dejar únicamente activa la adopción más reciente
+    await Adopcion.normalizarActivaPorAnimal(solicitud.idAnimal);
 
     // Actualizar estado del animal a "Adoptado" usando el historial de estados
     try {
