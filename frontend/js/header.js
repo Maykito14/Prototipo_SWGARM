@@ -11,18 +11,21 @@ function buildHeader(titleText) {
     navLinks = `
       <a href="index.html">Inicio</a>
       <a href="animales.html">Animales</a>
+      <a href="campanas.html">Campañas</a>
     `;
   } else if (isAdmin) {
     // Administradores: Solo Panel Admin y Animales (el resto está en el Panel Admin)
     navLinks = `
       <a href="admin_dashboard.html">Panel Admin</a>
       <a href="animales.html">Animales</a>
+      <a href="campanas.html">Campañas</a>
     `;
   } else {
     // Usuarios adoptantes logueados: Mi Panel y Animales (postulación solo desde tarjeta de animal)
     navLinks = `
       <a href="user_dashboard.html">Mi Panel</a>
       <a href="animales.html">Animales</a>
+      <a href="campanas.html">Campañas</a>
     `;
   }
   

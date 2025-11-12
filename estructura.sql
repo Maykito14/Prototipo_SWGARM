@@ -265,6 +265,7 @@ CREATE TABLE `preferencias_notificacion` (
   `notificarSolicitudAprobada` tinyint(1) NOT NULL DEFAULT 1,
   `notificarSolicitudRechazada` tinyint(1) NOT NULL DEFAULT 1,
   `notificarRecordatorioSeguimiento` tinyint(1) NOT NULL DEFAULT 1,
+  `notificarCampanas` tinyint(1) NOT NULL DEFAULT 1,
   `notificarPorEmail` tinyint(1) NOT NULL DEFAULT 1,
   `notificarEnSistema` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`idPreferencia`),
@@ -280,13 +281,34 @@ CREATE TABLE `campaña` (
   `idCampaña` int NOT NULL AUTO_INCREMENT,
   `idUsuario` int NOT NULL,
   `fechaCreacion` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fechaActualizacion` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `titulo` varchar(255) NOT NULL,
-  `descripcion` varchar(500) DEFAULT NULL,
+  `descripcion` text,
   `responsable` varchar(255) DEFAULT NULL,
-  `fecha` date DEFAULT NULL,
+  `fechaInicio` date DEFAULT NULL,
+  `fechaFin` date DEFAULT NULL,
+  `visible` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`idCampaña`),
   KEY `campaña_usuario_idx` (`idUsuario`),
+  KEY `campaña_visible_idx` (`visible`),
+  KEY `campaña_fecha_idx` (`fechaInicio`, `fechaFin`),
   CONSTRAINT `campaña_usuario` FOREIGN KEY (`idUsuario`) REFERENCES `usuario` (`idUsuario`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ============================================================================
+-- TABLA: campaña_foto
+-- ============================================================================
+DROP TABLE IF EXISTS `campaña_foto`;
+CREATE TABLE `campaña_foto` (
+  `idFoto` int NOT NULL AUTO_INCREMENT,
+  `idCampaña` int NOT NULL,
+  `ruta` varchar(255) NOT NULL,
+  `esPrincipal` tinyint(1) NOT NULL DEFAULT 0,
+  `fechaSubida` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`idFoto`),
+  KEY `campaña_foto_campaña_idx` (`idCampaña`),
+  KEY `campaña_foto_principal_idx` (`idCampaña`, `esPrincipal`),
+  CONSTRAINT `campaña_foto_campaña_fk` FOREIGN KEY (`idCampaña`) REFERENCES `campaña` (`idCampaña`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ============================================================================

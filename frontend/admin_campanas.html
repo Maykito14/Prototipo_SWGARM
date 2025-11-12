@@ -17,30 +17,48 @@
       <div id="error-message" class="alert alert-error" style="display: none;"></div>
 
       <!-- Formulario de registro de campaña -->
-      <div class="form-section">
+      <div class="section-card">
         <h3>Registrar Nueva Campaña</h3>
-        <form id="campanaForm" class="animal-form">
+        <form id="campanaForm" class="animal-form" enctype="multipart/form-data">
           <div class="form-group">
             <label for="titulo">Título de la Campaña *</label>
-            <input type="text" id="titulo" name="titulo" required maxlength="45">
+            <input type="text" id="titulo" name="titulo" required maxlength="255">
             <span class="error-message" id="titulo-error"></span>
           </div>
 
           <div class="form-group">
             <label for="descripcion">Descripción</label>
-            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Descripción detallada de la campaña..." maxlength="500"></textarea>
-            <small style="color: #666;" id="descripcion-count">0 / 500 caracteres</small>
+            <textarea id="descripcion" name="descripcion" rows="5" placeholder="Descripción detallada de la campaña..." maxlength="5000"></textarea>
+            <small class="char-counter" id="descripcion-count">0 / 5000 caracteres</small>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="responsable">Responsable</label>
-              <input type="text" id="responsable" name="responsable" placeholder="Nombre del responsable" maxlength="45">
+              <input type="text" id="responsable" name="responsable" placeholder="Nombre del responsable (opcional)" maxlength="255">
             </div>
             <div class="form-group">
-              <label for="fecha">Fecha del Evento</label>
-              <input type="date" id="fecha" name="fecha">
+              <label for="fechaInicio">Fecha desde *</label>
+              <input type="date" id="fechaInicio" name="fechaInicio" required>
             </div>
+            <div class="form-group">
+              <label for="fechaFin">Fecha hasta</label>
+              <input type="date" id="fechaFin" name="fechaFin">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-inline">
+              <input type="checkbox" id="visible" name="visible" checked>
+              Publicar inmediatamente
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="fotosCampana">Imágenes de la campaña</label>
+            <input type="file" id="fotosCampana" name="fotos" accept="image/*" multiple>
+            <small class="form-hint">Podés seleccionar varias imágenes (hasta 10). La primera se usará como portada.</small>
+            <div class="preview-grid" id="previewCampana"></div>
           </div>
 
           <div class="form-actions">
@@ -51,7 +69,7 @@
       </div>
 
       <!-- Lista de campañas -->
-      <div class="section-card" style="background:#fff; border-radius:8px; padding:24px; margin:16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+      <div class="section-card">
         <h3>Lista de Campañas</h3>
         <div class="table-container">
           <table class="admin-table" id="tablaCampanas">
@@ -59,16 +77,15 @@
               <tr>
                 <th>ID</th>
                 <th>Título</th>
-                <th>Descripción</th>
-                <th>Responsable</th>
-                <th>Fecha Evento</th>
+                <th>Fechas</th>
+                <th>Estado</th>
                 <th>Fecha Creación</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td colspan="7" style="text-align:center; padding:20px;">Cargando campañas...</td>
+                <td colspan="6" style="text-align:center; padding:20px;">Cargando campañas...</td>
               </tr>
             </tbody>
           </table>
@@ -88,23 +105,43 @@
         <form id="modalCampanaForm">
           <div class="form-group">
             <label for="modalTitulo">Título *</label>
-            <input type="text" id="modalTituloInput" name="titulo" required maxlength="45">
+            <input type="text" id="modalTituloInput" name="titulo" required maxlength="255">
             <span class="error-message" id="modal-titulo-error"></span>
           </div>
           <div class="form-group">
             <label for="modalDescripcion">Descripción</label>
-            <textarea id="modalDescripcion" name="descripcion" rows="4" maxlength="500"></textarea>
-            <small style="color: #666;" id="modal-descripcion-count">0 / 500 caracteres</small>
+            <textarea id="modalDescripcion" name="descripcion" rows="5" maxlength="5000"></textarea>
+            <small class="char-counter" id="modal-descripcion-count">0 / 5000 caracteres</small>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label for="modalResponsable">Responsable</label>
-              <input type="text" id="modalResponsable" name="responsable" maxlength="45">
+              <input type="text" id="modalResponsable" name="responsable" maxlength="255">
             </div>
             <div class="form-group">
-              <label for="modalFecha">Fecha del Evento</label>
-              <input type="date" id="modalFecha" name="fecha">
+              <label for="modalFechaInicio">Fecha desde *</label>
+              <input type="date" id="modalFechaInicio" name="fechaInicio" required>
             </div>
+            <div class="form-group">
+              <label for="modalFechaFin">Fecha hasta</label>
+              <input type="date" id="modalFechaFin" name="fechaFin">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-inline">
+              <input type="checkbox" id="modalVisible" name="visible">
+              Publicada
+            </label>
+          </div>
+          <div class="form-group">
+            <label for="modalFotos">Agregar nuevas imágenes</label>
+            <input type="file" id="modalFotos" name="fotos" accept="image/*" multiple>
+            <small class="form-hint">Las imágenes nuevas se agregarán a la galería de la campaña.</small>
+            <div class="preview-grid" id="modalPreview"></div>
+          </div>
+          <div class="form-group">
+            <label>Imágenes actuales</label>
+            <div class="gallery-editor" id="galeriaCampana"></div>
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">Guardar Cambios</button>
@@ -121,4 +158,5 @@
   <script src="./js/admin_campanas.js"></script>
 </body>
 </html>
+
 

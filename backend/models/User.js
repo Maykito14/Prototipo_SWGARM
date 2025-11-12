@@ -155,6 +155,16 @@ const User = {
     );
     return await this.findByEmail(email);
   },
+
+  async getAdoptantesActivos() {
+    const [rows] = await pool.query(
+      `SELECT idUsuario, email
+       FROM usuario
+       WHERE rol = 'adoptante'
+         AND (bloqueoPermanente IS NULL OR bloqueoPermanente = 0)`
+    );
+    return rows;
+  },
 };
 
 module.exports = User;

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campañas - Corazón de Trapo</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body data-page-title="Campañas">
+  <main class="main">
+    <section class="hero-section campanas-hero">
+      <div class="hero-content">
+        <h1>Campañas y actividades</h1>
+        <p>Enterate de todas las campañas de concientización, jornadas y eventos especiales organizados por Corazón de Trapo.</p>
+      </div>
+    </section>
+
+    <section class="campanas-section">
+      <div id="estadoCampanas" class="info-message" role="status" aria-live="polite">
+        Cargando campañas...
+      </div>
+      <div id="gridCampanas" class="campanas-grid"></div>
+    </section>
+  </main>
+
+  <div id="campanaModal" class="modal" style="display: none;">
+    <div class="campana-modal-wrapper">
+      <div class="modal-content modal-campana">
+        <div class="modal-header">
+          <h3 id="modalCampanaTitulo">Detalle de la campaña</h3>
+          <span class="close" id="btnCerrarCampana">&times;</span>
+        </div>
+        <div class="modal-body" id="modalCampanaBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/header.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/campanas.js"></script>
+</body>
+</html>
+

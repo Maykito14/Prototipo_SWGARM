@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let preferenciasActuales = {
     notificarSolicitudAprobada: true,
     notificarSolicitudRechazada: true,
+    notificarCampanas: true,
     notificarRecordatorioSeguimiento: true,
     notificarPorEmail: true,
     notificarEnSistema: true,
@@ -64,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
       preferenciasActuales = {
         notificarSolicitudAprobada: preferencias?.notificarSolicitudAprobada ?? true,
         notificarSolicitudRechazada: preferencias?.notificarSolicitudRechazada ?? true,
+        notificarCampanas: preferencias?.notificarCampanas ?? true,
         notificarRecordatorioSeguimiento: preferencias?.notificarRecordatorioSeguimiento ?? true,
         notificarPorEmail: preferencias?.notificarPorEmail ?? true,
         notificarEnSistema: preferencias?.notificarEnSistema ?? true,

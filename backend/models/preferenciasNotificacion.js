@@ -14,6 +14,7 @@ const PreferenciasNotificacion = {
       notificarSolicitudAprobada = true,
       notificarSolicitudRechazada = true,
       notificarRecordatorioSeguimiento = true,
+      notificarCampanas = true,
       notificarPorEmail = true,
       notificarEnSistema = true
     } = preferencias;
@@ -26,6 +27,7 @@ const PreferenciasNotificacion = {
          notificarSolicitudAprobada = ?,
          notificarSolicitudRechazada = ?,
          notificarRecordatorioSeguimiento = ?,
+         notificarCampanas = ?,
          notificarPorEmail = ?,
          notificarEnSistema = ?
          WHERE idUsuario = ?`,
@@ -33,6 +35,7 @@ const PreferenciasNotificacion = {
           notificarSolicitudAprobada,
           notificarSolicitudRechazada,
           notificarRecordatorioSeguimiento,
+          notificarCampanas,
           notificarPorEmail,
           notificarEnSistema,
           idUsuario
@@ -43,13 +46,14 @@ const PreferenciasNotificacion = {
       const [result] = await pool.query(
         `INSERT INTO preferencias_notificacion 
          (idUsuario, notificarSolicitudAprobada, notificarSolicitudRechazada, 
-          notificarRecordatorioSeguimiento, notificarPorEmail, notificarEnSistema)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+          notificarRecordatorioSeguimiento, notificarCampanas, notificarPorEmail, notificarEnSistema)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           idUsuario,
           notificarSolicitudAprobada,
           notificarSolicitudRechazada,
           notificarRecordatorioSeguimiento,
+          notificarCampanas,
           notificarPorEmail,
           notificarEnSistema
         ]

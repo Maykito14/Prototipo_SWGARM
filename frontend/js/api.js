@@ -3,10 +3,12 @@ const API_URL = 'http://localhost:3001/api';
 const api = {
   async request(endpoint, options = {}) {
     const token = localStorage.getItem('token');
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
+    const headers = { ...(options.headers || {}) };
+
+    const esFormData = options.body instanceof FormData;
+    if (!esFormData && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
@@ -18,14 +20,25 @@ const api = {
         headers,
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      let data;
+
+      if (contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        data = text;
+      }
 
       if (!response.ok) {
-        const error = new Error(data.error || 'Error en la petición');
-        // Pasar todos los datos adicionales del error
-        if (data.intentosRestantes !== undefined) error.intentosRestantes = data.intentosRestantes;
-        if (data.minutosRestantes !== undefined) error.minutosRestantes = data.minutosRestantes;
-        if (data.mensaje) error.mensaje = data.mensaje;
+        const errorMensaje =
+          (data && data.error) || (typeof data === 'string' ? data : 'Error en la petición');
+        const error = new Error(errorMensaje);
+        if (data && typeof data === 'object') {
+          if (data.intentosRestantes !== undefined) error.intentosRestantes = data.intentosRestantes;
+          if (data.minutosRestantes !== undefined) error.minutosRestantes = data.minutosRestantes;
+          if (data.mensaje) error.mensaje = data.mensaje;
+        }
         throw error;
       }
 
@@ -322,23 +335,53 @@ const api = {
     return this.request(`/campanas/${id}`);
   },
 
+  async getCampanasPublicas() {
+    return this.request('/campanas/publicas');
+  },
+
+  async getCampanaPublica(id) {
+    return this.request(`/campanas/publicas/${id}`);
+  },
+
   async crearCampana(datos) {
+    const body = datos instanceof FormData ? datos : JSON.stringify(datos);
     return this.request('/campanas', {
       method: 'POST',
-      body: JSON.stringify(datos),
+      body,
     });
   },
 
   async actualizarCampana(id, datos) {
+    const body = datos instanceof FormData ? datos : JSON.stringify(datos);
     return this.request(`/campanas/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(datos),
+      body,
     });
   },
 
   async eliminarCampana(id) {
     return this.request(`/campanas/${id}`, {
       method: 'DELETE',
+    });
+  },
+
+  async cambiarVisibilidadCampana(id, visible) {
+    return this.request(`/campanas/${id}/visibilidad`, {
+      method: 'PATCH',
+      body: JSON.stringify({ visible }),
+    });
+  },
+
+  async eliminarFotoCampana(idCampana, idFoto) {
+    return this.request(`/campanas/${idCampana}/fotos/${idFoto}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async establecerFotoPrincipalCampana(idCampana, ruta) {
+    return this.request(`/campanas/${idCampana}/foto-principal`, {
+      method: 'PUT',
+      body: JSON.stringify({ ruta }),
     });
   },
 

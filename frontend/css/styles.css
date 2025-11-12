@@ -1149,6 +1149,375 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
+.char-counter {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.form-hint {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.checkbox-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+.preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.preview-item {
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  padding: 6px;
+  background: #f9fafc;
+  font-size: 12px;
+  text-align: center;
+}
+
+.preview-item img {
+  width: 100%;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.preview-name {
+  word-break: break-word;
+  color: #333;
+}
+
+.gallery-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.gallery-item {
+  position: relative;
+  width: 150px;
+  border: 1px solid #d0d7de;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.gallery-item.principal {
+  border-color: #f1c40f;
+  box-shadow: 0 0 0 2px rgba(241, 196, 15, 0.3);
+}
+
+.gallery-item img {
+  display: block;
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+}
+
+.gallery-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-icon {
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-icon:hover {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.badge-principal {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background: #f1c40f;
+  color: #000;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 6px;
+  border-radius: 6px;
+}
+
+.gallery-empty {
+  font-size: 14px;
+  color: #666;
+}
+
+.tabla-fechas {
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tabla-fechas strong {
+  color: #333;
+}
+
+.tabla-acciones {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.campanas-hero {
+  background: linear-gradient(135deg, rgba(241, 196, 15, 0.85), rgba(253, 187, 45, 0.75)),
+              url('../images/hero-campanas.jpg') center/cover no-repeat;
+  padding: 80px 20px;
+  color: #fff;
+  text-align: center;
+}
+
+.campanas-hero .hero-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.campanas-hero h1 {
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+}
+
+.campanas-hero p {
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.campanas-section {
+  max-width: 1100px;
+  margin: 30px auto 60px;
+  padding: 0 20px;
+}
+
+.campanas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.campana-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #d0d7de;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.campana-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.campana-image img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.campana-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.campana-body h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #1f2933;
+}
+
+.campana-body p {
+  font-size: 14px;
+  color: #4d5761;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.campana-fechas {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f2990f;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.campana-modal-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.modal-campana {
+  max-width: 840px;
+  width: min(840px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-campana-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.modal-campana-imagen {
+  background: #f4f6fa;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+ a justify-content: center;
+  max-width: 560px;
+  width: 100%;
+}
+
+.modal-campana-imagen img {
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.modal-campana-thumbs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.modal-thumb {
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.modal-thumb img {
+  display: block;
+  width: 96px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.modal-thumb.activa {
+  border-color: #f1c40f;
+}
+
+.modal-campana-info {
+  margin-top: 18px;
+  font-size: 15px;
+  color: #333;
+  text-align: center;
+}
+
+.modal-campana-fechas {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #f2990f;
+}
+
+.modal-campana-descripcion {
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.modal-campana .modal-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid #eceff4;
+}
+
+.modal-campana .modal-header h3 {
+  font-size: 1.35rem;
+  color: #1f2933;
+}
+
+.modal-campana .close {
+  margin-left: auto;
+  font-size: 34px;
+  font-weight: 600;
+  color: #1f2933;
+  background: rgba(31, 41, 51, 0.08);
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.modal-campana .close:hover {
+  background: #f1c40f;
+  color: #000;
+}
+
+@media (max-width: 768px) {
+  .campanas-hero {
+    padding: 60px 20px;
+  }
+
+  .campanas-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .campana-modal-wrapper {
+    padding: 30px 15px;
+  }
+
+  .modal-campana {
+    width: 100%;
+  }
+}
+
 .info-message,
 .error-message,
 .success-message {

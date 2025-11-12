@@ -99,6 +99,7 @@
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+  margin: 20px;
 }
 
 .modal-header {

@@ -9,12 +9,12 @@ function normalizarRuta(ruta) {
   return ruta.replace(/\\/g, '/').replace(/^\/+/, '');
 }
 
-async function obtenerArchivosSistema(directorio) {
+async function obtenerArchivosSistema(directorio, prefijo) {
   try {
     const archivos = await fs.readdir(directorio);
     return archivos
       .filter((archivo) => archivo !== '.gitkeep')
-      .map((archivo) => `uploads/images/${archivo}`);
+      .map((archivo) => `${prefijo}/${archivo}`);
   } catch (error) {
     if (error.code === 'ENOENT') {
       return [];
@@ -27,6 +27,7 @@ async function obtenerReferenciasBD() {
   const [rutasFoto] = await pool.query('SELECT ruta FROM animal_foto');
   // Compatibilidad: por si aún quedan valores en la columna antigua
   const [rutasAnimal] = await pool.query('SELECT foto FROM animal WHERE foto IS NOT NULL AND foto <> ""');
+  const [rutasCampanas] = await pool.query('SELECT ruta FROM campaña_foto');
 
   const referencias = new Set();
 
@@ -36,15 +37,22 @@ async function obtenerReferenciasBD() {
   rutasAnimal.forEach(({ foto }) => {
     if (foto) referencias.add(normalizarRuta(foto));
   });
+  rutasCampanas.forEach(({ ruta }) => {
+    if (ruta) referencias.add(normalizarRuta(ruta));
+  });
 
   return referencias;
 }
 
 async function main() {
-  const uploadsDir = path.join(__dirname, '..', 'backend', 'uploads', 'images');
+  const uploadsAnimales = path.join(__dirname, '..', 'backend', 'uploads', 'images');
+  const uploadsCampanas = path.join(__dirname, '..', 'backend', 'uploads', 'campanas');
 
   const [archivosSistema, referenciasBD] = await Promise.all([
-    obtenerArchivosSistema(uploadsDir),
+    Promise.all([
+      obtenerArchivosSistema(uploadsAnimales, 'uploads/images'),
+      obtenerArchivosSistema(uploadsCampanas, 'uploads/campanas'),
+    ]).then((resultados) => resultados.flat()),
     obtenerReferenciasBD()
   ]);
 
@@ -56,8 +64,8 @@ async function main() {
 
   const referenciasInvalidas = Array.from(referenciasBD).filter((ruta) => !archivosSet.has(ruta));
 
-  console.log('📁 Validación de imágenes en uploads/images');
-  console.log('------------------------------------------');
+  console.log('📁 Validación de imágenes en uploads/');
+  console.log('-------------------------------------');
   console.log(`Total de archivos en disco: ${archivosSistema.length}`);
   console.log(`Total de referencias en BD: ${referenciasBD.size}\n`);
 

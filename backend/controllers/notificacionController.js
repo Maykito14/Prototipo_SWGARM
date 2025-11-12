@@ -105,6 +105,7 @@ exports.actualizarMisPreferencias = async (req, res) => {
       notificarSolicitudAprobada,
       notificarSolicitudRechazada,
       notificarRecordatorioSeguimiento,
+      notificarCampanas,
       notificarPorEmail,
       notificarEnSistema
     } = req.body;
@@ -113,6 +114,7 @@ exports.actualizarMisPreferencias = async (req, res) => {
       notificarSolicitudAprobada,
       notificarSolicitudRechazada,
       notificarRecordatorioSeguimiento,
+      notificarCampanas,
       notificarPorEmail,
       notificarEnSistema
     });
