@@ -8,8 +8,7 @@
 4. [Configuración del Proyecto](#configuración-del-proyecto)
 5. [Iniciar la Aplicación](#iniciar-la-aplicación)
 6. [Verificación](#verificación)
-7. [Solución de Problemas](#solución-de-problemas)
-8. [Estructura del Proyecto](#estructura-del-proyecto)
+
 
 ---
 
@@ -115,13 +114,16 @@ USE swgarm;
 SHOW TABLES;
 ```
 
-Deberías ver las siguientes 12 tablas:
+Deberías ver las siguientes 15 tablas:
 - adopcion
 - adoptante
 - animal
+- animal_foto
 - campaña
+- campaña_foto
 - estado_animal
 - notificacion
+- password_reset_token
 - preferencias_notificacion
 - reporte
 - salud
@@ -242,109 +244,7 @@ SELECT * FROM usuario;
 
 ---
 
-## 🔧 Solución de Problemas
 
-### Error: "Cannot find module 'express'"
-**Solución:** Ejecuta `npm install` nuevamente
-
-### Error: "Access denied for user 'root'@'localhost'"
-**Solución:** 
-- Verifica que `DB_USER` y `DB_PASS` en `.env` sean correctos
-- Asegúrate de que MySQL esté corriendo
-- Verifica que el usuario tenga permisos
-
-### Error: "Unknown database 'swgarm'"
-**Solución:** 
-- Asegúrate de haber creado la base de datos
-- Verifica que `DB_NAME` en `.env` sea `swgarm`
-
-### Error: "Table 'swgarm.usuario' doesn't exist"
-**Solución:** 
-- Ejecuta `estructura.sql` completamente
-- Verifica que todos los scripts de actualización se ejecutaron en orden
-
-### Puerto 3001 ya está en uso
-**Solución:** 
-- Cambia el puerto en `.env` a otro número (ej: 3002)
-- O cierra la aplicación que está usando el puerto 3001
-
-### Error: "Token inválido" al hacer login
-**Solución:**
-- Verifica que `JWT_SECRET` está configurado en `.env`
-- Limpia el localStorage del navegador (F12 → Application → Local Storage → Clear)
-
-### La página carga pero no aparecen datos
-**Solución:**
-- Verifica que la base de datos tenga datos
-- Revisa la consola del navegador (F12) para ver errores
-- Verifica que el servidor esté corriendo en el puerto correcto
-
-### Headers duplicados en la página
-**Solución:**
-- Limpia la caché del navegador (Ctrl+Shift+R o Cmd+Shift+R)
-- Verifica que todos los archivos HTML usen `header.js`
-
----
-
-## 📂 Estructura del Proyecto
-
-```
-Prototipo_SWGARM/
-├── backend/
-│   ├── config/
-│   │   └── db.js              # Configuración de base de datos
-│   ├── controllers/           # Controladores de la API
-│   │   ├── adopcionController.js
-│   │   ├── animalController.js
-│   │   ├── campanaController.js
-│   │   ├── estadoAnimalController.js
-│   │   ├── notificacionController.js
-│   │   ├── reportesController.js
-│   │   ├── saludController.js
-│   │   ├── seguimientoController.js
-│   │   └── userController.js
-│   ├── middlewares/
-│   │   └── autMiddleware.js   # Middleware de autenticación
-│   ├── models/                # Modelos de base de datos
-│   │   ├── adopcion.js
-│   │   ├── animal.js
-│   │   ├── campana.js
-│   │   ├── estadoAnimal.js
-│   │   ├── notificacion.js
-│   │   ├── preferenciasNotificacion.js
-│   │   ├── salud.js
-│   │   ├── seguimiento.js
-│   │   └── User.js
-│   ├── routes/                # Rutas de la API
-│   │   ├── adopcionRoutes.js
-│   │   ├── animalRoutes.js
-│   │   ├── campanaRoutes.js
-│   │   ├── estadoAnimalRoutes.js
-│   │   ├── notificacionRoutes.js
-│   │   ├── reportesRoutes.js
-│   │   ├── saludRoutes.js
-│   │   ├── seguimientoRoutes.js
-│   │   └── userRoutes.js
-│   └── app.js                 # Configuración de Express
-├── frontend/
-│   ├── css/                   # Estilos CSS
-│   │   ├── admin_solicitudes.css
-│   │   └── styles.css
-│   ├── images/                # Imágenes del proyecto
-│   ├── js/                    # JavaScript del frontend
-│   │   ├── api.js             # Cliente API
-│   │   ├── auth.js            # Gestión de sesión
-│   │   ├── header.js          # Header dinámico
-│   │   ├── login.js
-│   │   ├── register.js
-│   │   └── [otros archivos JS]
-│   └── *.html                 # Páginas HTML
-├── .env                       # Variables de entorno (crear desde ENV.example)
-├── ENV.example               # Ejemplo de variables de entorno
-├── package.json              # Dependencias del proyecto
-├── server.js                 # Archivo principal del servidor
-└── *.sql                     # Scripts de base de datos
-```
 
 ---
 

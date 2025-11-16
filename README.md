@@ -1,4 +1,4 @@
-# Sistema Web de Gestión de Adopción y Rescate de Mascotas (SWGARM)
+# Sistema Web Para la Gestión de Adopciones Responsables de Mascotas (SWGARM)
 
 Sistema web desarrollado para la gestión de adopción de mascotas de un refugio local. Permite gestionar animales disponibles para adopción, solicitudes de adopción y perfiles de usuario.
 

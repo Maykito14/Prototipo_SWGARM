@@ -5,7 +5,7 @@
 -- ============================================================================
 -- 
 -- INSTRUCCIONES DE USO:
--- Ejecutar este script completo desde MySQL/MariaDB. El script creará
+-- Ejecutar este script completo desde MySQL. El script creará
 -- automáticamente la base de datos y todas las tablas necesarias.
 -- 
 -- Ejemplo de ejecución:
@@ -13,23 +13,8 @@
 -- 
 -- O desde MySQL Workbench/phpMyAdmin: ejecutar todo el contenido del archivo.
 -- 
--- ACTUALIZACIONES INCLUIDAS:
--- - Todos los campos VARCHAR usan longitud 255 y colación utf8mb4_0900_ai_ci
--- - Tabla `animal`: incluye sistema de puntaje mínimo y elimina el campo redundante `foto`
--- - Nueva tabla `animal_foto` para soportar múltiples imágenes por animal
--- - Tabla `salud`: añade `fechaProgramada`, `estado` y `fechaAltaVeterinaria`
--- - Tabla `solicitud`: estado por defecto 'Pendiente' y puntaje con valor inicial 0
--- - Tabla `adopcion`: campo booleano `activa` para distinguir adopciones vigentes
--- - Tabla `seguimiento`: registra `idUsuarioCreador`, observaciones extensas y bandera de recordatorio
--- - Tabla `notificacion`: fecha de envío con timestamp y mensajes de longitud variable
--- - Tabla `password_reset_token`: gestiona códigos temporales para recuperación de contraseña
 -- 
--- NOTA: Este archivo ya incluye todas las actualizaciones de las migraciones:
---   - migracion_puntaje_minimo.sql
---   - migracion_respuestas_formulario.sql
--- 
--- Si tienes una base de datos existente, usa los scripts de migración individuales.
--- Si estás creando la base de datos desde cero, usa este archivo.
+-- Este es el único archivo necesario para crear la base de datos completa.
 -- 
 -- ============================================================================
 
