@@ -26,7 +26,6 @@ npm install
 ```
 
 3. **Configurar base de datos:**
-   - Crear una base de datos MySQL llamada `swgarm`
    - Importar el archivo `estructura.sql` en tu base de datos:
    ```bash
    mysql -u root -p swgarm < estructura.sql
@@ -49,77 +48,32 @@ npm install
 npm start
 ```
 
-Para desarrollo con auto-reload:
-```bash
-npm run dev
-```
-
 El servidor estará disponible en `http://localhost:3001`
 
-## 📂 Estructura del Proyecto
-
-```
-Prototipo_SWGARM/
-├── backend/
-│   ├── config/
-│   │   └── db.js           # Configuración de base de datos
-│   ├── controllers/
-│   │   ├── animalController.js
-│   │   └── userController.js
-│   ├── middlewares/
-│   │   ├── autMiddleware.js # Middleware de autenticación
-│   │   └── uploadMiddleware.js # Middleware de subida de archivos
-│   ├── models/
-│   │   ├── animal.js
-│   │   └── User.js
-│   ├── routes/
-│   │   ├── animalRoutes.js
-│   │   └── userRoutes.js
-│   ├── uploads/
-│   │   └── images/         # Carpeta para imágenes subidas
-│   └── app.js              # Configuración de Express
-├── frontend/
-│   ├── css/
-│   │   └── styles.css
-│   ├── js/
-│   │   ├── api.js          # Cliente API
-│   │   ├── auth.js         # Funciones de autenticación
-│   │   ├── login.js
-│   │   ├── register.js
-│   │   └── animales.js
-│   ├── images/
-│   └── *.html              # Páginas del frontend
-├── estructura.sql          # Esquema de la base de datos
-├── package.json
-├── server.js              # Punto de entrada de la aplicación
-└── README.md
-```
 
 ## 👥 Perfiles de Usuario
 
-### Administrador
+### Administrador: 
+Usuario: admin@admin.com
+Contraseña: admin
 - Gestionar animales
 - Revisar y aprobar solicitudes de adopción
+- Gestión de Salud
+- Gestión de Estados
+- Seguimiento de Solicitudes
 - Generar reportes
 - Administrar usuarios
+- Gestión de Campañas
 
 ### Adoptante
+Usuario: usuario@usuario.com
+Contraseña: usuario
 - Ver animales disponibles
+- Editar perfil
 - Crear solicitudes de adopción
 - Ver estado de sus solicitudes
+- Ver notificaciones
 
-## 🔐 Endpoints API
-
-### Autenticación
-- `POST /api/usuarios/register` - Registro de usuarios
-- `POST /api/usuarios/login` - Inicio de sesión
-
-### Animales
-- `GET /api/animales` - Listar todos los animales
-- `GET /api/animales/:id` - Obtener un animal por ID
-- `POST /api/animales` - Crear un nuevo animal (requiere auth)
-- `PUT /api/animales/:id` - Actualizar un animal (requiere auth)
-- `DELETE /api/animales/:id` - Eliminar un animal (requiere auth)
 
 ## 📸 Sistema de Subida de Imágenes
 
@@ -132,26 +86,10 @@ Prototipo_SWGARM/
 - Almacenamiento automático en servidor
 - Acceso desde todas las páginas del sistema
 
-📖 **Documentación Completa:** Ver [DOCUMENTACION_SUBIDA_IMAGENES.md](./DOCUMENTACION_SUBIDA_IMAGENES.md)
-
-## 🐛 Problemas Conocidos y Mejoras Futuras
-
-1. **Autenticación:** ✅ Protección completa de rutas implementada
-2. **Validación:** ✅ Validación robusta implementada
-3. **Imágenes:** ✅ Sistema de subida de imágenes implementado
-4. **Email:** Agregar notificaciones por email
-5. **Reportes:** Implementar generación de reportes PDF
-
-## 📝 Notas de Desarrollo
-
-- El frontend y backend están separados, pero comparten la misma base de datos
-- Las rutas de API siguen el prefijo `/api`
-- Los archivos estáticos del frontend se sirven desde `backend/public`
-- La autenticación usa JWT con expiración de 8 horas
 
 ## 👨‍💻 Autor
 
-Desarrollado como proyecto final de grado.
+Desarrollado como proyecto final de grado por Mayco Alexis Vassalle
 
 ## 📄 Licencia
 

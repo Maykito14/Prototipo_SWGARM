@@ -73,21 +73,7 @@ Esto instalará todas las dependencias necesarias:
 
 ## 🗄️ Configuración de la Base de Datos
 
-### Paso 1: Crear la Base de Datos MySQL
-
-1. Abre MySQL (Workbench, línea de comandos, o phpMyAdmin si usas XAMPP/WAMP)
-
-2. Crea la base de datos:
-```sql
-CREATE DATABASE swgarm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-3. Verifica que se creó correctamente:
-```sql
-SHOW DATABASES;
-```
-
-### Paso 2: Importar la Estructura Completa de la Base de Datos
+### Paso 1: Importar la Estructura Completa de la Base de Datos
 
 **Importante:** El archivo `estructura.sql` ya incluye todas las tablas y actualizaciones necesarias. Solo necesitas ejecutar este único archivo.
 
@@ -105,6 +91,21 @@ mysql -u root -p swgarm < estructura.sql
 (Te pedirá la contraseña de MySQL)
 
 **Nota:** Este script crea todas las tablas con todas las actualizaciones ya aplicadas. No necesitas ejecutar ningún otro script SQL.
+
+### Paso 2 (Opcional): Importar Datos de Prueba
+
+Si existe un archivo `datos_prueba.sql` en el repositorio, puedes importarlo para tener datos de ejemplo:
+
+**Opción A - Usando MySQL Workbench:**
+1. File → Open SQL Script → Selecciona `datos_prueba.sql`
+2. Ejecuta el script completo (Execute o F5)
+
+**Opción B - Usando línea de comandos:**
+```bash
+mysql -u root -p swgarm < datos_prueba.sql
+```
+
+**Nota:** Los datos de prueba son opcionales. Si no los importas, tendrás una base de datos vacía y deberás crear tus propios datos a través de la aplicación.
 
 ### Paso 3: Verificar la Estructura de la Base de Datos
 
@@ -242,60 +243,9 @@ Puedes crear un usuario de prueba desde la interfaz:
 SELECT * FROM usuario;
 ```
 
----
-
-
-
----
-
-## 📝 Notas Adicionales
-
-### Datos de Prueba
-
-Puedes crear usuarios de prueba desde la interfaz de registro. Para crear un administrador manualmente:
-
-```sql
-INSERT INTO usuario (email, password, rol) 
-VALUES ('admin@corazondetrapo.com', 'password_hash_aqui', 'administrador');
-```
-
-**Nota:** El password debe estar hasheado con bcrypt. Es mejor crear un usuario desde la interfaz y luego cambiar el rol en la base de datos.
-
-### Cambiar Rol de Usuario
-
-Para cambiar un usuario a administrador:
-```sql
-UPDATE usuario SET rol = 'administrador' WHERE email = 'admin@admin.com';
-```
-
 ### Crear Datos de Prueba
 
 Puedes crear animales de prueba desde la interfaz de administración una vez que inicies sesión como administrador.
-
----
-
-## 🔐 Seguridad en Producción
-
-Cuando despliegues en producción, asegúrate de:
-
-1. ✅ Cambiar `JWT_SECRET` por una clave segura y aleatoria
-2. ✅ Usar contraseñas seguras para MySQL
-3. ✅ Habilitar HTTPS
-4. ✅ Configurar CORS correctamente
-5. ✅ Validar todas las entradas del usuario
-6. ✅ Implementar rate limiting
-7. ✅ Usar variables de entorno para todas las configuraciones sensibles
-
----
-
-## 📞 Soporte
-
-Si encuentras problemas:
-
-1. Revisa la consola del navegador (F12) para ver errores
-2. Revisa la consola del servidor para ver errores de backend
-3. Verifica que todos los pasos de instalación se completaron
-4. Verifica que la base de datos tiene todas las tablas y estructura correcta
 
 ---
 
