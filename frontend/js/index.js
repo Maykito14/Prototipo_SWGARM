@@ -19,8 +19,8 @@ const indicators = document.querySelectorAll('.indicator');
 const totalSlides = slides.length;
 
 function initSlideshow() {
-    // Auto-avance de slides cada 5 segundos
-    setInterval(nextSlide, 5000);
+    // Auto-avance de slides cada 8 segundos
+    setInterval(nextSlide, 8000);
     
     // Agregar eventos a los indicadores
     indicators.forEach((indicator, index) => {
